@@ -1,7 +1,7 @@
 """
 Welcome to Lab 1: Driving in Shapes!
 """
-import time
+import time, rospy
 
 
 """
@@ -9,9 +9,9 @@ In this function you will write all the code that you only want to run one time.
 """
 def start():
 	# Start by setting your speed and angle to 0
-
+	print("yes")
     # When you have written start, delete this line next line 
-    pass
+    # pass
 
 
 def update():
@@ -22,10 +22,10 @@ def update():
 
 
 	# Make the car drive in a figure eight
-
+	print("no")
     
     # When you have written start, delete this line next line 
-	pass
+	# pass
 
 """
 This last line is filled out for you! It calls the code you just wrote
@@ -48,4 +48,15 @@ def update_timer(start, update):
     g = g_tick()
     while True:
         time.sleep(next(g))
+        update()
+
+def update_ros(start, update):
+	start()
+	r = rospy.Rate(60)
+	while True:
+		update()
+		r.sleep()
+update_ros(start, update)
+#update_timer(start, update)
+
 
