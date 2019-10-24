@@ -3,22 +3,34 @@ Welcome to Lab 1: Driving in Shapes!
 """
 import time
 
-def start():
-	print("y")
 
+"""
+In this function you will write all the code that you only want to run one time.
+"""
+def start():
+	# Start by setting your speed and angle to 0
+
+    # When you have written start, delete this line next line 
+    pass
 
 
 def update():
-	print("n")
+	# Make the car drive in a circle
 
 
+	# Make the car drive in a square
+
+
+	# Make the car drive in a figure eight
+
+    
+    # When you have written start, delete this line next line 
+	pass
 
 """
 This last line is filled out for you! It calls the code you just wrote
 """
-
 #update_timer(start, update)
-
 
 
 """"
