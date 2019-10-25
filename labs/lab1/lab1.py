@@ -1,62 +1,55 @@
 """
-Welcome to Lab 1: Driving in Shapes!
+Copyright Harvey Mudd College
+Fall 2019
+
+Lab <n> - <Lab Title>
 """
-import time, rospy
+
+################################################################################
+# Imports
+################################################################################
+
+import sys
+sys.path.insert(0, '../../library')
+from racecar_core import *
+rospy.init_node('racecar')
 
 
-"""
-In this function you will write all the code that you only want to run one time.
-"""
+################################################################################
+# Global variables
+################################################################################
+
+rc = Racecar()
+counter = 0
+
+
+################################################################################
+# Functions
+################################################################################
+
 def start():
-	# Start by setting your speed and angle to 0
-	print("yes")
-    # When you have written start, delete this line next line 
-    # pass
-
+    """
+    This function is run once every time the start button is pressed
+    """
+    pass
 
 def update():
-	# Make the car drive in a circle
+    """
+    After start() is run, this function is run every frame until the back button is
+    pressed
+    """
+    global counter
+    print(counter)
+    if (counter < 120):
+        rc.drive.set_speed_angle(1, 20)
+    else:
+        rc.drive.set_speed_angle(0, -10)
+    counter += 1
 
 
-	# Make the car drive in a square
+################################################################################
+# Do not modify any code beyond this point
+################################################################################
 
-
-	# Make the car drive in a figure eight
-	print("no")
-    
-    # When you have written start, delete this line next line 
-	# pass
-
-"""
-This last line is filled out for you! It calls the code you just wrote
-"""
-#update_timer(start, update)
-
-
-""""
-this code will be moved to the library and will not be student facing
-"""
-def g_tick():
-            t = time.time()
-            count = 0
-            while True:
-                count += 1
-                yield max(t + count*(1.0/60.0)- time.time(),0)
-
-def update_timer(start, update):
-    start()
-    g = g_tick()
-    while True:
-        time.sleep(next(g))
-        update()
-
-def update_ros(start, update):
-	start()
-	r = rospy.Rate(60)
-	while True:
-		update()
-		r.sleep()
-update_ros(start, update)
-#update_timer(start, update)
-
-
+if __name__ == "__main__":
+    rc.run(start, update)

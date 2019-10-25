@@ -34,8 +34,8 @@ def start():
 
 def update():
     """
-    After start() is run, this function is run every frame until the back button is
-    pressed
+    After start() is run, this function is run every frame until the back button
+    is pressed
     """
     pass
 
