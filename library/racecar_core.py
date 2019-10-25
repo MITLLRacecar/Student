@@ -1,23 +1,29 @@
-#############################
-#### Imports
-#############################
+"""
+File docstring
+"""
+
+################################################################################
+# Imports
+################################################################################
 
 # General 
 import os
-# from typing import Tuple
 
 # ROS 
 import rospy
-# from rospy.numpy_msg import numpy_msg
 from sensor_msgs.msg import LaserScan
 from sensor_msgs.msg import Image
 from ackermann_msgs.msg import AckermannDriveStamped
 
-#############################
-#### Racecar ROS Class
-#############################
+
+################################################################################
+# Racecar class
+################################################################################
 
 class Racecar:
+    """
+    Class docstring
+    """
     def __init__(self):
         self.drive = self.Drive()
 
@@ -31,32 +37,56 @@ class Racecar:
             timer.sleep()
 
     def __publish(self):
-        self.drive.publish()
+        self.drive._Drive__publish()
 
     class Drive:
+        """
+        Controls the car's movement by allowing the user to set the state
+        associated with speed and turning
+        """
         __TOPIC = "/drive"
 
         def __init__(self):
-            self.__publisher = rospy.Publisher(self.__TOPIC, AckermannDriveStamped, queue_size=1)
+            self.__publisher = rospy.Publisher(self.__TOPIC, \
+                AckermannDriveStamped, queue_size=1)
             self.__message = AckermannDriveStamped()
 
-        def set_speed(self, speed):
-            MAX_SPEED = 5
-            speed = min(MAX_SPEED, speed)
-            self.__message.drive.speed = speed
+        def set_speed_angle(self, speed, angle):
+            """
+            Sets the speed at which the wheels turn and the angle of the front
+            wheels
 
-        def set_angle(self, angle):
+            Inputs:
+                speed (float) = the speed, with positive for forward and
+                    negative for reverse
+            angle (float) = the angle of the front wheels, with positive for
+                    right turns and negative for left turns
+
+            Constants:
+                MAX_SPEED = the maximum magnitude of speed allowed
+                MAX_ANGLE = the maximum angle magnitude
+                CONVERSION_FACTOR = the conversion factor used to convert
+                    degrees to the units expected by ROS
+            """
+            MAX_SPEED = 5
             MAX_ANGLE = 20
             CONVERSION_FACTOR = 1 / 80
+
+            speed = max(-MAX_SPEED, min(MAX_SPEED, speed))
             angle = max(-MAX_ANGLE, min(MAX_ANGLE, angle))
-            self.__message.drive.steering_angle = angle * CONVERSION_FACTOR
+            self.__message = AckermannDriveStamped()
+            self.__message.drive.speed = speed
+            self.__message.drive.steering_angle = angle # * CONVERSION_FACTOR
+            print(self.__message.drive.steering_angle)
 
-        def publish(self):
+        def stop(self):
+            """
+            Brings the car to a stop and points the front wheels forward
+            """
+            self.set_speed_angle(0, 0)
+
+        def __publish(self):
             self.__publisher.publish(self.__message)
-
-    
-    # class Physics:
-    #     def get_acceleration():
 
     # class Physics:
     #     def get_acceleration(self) -> Tuple[float, float, float]:
