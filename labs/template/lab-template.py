@@ -26,17 +26,17 @@ rc = Racecar()
 # Functions
 ################################################################################
 
-"""
-This function is run once every time the start button is pressed
-"""
 def start():
+    """
+    This function is run once every time the start button is pressed
+    """
     pass
 
-"""
-After start() is run, this function is run every frame until the back button is
-pressed
-"""
 def update():
+    """
+    After start() is run, this function is run every frame until the back button is
+    pressed
+    """
     pass
 
 
