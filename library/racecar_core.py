@@ -6,14 +6,16 @@ File docstring
 # Imports
 ################################################################################
 
-# General 
-import os
+# General
+from enum import Enum
+import os # TODO: see if this can be removed
 
-# ROS 
+# ROS
 import rospy
 from sensor_msgs.msg import LaserScan
 from sensor_msgs.msg import Image
 from ackermann_msgs.msg import AckermannDriveStamped
+import XboxController
 
 
 ################################################################################
@@ -25,19 +27,37 @@ class Racecar:
     Class docstring
     """
     def __init__(self):
+        # Modules
         self.drive = self.Drive()
+        self.controller = self.Controller(self)
+        
+        # User provided start and update functions
+        self.__user_start = None
+        self.__user_update = None
+        print("Racecar initialization successful")
+        print("Press the START button to run your program "
+            "and the BACK button to exit")
 
-    def run(self, start, update):
+    def set_start_update(self, start, update):
+        self.__user_start = start
+        self.__user_update = update
+
+    def __start(self):
         FRAMES_PER_SECOND = 60
-        start()
+        self.__user_start()
         timer = rospy.Rate(FRAMES_PER_SECOND)
         for i in range(300):
-            update()
-            self.__publish()
+            self.__user_update()
+            self.__update_modules()
             timer.sleep()
 
-    def __publish(self):
-        self.drive._Drive__publish()
+    def __exit(self):
+        print("exit")
+        exit(0)
+
+    def __update_modules(self):
+        self.drive._Drive__update()
+        self.controller._Controller__update()
 
     class Drive:
         """
@@ -59,8 +79,8 @@ class Racecar:
             Inputs:
                 speed (float) = the speed, with positive for forward and
                     negative for reverse
-            angle (float) = the angle of the front wheels, with positive for
-                    right turns and negative for left turns
+                angle (float) = the angle of the front wheels, with positive for
+                        right turns and negative for left turns
 
             Constants:
                 MAX_SPEED = the maximum magnitude of speed allowed
@@ -85,8 +105,156 @@ class Racecar:
             """
             self.set_speed_angle(0, 0)
 
-        def __publish(self):
+        def __update(self):
             self.__publisher.publish(self.__message)
+
+    class Controller:
+        """
+        Docstring
+        """
+        class Button(Enum):
+            A = 0
+            B = 1
+            X = 2
+            Y = 3
+            LB = 4
+            RB = 5
+            LJOY = 6
+            RJOY = 7
+
+        class Trigger(Enum):
+            LEFT = 0
+            RIGHT = 1
+
+        class Joystick(Enum):
+            LEFT = 0
+            RIGHT = 1
+
+        def __init__(self, racecar):
+            self.__racecar = racecar
+            self.__controller = XboxController.XboxController(
+                controllerCallBack = None,
+                joystickNo = 0,
+                deadzone = 0.15,
+                scale = 1,
+                invertYAxis = False)
+
+            self.__was_down = [False] * len(self.Button)
+            self.__is_down = [False] * len(self.Button)
+            self.__cur_down = [False] * len(self.Button)
+
+            self.__last_trigger = [0, 0]
+            self.__cur_trigger = [0, 0]
+
+            self.__last_joystick = [[0, 0], [0, 0]]
+            self.__cur_joystick = [[0, 0], [0, 0]]
+
+            # Set up callbacks
+            button_map = {
+                self.Button.A:self.__controller.XboxControls.A,
+                self.Button.B:self.__controller.XboxControls.B,
+                self.Button.X:self.__controller.XboxControls.X,
+                self.Button.Y:self.__controller.XboxControls.Y,
+                self.Button.LB:self.__controller.XboxControls.LB,
+                self.Button.RB:self.__controller.XboxControls.RB,
+                self.Button.LJOY:self.__controller.XboxControls.LEFTTHUMB,
+                self.Button.RJOY:self.__controller.XboxControls.RIGHTTHUMB
+            }
+
+            trigger_map = {
+                self.Trigger.LEFT:self.__controller.XboxControls.LTRIGGER,
+                self.Trigger.RIGHT:self.__controller.XboxControls.RTRIGGER,
+            }
+
+            joystick_map = {
+                self.Joystick.LEFT:(self.__controller.XboxControls.LTHUMBX, \
+                    self.__controller.XboxControls.LTHUMBY),
+                self.Joystick.RIGHT:(self.__controller.XboxControls.RTHUMBX, \
+                    self.__controller.XboxControls.RTHUMBY),
+            }
+
+            for button in self.Button:
+                self.__controller.setupControlCallback(
+                    button_map[button],
+                    lambda value : self.__button_callback(button, value)
+                )
+
+            for trigger in self.Trigger:
+                self.__controller.setupControlCallback(
+                    trigger_map[trigger],
+                    lambda value : self.__trigger_callback(trigger, value)
+                )
+
+            for joystick in self.Joystick:
+                for axis in (0, 1):
+                    self.__controller.setupControlCallback(
+                        joystick_map[joystick][axis],
+                        lambda value : self.__joystick_callback(joystick, \
+                            axis, value)
+                    )
+
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.START,
+                self.__start_callback
+            )
+
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.BACK,
+                self.__back_callback
+            )
+
+            self.__controller.start()
+
+        def is_down(self, button):
+            if isinstance(button, self.Button):
+                return self.__is_down[button.value]
+            return False
+
+        def was_pressed(self, button):
+            if isinstance(button, self.Button):
+                return self.__is_down[button.value] \
+                    and not self.__was_down[button.value]
+            return False
+
+        def was_released(self, button):
+            if isinstance(button, self.Button):
+                return not self.__is_down[button.value] \
+                    and self.__was_down[button.value]
+            return False
+
+        def get_trigger(self, trigger):
+            if isinstance(trigger, self.Trigger):
+                return self.__last_trigger[trigger.value]
+            return 0
+
+        def get_joystick(self, joystick):
+            if isinstance(joystick, self.Joystick):
+                return self.__last_joystick[joystick.value]
+            return (0, 0)
+ 
+        def __button_callback(self, button, value):
+            self.__cur_down[button.value] = bool(value)
+        
+        def __trigger_callback(self, trigger, value):
+            self.__cur_trigger[trigger.value] = value
+
+        def __joystick_callback(self, joystick, axis, value):
+            self.__cur_joystick[joystick.value][axis] = value
+
+        def __start_callback(self, value):
+            if value == 1:
+                self.__racecar._Racecar__start()
+
+        def __back_callback(self, value):
+            if value == 1:
+                self.__racecar._Racecar__exit()
+                           
+
+        def __update(self):
+            self.__was_down = self.__is_down
+            self.__is_down = self.__cur_down
+            self.__last_trigger = self.__cur_trigger
+            self.__last_joystick = self.__cur_joystick      
 
     # class Physics:
     #     def get_acceleration(self) -> Tuple[float, float, float]:
