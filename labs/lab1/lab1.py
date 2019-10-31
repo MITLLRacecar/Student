@@ -1,8 +1,9 @@
 """
 Copyright Harvey Mudd College
+MIT License
 Fall 2019
 
-Lab <n> - <Lab Title>
+Lab 1 - Driving and Controller
 """
 
 ################################################################################

@@ -1,5 +1,6 @@
 """
 Copyright Harvey Mudd College
+MIT License
 Fall 2019
 
 Lab <n> - <Lab Title>
