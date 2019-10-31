@@ -46,4 +46,4 @@ def update():
 ################################################################################
 
 if __name__ == "__main__":
-    rc.run(start, update)
+    rc.set_start_update(start, update)

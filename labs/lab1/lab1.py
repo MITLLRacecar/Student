@@ -32,7 +32,7 @@ def start():
     """
     This function is run once every time the start button is pressed
     """
-    pass
+    print("start")
 
 def update():
     """
@@ -41,10 +41,10 @@ def update():
     """
     global counter
     print(counter)
-    if (counter < 120):
-        rc.drive.set_speed_angle(1, 20)
-    else:
-        rc.drive.set_speed_angle(0, -10)
+    # if (counter < 120):
+    #     rc.drive.set_speed_angle(1, 20)
+    # else:
+    #     rc.drive.set_speed_angle(0, -10)
     counter += 1
 
 
@@ -53,4 +53,4 @@ def update():
 ################################################################################
 
 if __name__ == "__main__":
-    rc.run(start, update)
+    rc.set_start_update(start, update)
