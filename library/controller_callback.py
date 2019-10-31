@@ -11,8 +11,16 @@ import XboxController
 Example function for what happens on start button press
 """
 def startButtonCallback(value):
-    print "Start button pressed / released"
+    print("Start button pressed / released")
+    print("value is: ", value)
 
+
+def triggerCallback(trigger, value):
+    print(trigger, " value is: ", value)
+
+
+def joystickCallback(joystick, axis, value):
+    print(joystick, " ", axis, " value is: ", value)
 
 """
 Exits out of the code using the back button
@@ -27,7 +35,7 @@ Defines and instance of XboxController and the callback functions for the start 
 xboxCont = XboxController.XboxController(
     controllerCallBack = None,
     joystickNo = 0,
-    deadzone = 0.1,
+    deadzone = 0.15,
     scale = 1,
     invertYAxis = False)
 
@@ -38,5 +46,17 @@ xboxCont.setupControlCallback(
 xboxCont.setupControlCallback(
 xboxCont.XboxControls.BACK,
         backButtonCallback)
+
+xboxCont.setupControlCallback(
+    xboxCont.XboxControls.RTRIGGER,
+    lambda value: triggerCallback("right trigger", value))
+
+xboxCont.setupControlCallback(
+    xboxCont.XboxControls.LTRIGGER,
+    lambda value: triggerCallback("left trigger", value))
+
+xboxCont.setupControlCallback(
+    xboxCont.XboxControls.LTHUMBX,
+    lambda value: joystickCallback("left joystick", 0, value))
 
 xboxCont.start()
