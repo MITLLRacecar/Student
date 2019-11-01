@@ -7,6 +7,9 @@ File docstring
 ################################################################################
 
 # General
+import copy
+import time
+import threading
 from enum import Enum
 import os # TODO: see if this can be removed
 
@@ -27,6 +30,9 @@ class Racecar:
     Class docstring
     """
     def __init__(self):
+        self.__thread = None
+        self.__thread_running = False
+
         # Modules
         self.drive = self.Drive()
         self.controller = self.Controller(self)
@@ -34,8 +40,8 @@ class Racecar:
         # User provided start and update functions
         self.__user_start = None
         self.__user_update = None
-        print("Racecar initialization successful")
-        print("Press the START button to run your program "
+        print(">> Racecar initialization successful")
+        print(">> Press the START button to run your program "
             "and the BACK button to exit")
 
     def set_start_update(self, start, update):
@@ -43,17 +49,29 @@ class Racecar:
         self.__user_update = update
 
     def __start(self):
-        FRAMES_PER_SECOND = 60
+        if self.__thread_running:
+            print(">> Your program is already running.  "
+                "Press the BACK button to exit.")
+        else:
+            self.__thread_running = True
+            self.__thread = threading.Thread(target=self.__run)
+            self.__thread.daemon = True
+
+            print(">> Starting your program")
+            self.__thread.start()
+
+    def __exit(self):
+        print(">> Goodbye!")
+        exit(0)
+
+    def __run(self):
+        FRAMES_PER_SECOND = 30
         self.__user_start()
         timer = rospy.Rate(FRAMES_PER_SECOND)
-        for i in range(300):
+        while True:
             self.__user_update()
             self.__update_modules()
             timer.sleep()
-
-    def __exit(self):
-        print("exit")
-        exit(0)
 
     def __update_modules(self):
         self.drive._Drive__update()
@@ -149,50 +167,78 @@ class Racecar:
             self.__last_joystick = [[0, 0], [0, 0]]
             self.__cur_joystick = [[0, 0], [0, 0]]
 
-            # Set up callbacks
-            button_map = {
-                self.Button.A:self.__controller.XboxControls.A,
-                self.Button.B:self.__controller.XboxControls.B,
-                self.Button.X:self.__controller.XboxControls.X,
-                self.Button.Y:self.__controller.XboxControls.Y,
-                self.Button.LB:self.__controller.XboxControls.LB,
-                self.Button.RB:self.__controller.XboxControls.RB,
-                self.Button.LJOY:self.__controller.XboxControls.LEFTTHUMB,
-                self.Button.RJOY:self.__controller.XboxControls.RIGHTTHUMB
-            }
 
-            trigger_map = {
-                self.Trigger.LEFT:self.__controller.XboxControls.LTRIGGER,
-                self.Trigger.RIGHT:self.__controller.XboxControls.RTRIGGER,
-            }
+            # Set button callbacks
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.A,
+                lambda value : self.__button_callback(self.Button.A, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.B,
+                lambda value : self.__button_callback(self.Button.B, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.X,
+                lambda value : self.__button_callback(self.Button.X, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.Y,
+                lambda value : self.__button_callback(self.Button.Y, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.LB,
+                lambda value : self.__button_callback(self.Button.LB, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.RB,
+                lambda value : self.__button_callback(self.Button.RB, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.LEFTTHUMB,
+                lambda value : self.__button_callback(self.Button.LJOY, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.RIGHTTHUMB,
+                lambda value : self.__button_callback(self.Button.RJOY, value)
+            )
 
-            joystick_map = {
-                self.Joystick.LEFT:(self.__controller.XboxControls.LTHUMBX, \
-                    self.__controller.XboxControls.LTHUMBY),
-                self.Joystick.RIGHT:(self.__controller.XboxControls.RTHUMBX, \
-                    self.__controller.XboxControls.RTHUMBY),
-            }
 
-            for button in self.Button:
-                self.__controller.setupControlCallback(
-                    button_map[button],
-                    lambda value : self.__button_callback(button, value)
-                )
+            # Set trigger callbacks
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.LTRIGGER,
+                lambda value : self.__trigger_callback(self.Trigger.LEFT, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.RTRIGGER,
+                lambda value : self.__trigger_callback(self.Trigger.RIGHT, \
+                    value)
+            )
 
-            for trigger in self.Trigger:
-                self.__controller.setupControlCallback(
-                    trigger_map[trigger],
-                    lambda value : self.__trigger_callback(trigger, value)
-                )
 
-            for joystick in self.Joystick:
-                for axis in (0, 1):
-                    self.__controller.setupControlCallback(
-                        joystick_map[joystick][axis],
-                        lambda value : self.__joystick_callback(joystick, \
-                            axis, value)
-                    )
+            # Set joystick callbacks
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.LTHUMBX,
+                lambda value : self.__joystick_callback(self.Joystick.RIGHT, \
+                    0, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.LTHUMBY,
+                lambda value : self.__joystick_callback(self.Joystick.RIGHT, \
+                    1, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.RTHUMBX,
+                lambda value : self.__joystick_callback(self.Joystick.RIGHT, \
+                    0, value)
+            )
+            self.__controller.setupControlCallback(
+                self.__controller.XboxControls.RTHUMBX,
+                lambda value : self.__joystick_callback(self.Joystick.RIGHT, \
+                    1, value)
+            )
 
+
+            # Set START and BACK callbacks
             self.__controller.setupControlCallback(
                 self.__controller.XboxControls.START,
                 self.__start_callback
@@ -234,7 +280,7 @@ class Racecar:
  
         def __button_callback(self, button, value):
             self.__cur_down[button.value] = bool(value)
-        
+
         def __trigger_callback(self, trigger, value):
             self.__cur_trigger[trigger.value] = value
 
@@ -247,8 +293,7 @@ class Racecar:
 
         def __back_callback(self, value):
             if value == 1:
-                self.__racecar._Racecar__exit()
-                           
+                self.__racecar._Racecar__exit()             
 
         def __update(self):
             self.__was_down = self.__is_down

@@ -40,13 +40,10 @@ def update():
     pressed
     """
     global counter
-    print(counter)
-    # if (counter < 120):
-    #     rc.drive.set_speed_angle(1, 20)
-    # else:
-    #     rc.drive.set_speed_angle(0, -10)
-    counter += 1
-
+    if rc.controller.is_down(rc.controller.Button.A):
+        print("A down")
+    if rc.controller.was_pressed(rc.controller.Button.B):
+        print("Pressed B; RT value = ", rc.controller.get_trigger(rc.controller.Trigger.RIGHT))
 
 ################################################################################
 # Do not modify any code beyond this point
