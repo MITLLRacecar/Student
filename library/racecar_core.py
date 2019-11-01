@@ -266,12 +266,33 @@ class Racecar:
     #     def get_speed(self) -> float:
     #         return 0
 
-    # class Camera:
-    #     def get_image(self):
-    #         return np.fromstring(self.last_image,dtype=np.uint8).reshape((480,-1,3))[...,::-1]
+    class Camera:
+        """
+        Provides the user with basic image capture functionality so they can get rbg/depth information from
+        the Camera on the robot.
+        """
 
-    #     def get_depth_image(self):
-    #         return None
+        __TOPIC = "/camera"
+
+        def __init__(self):
+            self.__subscriber = rospy.Subscriber(self.__TOPIC, Image, callback=self.__image_callback)
+            self.__last_image = None
+
+        def __image_callback(self, msg):
+            self.__last_image = msg.data
+
+        def get_image(self):
+            """
+            Get's color image data from Intel Realsense Camera and returns the raw data in numpy array
+            """
+            return np.fromstring(self.__last_image,dtype=np.uint8).reshape((480,-1,3))[...,::-1]
+
+        def get_depth_image(self):
+            """
+            Get's color+depth image (4 channels) from Intel Realsense Camera and returns the raw data in numpy array
+            """
+            #TODO Add depth channel to image gotten from realsense
+            return None
 
     # class Lidar:
     #     def get_raw(self):
