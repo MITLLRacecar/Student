@@ -30,8 +30,7 @@ class Racecar:
     Class docstring
     """
     def __init__(self):
-        self.__thread = None
-        self.__thread_running = False
+        self.__cur_update = self.__default_update
 
         # Modules
         self.drive = self.Drive()
@@ -40,42 +39,68 @@ class Racecar:
         # User provided start and update functions
         self.__user_start = None
         self.__user_update = None
+
+        # Start thread in default drive mode
+        self.__handle_back()
+        self.__thread = threading.Thread(target=self.__run)
+        self.__thread.daemon = True
+        self.__thread.start()
+
+        # Print welcome message
         print(">> Racecar initialization successful")
-        print(">> Press the START button to run your program "
-            "and the BACK button to exit")
+        print(">> Press the START button to run your program, "
+            "press the BACK button to enter default drive mode, "
+            "and press BACK and START at the same time to exit.")
 
     def set_start_update(self, start, update):
         self.__user_start = start
         self.__user_update = update
 
-    def __start(self):
-        if self.__thread_running:
-            print(">> Your program is already running.  "
-                "Press the BACK button to exit.")
-        else:
-            self.__thread_running = True
-            self.__thread = threading.Thread(target=self.__run)
-            self.__thread.daemon = True
+    def __handle_start(self):
+        print(">> Entering user program mode")
+        self.__user_start()
+        self.__cur_update = self.__user_update
 
-            print(">> Starting your program")
-            self.__thread.start()
+    def __handle_back(self):
+        print(">> Entering default drive mode")
+        self.__default_start()
+        self.__cur_update = self.__default_update
 
-    def __exit(self):
+    def __handle_exit(self):
         print(">> Goodbye!")
         exit(0)
 
     def __run(self):
         FRAMES_PER_SECOND = 30
-        self.__user_start()
         timer = rospy.Rate(FRAMES_PER_SECOND)
         while True:
-            self.__user_update()
+            self.__cur_update()
             self.__update_modules()
             timer.sleep()
 
     def __update_modules(self):
         self.drive._Drive__update()
         self.controller._Controller__update()
+
+    def __default_start(self):
+        pass
+
+    def __default_update(self):
+        SPEED_MULTIPLIER = 1.0
+        ANGLE_MULTIPLIER = 20
+
+        forwardSpeed = self.controller.get_trigger(self.controller.Trigger.LEFT)
+        backSpeed = self.controller.get_trigger(self.controller.Trigger.RIGHT)
+        speed = (forwardSpeed - backSpeed) * SPEED_MULTIPLIER
+
+        # If both triggers are pressed, stop for safety
+        if (forwardSpeed > 0 and backSpeed > 0):
+            speed = 0
+
+        angle = self.controller.get_joystick(self.controller.Joystick.LEFT)[0] \
+            * ANGLE_MULTIPLIER
+
+        self.drive.set_speed_angle(speed, angle)
 
     class Drive:
         """
@@ -115,7 +140,6 @@ class Racecar:
             self.__message = AckermannDriveStamped()
             self.__message.drive.speed = speed
             self.__message.drive.steering_angle = angle # * CONVERSION_FACTOR
-            print(self.__message.drive.steering_angle)
 
         def stop(self):
             """
@@ -166,6 +190,9 @@ class Racecar:
 
             self.__last_joystick = [[0, 0], [0, 0]]
             self.__cur_joystick = [[0, 0], [0, 0]]
+
+            self.__cur_start = 0
+            self.__cur_back = 0
 
 
             # Set button callbacks
@@ -288,18 +315,26 @@ class Racecar:
             self.__cur_joystick[joystick.value][axis] = value
 
         def __start_callback(self, value):
-            if value == 1:
-                self.__racecar._Racecar__start()
+            self.__cur_start = value
+            if value:
+                if self.__cur_back:
+                    self.__racecar._Racecar__handle_exit()
+                else:
+                    self.__racecar._Racecar__handle_start()
 
         def __back_callback(self, value):
-            if value == 1:
-                self.__racecar._Racecar__exit()             
+            self.__cur_back = value
+            if value:
+                if self.__cur_start:
+                    self.__racecar._Racecar__handle_exit()
+                else:
+                    self.__racecar._Racecar__handle_back()
 
         def __update(self):
-            self.__was_down = self.__is_down
-            self.__is_down = self.__cur_down
-            self.__last_trigger = self.__cur_trigger
-            self.__last_joystick = self.__cur_joystick      
+            self.__was_down = copy.deepcopy(self.__is_down)
+            self.__is_down = copy.deepcopy(self.__cur_down)
+            self.__last_trigger = copy.deepcopy(self.__cur_trigger)
+            self.__last_joystick = copy.deepcopy(self.__cur_joystick)  
 
     # class Physics:
     #     def get_acceleration(self) -> Tuple[float, float, float]:
