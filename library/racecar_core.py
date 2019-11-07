@@ -9,6 +9,7 @@ File docstring
 # General
 from enum import Enum
 import os # TODO: see if this can be removed
+import numpy as np
 
 # ROS
 import rospy
