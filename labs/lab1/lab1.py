@@ -42,8 +42,9 @@ def update():
     global counter
     if rc.controller.is_down(rc.controller.Button.A):
         print("A down")
+
     if rc.controller.was_pressed(rc.controller.Button.B):
-        print("Pressed B; RT value = ", rc.controller.get_trigger(rc.controller.Trigger.RIGHT))
+        rc.drive.set_speed_angle(1, 0)
 
 ################################################################################
 # Do not modify any code beyond this point
