@@ -8,7 +8,8 @@ File docstring
 
 # General
 import copy
-import time
+from datetime import datetime, timedelta
+import time # TODO: can we remove this?
 import threading
 from enum import Enum
 import os # TODO: see if this can be removed
@@ -39,10 +40,11 @@ class Racecar:
         self.__user_start = None
         self.__user_update = None
 
-        # The run_thread (handles frames) and the update function to be called
-        # in the run thread
+        # Variables relating to the run thread
         self.__run_thread = None
         self.__cur_update = self.__default_update
+        self.__cur_frame_time = datetime.now()
+        self.__last_frame_time = datetime.now()
 
         # Start run_thread in default drive mode
         self.__handle_back()
@@ -69,6 +71,16 @@ class Racecar:
         """
         self.__user_start = start
         self.__user_update = update
+
+
+    def get_delta_time(self):
+        """
+        Returns the number of seconds elapsed in the previous frame
+
+        Output (float): The number of seconds between the start of the previous
+            frame and the start of the current frame
+        """
+        return (self.__cur_frame_time - self.__last_frame_time).total_seconds()
 
 
     def __handle_start(self):
@@ -102,10 +114,12 @@ class Racecar:
         Calls the current update function (determined by the current mode) 
         and update_modules functions once per frame
         """
-        FRAME_RATE = 30     # Number of frames per second
+        FRAME_RATE = 60     # Number of frames per second
 
         timer = rospy.Rate(FRAME_RATE)
         while True:
+            self.__last_frame_time = self.__cur_frame_time #TODO: deep copy?
+            self.__cur_frame_time = datetime.now()
             self.__cur_update()
             self.__update_modules()
             timer.sleep()
