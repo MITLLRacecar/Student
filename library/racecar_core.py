@@ -13,6 +13,7 @@ import time # TODO: can we remove this?
 import threading
 from enum import Enum
 import os # TODO: see if this can be removed
+import cv2
 
 # ROS
 import rospy
@@ -35,6 +36,7 @@ class Racecar:
         # Modules
         self.drive = self.Drive()
         self.controller = self.Controller(self)
+        self.display = self.Display()
         
         # User provided start and update functions
         self.__user_start = None
@@ -137,7 +139,11 @@ class Racecar:
         """
         The start function for default drive mode
         """
-        pass
+        image = cv2.imread('~/img/car.png')
+        if image is None:
+            print("Image is none")
+        else:
+            self.display.show_image(image)
 
 
     def __default_update(self):
@@ -576,7 +582,21 @@ class Racecar:
     #     def get_joystick(self, joystick) -> Tuple[float, float]:
     #         return (0, 0)
 
-    # class Display:
+    class Display:
+        """
+        Class docstring
+        """
+
+        def __init__(self):
+            pass
+
+        def show_image(self, image):
+            cv2.imshow("display", image)
+
+        def show_text(self, text, size, color):
+            pass
+
+
 
     # class Sound: 
 
