@@ -8,6 +8,7 @@ File docstring
 
 # General
 import copy
+import sys
 from datetime import datetime, timedelta
 import time # TODO: can we remove this?
 import threading
@@ -19,8 +20,12 @@ import cv2
 import rospy
 from sensor_msgs.msg import LaserScan
 from sensor_msgs.msg import Image
+from sensor_msgs.msg import Joy
 from ackermann_msgs.msg import AckermannDriveStamped
-import XboxController
+
+#TODO: probably remove this
+# sys.path.insert(1, "/home/racecar/racecar_ws/.catkin_ws/src/racecar_mn/src")
+# import gamepad
 
 
 ################################################################################
@@ -56,9 +61,16 @@ class Racecar:
 
         # Print welcome message
         print(">> Racecar initialization successful")
-        print(">> Press the START button to run your program, "
-            "press the BACK button to enter default drive mode, "
-            "and press BACK and START at the same time to exit.")
+        print(">> Controlls:\n"
+            "     START button = run your program\n"
+            "     BACK button = enter default drive mode\n"
+            "     BACK + START buttons simultaneously = exit the program\n"
+            "     CTRL + Z on keyboard = force quit the program")
+
+        # Run until __running is set to False (when START + BACK are pressed)
+        self.__running = True
+        while(self.__running):
+            pass
 
 
     def set_start_update(self, start, update):
@@ -89,9 +101,14 @@ class Racecar:
         """
         Handles when the START button is pressed by entering user program mode
         """
-        print(">> Entering user program mode")
-        self.__user_start()
-        self.__cur_update = self.__user_update
+        if self.__user_start is None or self.__user_update is None:
+            print(">> No user start and update functions found.  "
+                "Did you call set_start_update with valid start and "
+                "update functions?")
+        else:
+            print(">> Entering user program mode")
+            self.__user_start()
+            self.__cur_update = self.__user_update
 
 
     def __handle_back(self):
@@ -108,7 +125,7 @@ class Racecar:
         Handles when BACK and START are pressed together by exiting the program
         """
         print(">> Goodbye!")
-        exit(0)
+        self.__running = False
 
 
     def __run(self):
@@ -159,13 +176,16 @@ class Racecar:
         speed = (forwardSpeed - backSpeed) * MAX_SPEED
 
         # If both triggers are pressed, stop for safety
-        if (forwardSpeed > 0 and backSpeed > 0):
+        if forwardSpeed > 0 and backSpeed > 0:
             speed = 0
 
         angle = self.controller.get_joystick(self.controller.Joystick.LEFT)[0] \
             * MAX_ANGLE
 
         self.drive.set_speed_angle(speed, angle)
+
+        if self.controller.was_pressed(self.controller.Button.A):
+            print("Kachow!")
 
 
 
@@ -259,12 +279,6 @@ class Racecar:
 
         def __init__(self, racecar):
             self.__racecar = racecar
-            self.__controller = XboxController.XboxController(
-                controllerCallBack = None,
-                joystickNo = 0,
-                deadzone = 0.15,
-                scale = 1,
-                invertYAxis = False)
 
             # Button state at the start of last frame
             self.__was_down = [False] * len(self.Button)
@@ -283,92 +297,14 @@ class Racecar:
             # Joystick state received since the start of this frame
             self.__cur_joystick = [[0, 0], [0, 0]]
 
+            # Current start and back button state
             self.__cur_start = 0
             self.__cur_back = 0
 
-
-            # Set button callbacks
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.A,
-                lambda value : self.__button_callback(self.Button.A, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.B,
-                lambda value : self.__button_callback(self.Button.B, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.X,
-                lambda value : self.__button_callback(self.Button.X, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.Y,
-                lambda value : self.__button_callback(self.Button.Y, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.LB,
-                lambda value : self.__button_callback(self.Button.LB, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.RB,
-                lambda value : self.__button_callback(self.Button.RB, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.LEFTTHUMB,
-                lambda value : self.__button_callback(self.Button.LJOY, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.RIGHTTHUMB,
-                lambda value : self.__button_callback(self.Button.RJOY, value)
-            )
-
-
-            # Set trigger callbacks
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.LTRIGGER,
-                lambda value : self.__trigger_callback(self.Trigger.LEFT, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.RTRIGGER,
-                lambda value : self.__trigger_callback(self.Trigger.RIGHT, \
-                    value)
-            )
-
-
-            # Set joystick callbacks
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.LTHUMBX,
-                lambda value : self.__joystick_callback(self.Joystick.RIGHT, \
-                    0, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.LTHUMBY,
-                lambda value : self.__joystick_callback(self.Joystick.RIGHT, \
-                    1, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.RTHUMBX,
-                lambda value : self.__joystick_callback(self.Joystick.RIGHT, \
-                    0, value)
-            )
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.RTHUMBX,
-                lambda value : self.__joystick_callback(self.Joystick.RIGHT, \
-                    1, value)
-            )
-
-
-            # Set START and BACK callbacks
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.START,
-                self.__start_callback
-            )
-
-            self.__controller.setupControlCallback(
-                self.__controller.XboxControls.BACK,
-                self.__back_callback
-            )
-
-            self.__controller.start()
+            # subscribe to the controller topic, which will call
+            # __controller_callback every time the controller state changes
+            self.__subscriber = rospy.Subscriber('/joy', 
+                Joy, self.__controller_callback)
 
 
         def is_down(self, button):
@@ -445,67 +381,37 @@ class Racecar:
             if isinstance(joystick, self.Joystick):
                 return self.__last_joystick[joystick.value]
             return (0, 0)
- 
 
-        def __button_callback(self, button, value):
+
+        def __controller_callback(self, msg):
             """
-            The function called when a certain button is pressed or released
+            TODO: Docstring
+            """            
+            self.__cur_down = [bool(b) \
+                for b in msg.buttons[:6] + msg.buttons[9:10]]
 
-            Inputs:
-                button (Button enum): which button was pressed
-                value (int): 1 if pressed, 0 if released
-            """
-            self.__cur_down[button.value] = bool(value)
+            self.__cur_trigger = [msg.axes[2], msg.axes[5]]
+            
+            self.__cur_joystick = [(msg.axes[0], msg.axes[1]), \
+                (msg.axes[3], msg.axes[4])]
 
+            start = msg.buttons[7]
+            if start != self.__cur_start:
+                self.__cur_start = start
+                if start:
+                    if self.__cur_back:
+                        self.__racecar._Racecar__handle_exit()
+                    else:
+                        self.__racecar._Racecar__handle_start()
 
-        def __trigger_callback(self, trigger, value):
-            """
-            The function called when a certain trigger's value changes
-
-            Inputs:
-                trigger (Trigger enum): which trigger's value changed
-                value (float): how much the trigger is pressed (1.0 to 0.0)
-            """
-            self.__cur_trigger[trigger.value] = value
-
-
-        def __joystick_callback(self, joystick, axis, value):
-            """
-            The function called when a certain joystick's position changes
-
-            Inputs:
-                joystick (Joystick enum): which joystick's position changed
-                axis (int): either 0 for x axis or 1 for y axis
-                value (float): the position of the joystick along that axis,
-                    ranging from -1.0 to 1.0
-            """
-            self.__cur_joystick[joystick.value][axis] = value
-
-
-        def __start_callback(self, value):
-            """
-            The function called when the START button is pressed, which either
-            calls the Racecar's handle_start or handle_exit function
-            """
-            self.__cur_start = value
-            if value:
-                if self.__cur_back:
-                    self.__racecar._Racecar__handle_exit()
-                else:
-                    self.__racecar._Racecar__handle_start()
-
-
-        def __back_callback(self, value):
-            """
-            The function called when the BACK button is pressed, which either
-            calls Racecar's handle_back or handle_exit function
-            """
-            self.__cur_back = value
-            if value:
-                if self.__cur_start:
-                    self.__racecar._Racecar__handle_exit()
-                else:
-                    self.__racecar._Racecar__handle_back()
+            back = msg.buttons[6]
+            if back != self.__cur_back:
+                self.__cur_back = back
+                if back:
+                    if self.__cur_start:
+                        self.__racecar._Racecar__handle_exit()
+                    else:
+                        self.__racecar._Racecar__handle_back()
 
 
         def __update(self):
