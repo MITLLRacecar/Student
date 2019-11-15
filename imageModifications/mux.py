@@ -1,4 +1,4 @@
-#usr/bin/python
+#!/usr/bin/python
 
 # node for arbitrating who has drive control
 
@@ -11,22 +11,22 @@ from ackermann_msgs.msg import AckermannDriveStamped
 # 'gamepad' -> gamepad commands pass through
 # 'autonomy' -> drive commands pass through
 # other -> ignore
-mux_mode = ''
+mux_mode = 'autonomy'
 
 # gamepad callback
 def joy_callback(msg):
     global mux_mode
 
-    # if LB is pressed, enable teleop
-    if msg.buttons[4] == 1:
-        mux_mode = 'gamepad'
-    # if RB is pressed, enable autonomy
-    elif msg.buttons[5] == 1:
-        mux_mode = 'autonomy'
-    # otherwise default, publish stop
-    else:
-        mux_mode = ''
-        mux_out_pub.publish(AckermannDriveStamped())
+    # # if LB is pressed, enable teleop
+    # if msg.buttons[4] == 1:
+    #     mux_mode = 'gamepad'
+    # # if RB is pressed, enable autonomy
+    # elif msg.buttons[5] == 1:
+    #     mux_mode = 'autonomy'
+    # # otherwise default, publish stop
+    # else:
+    #     mux_mode = ''
+    #     mux_out_pub.publish(AckermannDriveStamped())
 
 
 # callback for gamepad_drive topic
@@ -42,11 +42,13 @@ def drive_callback(msg):
         mux_out_pub.publish(msg)
 
 # init ROS
+print("before mux")
 rospy.init_node('mux')
 mux_out_pub = rospy.Publisher('/mux_out', AckermannDriveStamped, queue_size=1)
 rospy.Subscriber('/gamepad_drive', AckermannDriveStamped, gamepad_drive_callback)
 rospy.Subscriber('/drive', AckermannDriveStamped, drive_callback)
 rospy.Subscriber('/joy', Joy, joy_callback)
+print("after mux")
 
 # wait before shutdown
 rospy.spin()
