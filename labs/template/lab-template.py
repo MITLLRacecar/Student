@@ -47,3 +47,4 @@ def update():
 
 if __name__ == "__main__":
     rc.set_start_update(start, update)
+    rc.go()
