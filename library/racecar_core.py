@@ -23,10 +23,6 @@ from sensor_msgs.msg import Image
 from sensor_msgs.msg import Joy
 from ackermann_msgs.msg import AckermannDriveStamped
 
-#TODO: probably remove this
-# sys.path.insert(1, "/home/racecar/racecar_ws/.catkin_ws/src/racecar_mn/src")
-# import gamepad
-
 
 ################################################################################
 # Racecar class
@@ -37,6 +33,7 @@ class Racecar:
     The core racecar module which contains several submodules which interface 
     with and control the different pieces of hardware
     """
+
     def __init__(self):
         # Modules
         self.drive = self.Drive()
@@ -46,6 +43,9 @@ class Racecar:
         # User provided start and update functions
         self.__user_start = None
         self.__user_update = None
+
+        # True if the main thread should be running
+        self.__running = False
 
         # Variables relating to the run thread
         self.__run_thread = None
@@ -67,7 +67,12 @@ class Racecar:
             "     BACK + START buttons simultaneously = exit the program\n"
             "     CTRL + Z on keyboard = force quit the program")
 
-        # Run until __running is set to False (when START + BACK are pressed)
+
+    def go(self):
+        """
+        Idles in the main thread until the car program is exited 
+        (START + END pressed simultaneously)
+        """
         self.__running = True
         while(self.__running):
             pass
@@ -169,11 +174,14 @@ class Racecar:
         the triggers and left joystick
         """
         MAX_SPEED = 1.0     # The speed when the trigger is fully pressed
-        MAX_ANGLE = 20      # The angle when the joystick is fully moved
+        MAX_ANGLE = 1.0     # The angle when the joystick is fully moved
 
         forwardSpeed = self.controller.get_trigger(self.controller.Trigger.LEFT)
         backSpeed = self.controller.get_trigger(self.controller.Trigger.RIGHT)
         speed = (forwardSpeed - backSpeed) * MAX_SPEED
+
+        print("forwardSpeed", forwardSpeed)
+        print("backSpeed", backSpeed)
 
         # If both triggers are pressed, stop for safety
         if forwardSpeed > 0 and backSpeed > 0:
@@ -209,20 +217,23 @@ class Racecar:
             wheels
 
             Inputs:
-                speed (float) = the speed, with positive for forward and
-                    negative for reverse
-                angle (float) = the angle of the front wheels, with positive for
-                        right turns and negative for left turns
+                speed (float) = the speed from -1 to 1, with positive for 
+                    forward and negative for reverse
+                angle (float) = the angle of the front wheels from -1 to 1, 
+                        with positive for right negative for left
             """
-            MAX_SPEED = 5   # The maximum magnitude of speed allowed
-            MAX_ANGLE = 20  # The maximum angle magnitude allowed
-            CONVERSION_FACTOR = 1 / 80  # converts degrees to ROS angle units
+            MAX_SPEED = 1  # The maximum speed magnitude allowed
+            MAX_ANGLE = 1  # The maximum angle magnitude allowed
+            SPEED_CONVERSION_FACTOR = 4
+            ANGLE_CONVERSION_FACTOR = 1 / 4.0
+
+            print(speed)
 
             speed = max(-MAX_SPEED, min(MAX_SPEED, speed))
             angle = max(-MAX_ANGLE, min(MAX_ANGLE, angle))
-            self.__message = AckermannDriveStamped() # TODO remove this?
-            self.__message.drive.speed = speed
-            self.__message.drive.steering_angle = angle # * CONVERSION_FACTOR
+            self.__message.drive.speed = speed * SPEED_CONVERSION_FACTOR
+            self.__message.drive.steering_angle = angle * \
+                ANGLE_CONVERSION_FACTOR
 
 
         def stop(self):
@@ -245,7 +256,8 @@ class Racecar:
         Handles input from the controller and exposes constant input state
         per frame
         """
-
+        TRIGGER_DEAD_ZONE = 0.05
+        JOYSTICK_DEAD_ZONE = 0.2
 
         class Button(Enum):
             """
@@ -390,10 +402,15 @@ class Racecar:
             self.__cur_down = [bool(b) \
                 for b in msg.buttons[:6] + msg.buttons[9:10]]
 
-            self.__cur_trigger = [msg.axes[2], msg.axes[5]]
-            
-            self.__cur_joystick = [(msg.axes[0], msg.axes[1]), \
-                (msg.axes[3], msg.axes[4])]
+            self.__cur_trigger = 
+                [self.__convert_trigger_value(msg.axes[2]), \
+                 self.__convert_trigger_value(msg.axes[5])]
+
+            self.__cur_joystick = 
+                [(self.__convert_joystick_value(msg.axes[0]), 
+                  self.__convert_joystick_value(msg.axes[1])),
+                 (self.__convert_joystick_value(msg.axes[3]),
+                  self.__convert_joystick_value(msg.axes[4]))]
 
             start = msg.buttons[7]
             if start != self.__cur_start:
@@ -421,7 +438,24 @@ class Racecar:
             self.__was_down = copy.deepcopy(self.__is_down)
             self.__is_down = copy.deepcopy(self.__cur_down)
             self.__last_trigger = copy.deepcopy(self.__cur_trigger)
-            self.__last_joystick = copy.deepcopy(self.__cur_joystick)  
+            self.__last_joystick = copy.deepcopy(self.__cur_joystick)
+
+        def __convert_trigger_value(self, value):
+            """
+            TODO: docstring 
+            """
+            value = (value + 1.0) / 2
+            if value < self.TRIGGER_DEAD_ZONE:
+                return 0
+            return value
+
+        def __convert_joystick_value(self, value):
+            """
+            TODO: docstring
+            """
+            if value < self.JOYSTICK_DEAD_ZONE:
+                return 0
+            return value
 
 
 

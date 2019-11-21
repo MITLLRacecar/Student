@@ -24,8 +24,8 @@ rc = Racecar()
 counter = 0
 drive_function = None
 
-SPEED = 1
-ANGLE = 20
+SPEED = 1.0
+ANGLE = 1.0
 
 ################################################################################
 # Functions
@@ -76,14 +76,14 @@ def update():
 
     # If the triggers are pressed, drive based on triggers + joystick
     if speed > 0:
-        rc.drive(speed, angle)
+        rc.drive.set_speed_angle(speed, angle)
 
     # Otherwise, drive based on the current drive function
     elif drive_function is not None:
-        drive_function()
-    
+        drive_function(counter)    
+
     else:
-        rc.stop
+        rc.drive.stop()
 
 
 def drive_circle(counter):
@@ -131,3 +131,4 @@ def drive_figure_eight(counter):
 
 if __name__ == "__main__":
     rc.set_start_update(start, update)
+    rc.go()
