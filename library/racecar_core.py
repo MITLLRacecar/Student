@@ -176,12 +176,10 @@ class Racecar:
         MAX_SPEED = 1.0     # The speed when the trigger is fully pressed
         MAX_ANGLE = 1.0     # The angle when the joystick is fully moved
 
-        forwardSpeed = self.controller.get_trigger(self.controller.Trigger.LEFT)
-        backSpeed = self.controller.get_trigger(self.controller.Trigger.RIGHT)
+        forwardSpeed = self.controller.get_trigger(\
+            self.controller.Trigger.RIGHT)
+        backSpeed = self.controller.get_trigger(self.controller.Trigger.LEFT)
         speed = (forwardSpeed - backSpeed) * MAX_SPEED
-
-        print("forwardSpeed", forwardSpeed)
-        print("backSpeed", backSpeed)
 
         # If both triggers are pressed, stop for safety
         if forwardSpeed > 0 and backSpeed > 0:
@@ -226,8 +224,6 @@ class Racecar:
             MAX_ANGLE = 1  # The maximum angle magnitude allowed
             SPEED_CONVERSION_FACTOR = 4
             ANGLE_CONVERSION_FACTOR = 1 / 4.0
-
-            print(speed)
 
             speed = max(-MAX_SPEED, min(MAX_SPEED, speed))
             angle = max(-MAX_ANGLE, min(MAX_ANGLE, angle))
@@ -402,14 +398,14 @@ class Racecar:
             self.__cur_down = [bool(b) \
                 for b in msg.buttons[:6] + msg.buttons[9:10]]
 
-            self.__cur_trigger = 
+            self.__cur_trigger = \
                 [self.__convert_trigger_value(msg.axes[2]), \
                  self.__convert_trigger_value(msg.axes[5])]
 
-            self.__cur_joystick = 
-                [(self.__convert_joystick_value(msg.axes[0]), 
-                  self.__convert_joystick_value(msg.axes[1])),
-                 (self.__convert_joystick_value(msg.axes[3]),
+            self.__cur_joystick = \
+                [(self.__convert_joystick_value(msg.axes[0]), \
+                  self.__convert_joystick_value(msg.axes[1])), \
+                 (self.__convert_joystick_value(msg.axes[3]), \
                   self.__convert_joystick_value(msg.axes[4]))]
 
             start = msg.buttons[7]
@@ -440,20 +436,22 @@ class Racecar:
             self.__last_trigger = copy.deepcopy(self.__cur_trigger)
             self.__last_joystick = copy.deepcopy(self.__cur_joystick)
 
+
         def __convert_trigger_value(self, value):
             """
             TODO: docstring 
             """
-            value = (value + 1.0) / 2
+            value = (1.0 - value) / 2
             if value < self.TRIGGER_DEAD_ZONE:
                 return 0
             return value
+
 
         def __convert_joystick_value(self, value):
             """
             TODO: docstring
             """
-            if value < self.JOYSTICK_DEAD_ZONE:
+            if abs(value) < self.JOYSTICK_DEAD_ZONE:
                 return 0
             return value
 

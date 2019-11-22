@@ -62,20 +62,21 @@ def update():
         counter = 0
 
     # Calculate speed from triggers
-    forwardSpeed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
-    backSpeed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
-    speed = (forwardSpeed - backSpeed) * SPEED
+    forwardSpeed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
+    backSpeed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
+    speed = (forwardSpeed - backSpeed)
 
     # If both triggers are pressed, stop for safety
     if (forwardSpeed > 0 and backSpeed > 0):
         speed = 0
 
     # Calculate angle from left joystick
-    angle = rc.controller.get_joystick(rc.controller.Joystick.LEFT)[0] \
-        * ANGLE
+    angle = rc.controller.get_joystick(rc.controller.Joystick.LEFT)[0]
 
-    # If the triggers are pressed, drive based on triggers + joystick
-    if speed > 0:
+    # If the triggers or joystick are pressed, use manual drive
+    if forwardSpeed > 0 or backSpeed > 0 or abs(angle) > 0:
+        drive_function = None
+        print(forwardSpeed, backSpeed, angle)
         rc.drive.set_speed_angle(speed, angle)
 
     # Otherwise, drive based on the current drive function
@@ -87,7 +88,7 @@ def update():
 
 
 def drive_circle(counter):
-    CIRCLE_TIME = 2
+    CIRCLE_TIME = 5
 
     if counter < CIRCLE_TIME:
         rc.drive.set_speed_angle(SPEED, ANGLE)
