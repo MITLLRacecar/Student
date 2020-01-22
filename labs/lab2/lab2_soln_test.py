@@ -10,18 +10,13 @@ Lab 2 - Line/Cone following
 # Imports
 ################################################################################
 
-import sys
-sys.path.insert(0, '../../library')
-from racecar_core import *
-rospy.init_node('racecar')
-
 import cv2 as cv
 
 ################################################################################
 # Global variables
 ################################################################################
 
-RC = Racecar()
+CAMERA = cv.VideoCapture(0)
 MIN_CONTOUR_SIZE = 30
 LINE_COLOR_PRIORITY = list()
 SPEED = 5
@@ -31,12 +26,12 @@ ANGLE = 0
 # Functions
 ################################################################################
 
-def crop(img, ll, tr):
+def crop(img, tl, br):
     """
     This function is used to crop our image to the desired box
     """
-    x1, y1 = ll
-    x2, y2 = tr
+    x1, y1 = tl
+    x2, y2 = br
     return img[x1:x2,y1:y2]
 
 def find_contours(img, HSV_lower, HSV_upper):
@@ -44,8 +39,11 @@ def find_contours(img, HSV_lower, HSV_upper):
     This function finds all contours in the image of the color range specified
     HSV min and max
     """
+    img = crop(img, (400, 0), (480, 640))
+    cv.imwrite('test_out_cropped.png', img)
     hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
     mask = cv.inRange(hsv, HSV_lower, HSV_upper)
+    cv.imwrite('test_out_mask.png', mask)
     contours, _ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
     return contours
 
@@ -97,7 +95,7 @@ def start():
     global ANGLE
     # Here we write a mask for each color of tape we care about, and
     # put in a bunch of line colors with different priorities
-    orange = ((0,0,0), (255, 255, 255))
+    orange = ((0,0,0), (30, 255, 255))
     green = ((0,0,0), (255, 255, 255))
     blue = ((0,0,0), (255, 255, 255))
     LINE_COLOR_PRIORITY.append(green)
@@ -105,7 +103,7 @@ def start():
     LINE_COLOR_PRIORITY.append(orange)
 
     # We also start the car driving
-    RC.Drive.set_speed_angle(SPEED, ANGLE)
+    print(f"Speed: {SPEED}, Angle: {ANGLE}")
 
 def update():
     """
@@ -118,12 +116,13 @@ def update():
         # We get the upper and lower boudns for the color
         # that we care about
         hsv_lower, hsv_upper = color_bound
-        image = RC.Camera.get_image()
-        exists, contour = contours_exist(get_contours(image, hsv_lower, hsv_upper))
+        _,image = CAMERA.read()
+        cv.imwrite('test_out_original.png', image)
+        exists, contour = contours_exist(find_contours(image, hsv_lower, hsv_upper))
         if not exists:
             break
         ANGLE = get_angle(contour, (SPEED, ANGLE))
-        RC.Drive.set_speed(SPEED, ANGLE)
+        print(f"Speed: {SPEED}, Angle: {ANGLE}")
     
 
 ################################################################################
@@ -131,5 +130,5 @@ def update():
 ################################################################################
 
 if __name__ == "__main__":
-    RC.set_start_update(start, update)
-    RC.go()
+    start()
+    update()
