@@ -1,0 +1,12 @@
+car_throttle_forward: 0.25   # m/s
+car_throttle_backward: 0.25  # m/s
+car_throttle_turn: 0.25      # radians
+
+car_max_forward: 1.5         # m/s
+car_max_backward: 1.0        # m/s
+car_max_turn: 0.4            # radians
+
+gamepad_throttle_speed_scale: 1   # (0, 1]
+gamepad_x_axis: 1                 # up/down left stick
+gamepad_y_axis: 3 # 2             # left/right right stick
+steering_center_rel_offset: 0     # (-3000, 3000) + => left | - => right 
