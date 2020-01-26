@@ -24,7 +24,7 @@ import cv2 as cv
 RC = Racecar()
 MIN_CONTOUR_SIZE = 30
 LINE_COLOR_PRIORITY = list()
-SPEED = 5
+SPEED = 1
 ANGLE = 0
 
 ################################################################################
@@ -46,7 +46,7 @@ def find_contours(img, HSV_lower, HSV_upper):
     """
     hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
     mask = cv.inRange(hsv, HSV_lower, HSV_upper)
-    contours, _ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+    _,contours,_ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
     return contours
 
 def contours_exist(contours):
@@ -70,7 +70,6 @@ def get_angle(contour, curr_traj):
     of the specified color range it returns the old angle.
     """
     screen_center = 320
-    turn_factor = 30
 
     speed, angle = curr_traj
 
@@ -84,28 +83,27 @@ def get_angle(contour, curr_traj):
     contour_center = M['m10']/M['m00']
     error = contour_center - screen_center
     ratio = error/screen_center
-    max_angle = -turn_factor
+    max_angle = -1.0
     if speed < 0:
-        max_angle = turn_factor
+        max_angle = 1.0
     return ratio*max_angle
 
 def start():
     """
     This function is run once every time the start button is pressed
     """
+    print("Started")
     global SPEED
     global ANGLE
     # Here we write a mask for each color of tape we care about, and
     # put in a bunch of line colors with different priorities
-    orange = ((0,0,0), (255, 255, 255))
-    green = ((0,0,0), (255, 255, 255))
-    blue = ((0,0,0), (255, 255, 255))
+    blue = ((80,10,200), (120, 255, 255))
+    green = ((0,0,200), (80, 255, 255))
     LINE_COLOR_PRIORITY.append(green)
     LINE_COLOR_PRIORITY.append(blue)
-    LINE_COLOR_PRIORITY.append(orange)
 
     # We also start the car driving
-    RC.Drive.set_speed_angle(SPEED, ANGLE)
+    RC.drive.set_speed_angle(SPEED, ANGLE)
 
 def update():
     """
@@ -114,17 +112,20 @@ def update():
     """
     global SPEED
     global ANGLE
+    image = RC.camera.get_image()
+    if image is None:
+        print("No Image")
+        return
     for color_bound in LINE_COLOR_PRIORITY:
         # We get the upper and lower boudns for the color
         # that we care about
         hsv_lower, hsv_upper = color_bound
-        image = RC.Camera.get_image()
-        exists, contour = contours_exist(get_contours(image, hsv_lower, hsv_upper))
+        exists, contour = contours_exist(find_contours(image, hsv_lower, hsv_upper))
         if not exists:
-            break
+            continue
         ANGLE = get_angle(contour, (SPEED, ANGLE))
-        RC.Drive.set_speed(SPEED, ANGLE)
-    
+        RC.drive.set_speed_angle(SPEED, ANGLE)
+        print("Speed:",SPEED,"Angle:",ANGLE)   
 
 ################################################################################
 # Do not modify any code beyond this point
