@@ -24,19 +24,19 @@ import cv2 as cv
 RC = Racecar()
 MIN_CONTOUR_SIZE = 30
 LINE_COLOR_PRIORITY = list()
-SPEED = 1
+SPEED = 0.0
 ANGLE = 0
 
 ################################################################################
 # Functions
 ################################################################################
 
-def crop(img, ll, tr):
+def crop(img, tl, br):
     """
     This function is used to crop our image to the desired box
     """
-    x1, y1 = ll
-    x2, y2 = tr
+    x1, y1 = tl
+    x2, y2 = br
     return img[x1:x2,y1:y2]
 
 def find_contours(img, HSV_lower, HSV_upper):
@@ -97,10 +97,10 @@ def start():
     global ANGLE
     # Here we write a mask for each color of tape we care about, and
     # put in a bunch of line colors with different priorities
-    blue = ((80,10,200), (120, 255, 255))
-    green = ((0,0,200), (80, 255, 255))
-    LINE_COLOR_PRIORITY.append(green)
+    blue = ((90,50,50), (110, 255, 255))
+    pink = ((160,50,50), (180, 255, 255))
     LINE_COLOR_PRIORITY.append(blue)
+    LINE_COLOR_PRIORITY.append(pink)
 
     # We also start the car driving
     RC.drive.set_speed_angle(SPEED, ANGLE)
@@ -120,12 +120,17 @@ def update():
         # We get the upper and lower boudns for the color
         # that we care about
         hsv_lower, hsv_upper = color_bound
-        exists, contour = contours_exist(find_contours(image, hsv_lower, hsv_upper))
-        if not exists:
-            continue
-        ANGLE = get_angle(contour, (SPEED, ANGLE))
-        RC.drive.set_speed_angle(SPEED, ANGLE)
-        print("Speed:",SPEED,"Angle:",ANGLE)   
+        exists, contour = contours_exist(find_contours(crop(image, (400,0), (480,640)), hsv_lower, hsv_upper))
+        if exists:
+            ANGLE = get_angle(contour, (SPEED, ANGLE))
+        
+    # Use Trigger to set speed for better control
+    forward_speed = RC.controller.get_trigger(RC.controller.Trigger.RIGHT)
+    back_speed = RC.controller.get_trigger(RC.controller.Trigger.LEFT)
+    SPEED = (forward_speed - back_speed) if (forward_speed <= 0 or back_speed <= 0) else 0
+        
+    RC.drive.set_speed_angle(SPEED, ANGLE)
+    print("Speed:",SPEED,"Angle:",ANGLE)   
 
 ################################################################################
 # Do not modify any code beyond this point
