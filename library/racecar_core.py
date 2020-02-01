@@ -229,7 +229,6 @@ class Racecar:
 
             speed = max(-MAX_SPEED, min(MAX_SPEED, speed))
             angle = max(-MAX_ANGLE, min(MAX_ANGLE, angle))
-            print("Sending Speed:",speed*SPEED_CONVERSION_FACTOR,"Angle:",angle*ANGLE_CONVERSION_FACTOR)
             self.__message.drive.speed = speed * SPEED_CONVERSION_FACTOR
             self.__message.drive.steering_angle = angle * \
                 ANGLE_CONVERSION_FACTOR

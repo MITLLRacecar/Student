@@ -76,7 +76,6 @@ def update():
     # If the triggers or joystick are pressed, use manual drive
     if forwardSpeed > 0 or backSpeed > 0 or abs(angle) > 0:
         drive_function = None
-        print(forwardSpeed, backSpeed, angle)
         rc.drive.set_speed_angle(speed, angle)
 
     # Otherwise, drive based on the current drive function
