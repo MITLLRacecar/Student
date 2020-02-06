@@ -14,7 +14,8 @@ import time # TODO: can we remove this?
 import threading
 from enum import Enum
 import os # TODO: see if this can be removed
-import cv2
+import cv2 as cv
+import numpy as np
 
 # ROS
 import rospy
@@ -39,7 +40,8 @@ class Racecar:
         self.drive = self.Drive()
         self.controller = self.Controller(self)
         self.display = self.Display()
-        
+        self.camera = self.Camera()
+
         # User provided start and update functions
         self.__user_start = None
         self.__user_update = None
@@ -161,7 +163,7 @@ class Racecar:
         """
         The start function for default drive mode
         """
-        image = cv2.imread('~/img/car.png')
+        image = cv.imread('~/img/car.png')
         if image is None:
             print("Image is none")
         else:
@@ -476,17 +478,25 @@ class Racecar:
         __TOPIC = "/camera"
 
         def __init__(self):
-            self.__subscriber = rospy.Subscriber(self.__TOPIC, Image, callback=self.__image_callback)
-            self.__last_image = None
+            #self.__subscriber = rospy.Subscriber(self.__TOPIC, Image, callback=self.__image_callback)
+            #self.__last_image = None
+            self.__cam = cv.VideoCapture(2)
 
-        def __image_callback(self, msg):
-            self.__last_image = msg.data
+        def __del__(self):
+            self.__cam.release()
+
+#        def __image_callback(self, msg):
+#            self.__last_image = msg.data
 
         def get_image(self):
             """
             Get's color image data from Intel Realsense Camera and returns the raw data in numpy array
             """
-            return np.fromstring(self.__last_image,dtype=np.uint8).reshape((480,-1,3))[...,::-1]
+#            if self.__last_image is None:
+#                return None
+            #return np.fromstring(self.__last_image,dtype=np.uint8).reshape((480,-1,3))[...,::-1]
+            return self.__cam.read()[1]
+            #return np.zeros((480, 640, 3), np.uint8)
 
         def get_depth_image(self):
             """
@@ -529,7 +539,7 @@ class Racecar:
             pass
 
         def show_image(self, image):
-            cv2.imshow("display", image)
+            cv.imshow("display", image)
 
         def show_text(self, text, size, color):
             pass
