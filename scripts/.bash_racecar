@@ -1,23 +1,33 @@
-RACECAR_LOCAL_PATH="/mnt/c/Users/matth/OneDrive/_MetaFolder/_School/Clinic/MITLLRacecar2019-2020"
-RACECAR_IP="192.168.1.100"
+RACECAR_ABSOLUTE_PATH="/mnt/c/Users/matth/OneDrive/_MetaFolder/_School/Clinic/MITLLRacecar2019-2020"
+RACECAR_IP="192.168.1.200"
+RACECAR_TEAM="matthew"
 
-########################################
+################################################################################
+# DO NOT MODIFY ANY CODE BEYOND THIS POINT
+################################################################################
 
 racecar() {
   if [ $# -eq 2 ] && [ "$1" = "sync" ]; then
-    if [ "$2" = "labs" ]; then
-      echo "Copying over labs to your RACECAR..."
-    elif [ "$2" = "all "]; then
-      echo "Copying over entire racecar directory to your RACECAR..."
+    # scp library directory
+    if [ "$2" = "all" ]; then
+      echo "Copying your local copy of the RACECAR library to your car ("$RACECAR_IP")..."
+      "scp -rp "$RACECAR_ABSOLUTE_PATH"/library racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/"
+    #scp labs directory
+    elif [ "$2" = "all" ] || [ "$2" = "labs" ]; then
+      echo "Copying your local copy of the RACECAR labs to your car ("$RACECAR_IP")..."
+      "scp -rp "$RACECAR_ABSOLUTE_PATH"/labs racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/"
     else
-      echo "That was not a recognized sync command.  Please either enter 'sync labs' or 'sync all'."
+      echo "'"$2"' is not a recognized sync command.  Please either enter 'racecar sync labs' or 'racecar sync all'."
     fi
   elif [ $# -eq 1 ] && [ "$1" = "connect" ]; then
     echo "Attempting to connect to RACECAR ("$RACECAR_IP")..."
     ssh "racecar@"$RACECAR_IP
   else
-    echo "invalid command"
+    echo "That was not a valid racecar command.  Please enter one of the following commands:"
+    echo "  racecar connect:"
+    echo "  racecar sync all:"
+    echo "  racecar sync labs:"
   fi
 }
 
-alias cd_racecar="cd "$RACECAR_LOCAL_PATH
+alias cd_racecar="cd "$RACECAR_ABSOLUTE_PATH"/labs"
