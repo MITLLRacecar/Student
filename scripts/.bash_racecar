@@ -1,0 +1,23 @@
+RACECAR_LOCAL_PATH="/mnt/c/Users/matth/OneDrive/_MetaFolder/_School/Clinic/MITLLRacecar2019-2020"
+RACECAR_IP="192.168.1.100"
+
+########################################
+
+racecar() {
+  if [ $# -eq 2 ] && [ "$1" = "sync" ]; then
+    if [ "$2" = "labs" ]; then
+      echo "Copying over labs to your RACECAR..."
+    elif [ "$2" = "all "]; then
+      echo "Copying over entire racecar directory to your RACECAR..."
+    else
+      echo "That was not a recognized sync command.  Please either enter 'sync labs' or 'sync all'."
+    fi
+  elif [ $# -eq 1 ] && [ "$1" = "connect" ]; then
+    echo "Attempting to connect to RACECAR ("$RACECAR_IP")..."
+    ssh "racecar@"$RACECAR_IP
+  else
+    echo "invalid command"
+  fi
+}
+
+alias cd_racecar="cd "$RACECAR_LOCAL_PATH
