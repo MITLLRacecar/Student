@@ -1,3 +1,10 @@
+#!/bin/bash
+# Establishes tools to easily communicate with a RACECAR
+
+################################################################################
+# TODO: comment
+################################################################################
+
 RACECAR_ABSOLUTE_PATH="/mnt/c/Users/matth/OneDrive/_MetaFolder/_School/Clinic/MITLLRacecar2019-2020"
 RACECAR_IP="192.168.1.200"
 RACECAR_TEAM="matthew"
@@ -8,25 +15,40 @@ RACECAR_TEAM="matthew"
 
 racecar() {
   if [ $# -eq 2 ] && [ "$1" = "sync" ]; then
-    # scp library directory
-    if [ "$2" = "all" ]; then
+    if [ "$2" = "library" ] || [ "$2" = "all" ]; then
       echo "Copying your local copy of the RACECAR library to your car ("$RACECAR_IP")..."
-      "scp -rp "$RACECAR_ABSOLUTE_PATH"/library racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/"
-    #scp labs directory
-    elif [ "$2" = "all" ] || [ "$2" = "labs" ]; then
+      scp -rp "$RACECAR_ABSOLUTE_PATH"/library racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/
+    elif [ "$2" = "labs" ] || [ "$2" = "all" ]; then
       echo "Copying your local copy of the RACECAR labs to your car ("$RACECAR_IP")..."
-      "scp -rp "$RACECAR_ABSOLUTE_PATH"/labs racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/"
+      scp -rp "$RACECAR_ABSOLUTE_PATH"/labs racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/
     else
-      echo "'"$2"' is not a recognized sync command.  Please either enter 'racecar sync labs' or 'racecar sync all'."
+      echo "'"$2"' is not a recognized sync command.  Please enter one of the following:"
+      echo "racecar sync labs"
+      echo "racecar sync library"
+      echo "racecar sync all"
     fi
   elif [ $# -eq 1 ] && [ "$1" = "connect" ]; then
     echo "Attempting to connect to RACECAR ("$RACECAR_IP")..."
-    ssh "racecar@"$RACECAR_IP
+    ssh racecar@"$RACECAR_IP"
+  elif [ $# -eq 1 ] && [ "$1" = "test" ]; then
+    echo "racecar tool set up successfully!"
+    echo "  RACECAR_ABSOLUTE_PATH: "$RACECAR_ABSOLUTE_PATH
+    echo "  RACECAR_IP: "$RACECAR_IP
+    echo "  RACECAR_TEAM: "$RACECAR_TEAM
   else
-    echo "That was not a valid racecar command.  Please enter one of the following commands:"
-    echo "  racecar connect:"
-    echo "  racecar sync all:"
-    echo "  racecar sync labs:"
+    if [$# -eq 1 ] && [ "$1" = "help" ]; then
+      echo "The racecar tool helps your computer communicate with your RACECAR"
+    else
+      echo "That was not a recognized racecar command."
+    fi
+    echo ""
+    echo "Supported commands:"
+    echo "  racecar connect: connects to your car with ssh"
+    echo "  racecar sync library: copies your local RACECAR library folder to your car with scp"
+    echo "  racecar sync labs: copies your local RACECAR labs folder to your car with scp"
+    echo "  racecar sync all: copies all local RACECAR files to you car with scp"
+    echo "  racecar test: prints a message to check if the racecar tool was set up successfully"
+    echo "  racecar help: prints this help message"
   fi
 }
 
