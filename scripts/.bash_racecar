@@ -17,10 +17,10 @@ racecar() {
   if [ $# -eq 2 ] && [ "$1" = "sync" ]; then
     if [ "$2" = "library" ] || [ "$2" = "all" ]; then
       echo "Copying your local copy of the RACECAR library to your car ("$RACECAR_IP")..."
-      scp -rp "$RACECAR_ABSOLUTE_PATH"/library racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/
+      scp -rp "$RACECAR_ABSOLUTE_PATH"/library racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/library/
     elif [ "$2" = "labs" ] || [ "$2" = "all" ]; then
       echo "Copying your local copy of the RACECAR labs to your car ("$RACECAR_IP")..."
-      scp -rp "$RACECAR_ABSOLUTE_PATH"/labs racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/
+      scp -rp "$RACECAR_ABSOLUTE_PATH"/labs racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/labs/
     else
       echo "'"$2"' is not a recognized sync command.  Please enter one of the following:"
       echo "racecar sync labs"
