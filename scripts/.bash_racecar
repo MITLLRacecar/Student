@@ -21,12 +21,12 @@ racecar() {
     fi
     if [ "$2" = "library" ] || [ "$2" = "all" ]; then
       echo "Copying your local copy of the RACECAR library to your car ("$RACECAR_IP")..."
-      scp -rp "$RACECAR_ABSOLUTE_PATH"/library racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/library/
+      scp -rp "$RACECAR_ABSOLUTE_PATH"/library racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/
       valid_command=true
     fi
     if [ "$2" = "labs" ] || [ "$2" = "all" ]; then
       echo "Copying your local copy of the RACECAR labs to your car ("$RACECAR_IP")..."
-      scp -rp "$RACECAR_ABSOLUTE_PATH"/labs racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/labs/
+      scp -rp "$RACECAR_ABSOLUTE_PATH"/labs racecar@"$RACECAR_IP":~/"$RACECAR_TEAM"/
       valid_command=true
     fi
     if [ "$valid_command" = false ]; then
