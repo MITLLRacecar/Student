@@ -14,7 +14,8 @@ import sys
 sys.path.insert(0, '../../library')
 from racecar_core import *
 rospy.init_node('racecar')
-
+import cv2
+import numpy as np
 
 ################################################################################
 # Global variables
@@ -71,3 +72,4 @@ def update():
 
 if __name__ == "__main__":
     rc.set_start_update(start, update)
+    rc.go()
