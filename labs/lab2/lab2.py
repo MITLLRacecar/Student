@@ -14,7 +14,8 @@ import sys
 sys.path.insert(0, '../../library')
 from racecar_core import *
 rospy.init_node('racecar')
-
+import cv2
+import numpy as np
 
 ################################################################################
 # Global variables
