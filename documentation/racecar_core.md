@@ -52,37 +52,6 @@ user program mode
 update (function): The function called every frame in user program
 modes
 
-#### def `__handle_back(self)`
-
-Handles when the BACK button is pressed by entering default drive mode
-
-#### def `handle_exit(self)`
-
-Handles when BACK and START are pressed together by exiting the program
-
-#### def `default_start`
-
-The start function for default drive mode
-
-#### def `default_update`
-
-The update function for default drive mode, which controls the car with
-the triggers and left joystick
-
-#### def `__handle_start(self)`
-
-Handles when the START button is pressed by entering user program mode
-
-#### def `__run(self)`
-
-Calls the current update function (determined by the current mode) 
-and update_modules functions once per frame
-
-#### def `__update_modules`
-
-Calls the update function on each module
-
-
 ### class Drive
 
 Controls the car's movement by allowing the user to set the state 
@@ -108,11 +77,6 @@ angle (float) = the angle of the front wheels from -1 to 1,
 #### def `stop(self)`
 
 Brings the car to a stop and points the front wheels forward
-
-
-#### def `__update(self)`
-
-Publishes the current drive message
 
 ### class Controller
 
@@ -171,18 +135,6 @@ button (Button enum) = which button to check
 
 Output (bool): True if button is currently pressed and was not pressed
 last frame
-
-#### def `__controller_callback(self, msg)`
-
-TODO: Docstring
-
-#### def `def __convert_trigger_value(self, value)`
-
-TODO: docstring
-
-#### def `__update`
-
-Updates the stored input registers when the current frame ends
 
 ### class Camera
 
