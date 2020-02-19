@@ -163,12 +163,8 @@ class Racecar:
         """
         The start function for default drive mode
         """
-        image = cv.imread('~/img/car.png')
-        if image is None:
-            print("Image is none")
-        else:
-            self.display.show_image(image)
-
+        pass
+    
 
     def __default_update(self):
         """
