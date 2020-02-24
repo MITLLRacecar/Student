@@ -101,7 +101,8 @@ def start():
     blue = ((90,50,50), (110,255,255))
     LINE_COLOR_PRIORITY.append(blue)
 
-    #TODO: Mask for other colors of tape and then add them to the LINE_COLOR_PRIORITY 
+    #TODO: Mask for other colors of tape
+    # then add their color bounds to the LINE_COLOR_PRIORITY 
 
     RC.drive.set_speed_angle(SPEED, ANGLE)
      
@@ -114,14 +115,17 @@ def update():
     global SPEED
     global ANGLE
     image = RC.camera.get_image()
+
     if image is None:
         print("No Image")
         return
+    
     for color_bound in LINE_COLOR_PRIORITY:
-        # We get the upper and lower bounds for the color
-        # that we care about
+        # We get the upper and lower bounds for the color that we care about
+        
         hsv_lower, hsv_upper = color_bound
         exists, contour = contours_exist(find_contours(crop(image, (400,0), (480,640)), hsv_lower, hsv_upper))
+        
         if exists:
             ANGLE = get_angle(contour, (SPEED, ANGLE))
 
