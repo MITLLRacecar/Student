@@ -99,12 +99,11 @@ def start():
     global ANGLE
     global BLUE
 
-    # In this starter code, we will only mask teh blue tape color
+    # In this starter code, we will only mask the blue tape color
     BLUE = ((90,50,50), (110,255,255))
     
 
-    #TODO: Mask for other colors of tape
-    # then add their color bounds to the LINE_COLOR_PRIORITY 
+    #TODO: Mask for another color of tape
 
     RC.drive.set_speed_angle(SPEED, ANGLE)
      
@@ -131,7 +130,7 @@ def update():
         exists, contour = contours_exist(find_contours(crop(image, (400,0), (480,640)), hsv_lower, hsv_upper))
         
         if exists:
-            #TODO: Implement a smoother way for the car to follow the line color
+            #TODO: Implement a smoother way for the car to follow the lines
 
             contour_center = get_center(contour)
 
@@ -148,7 +147,7 @@ def update():
     SPEED = (forward_speed - back_speed) if (forward_speed <= 0 or back_speed <= 0) else 0
 
     RC.drive.set_speed_angle(SPEED, ANGLE)
-    #print("Speed:",SPEED,"Angle:",ANGLE)
+    print("Speed:",SPEED,"Angle:",ANGLE)
 
 
 def update_slow():
