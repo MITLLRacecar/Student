@@ -41,7 +41,7 @@ def start():
     # The start function is a great place to give initial values to globals
     counter = 0
     isDriving = False
-    
+
     # This tells the car to begin at a standstill
     rc.drive.stop()
 
@@ -62,22 +62,34 @@ def update():
     if rc.controller.was_pressed(rc.controller.Button.B):
       counter = 0
       isDriving = True
-    
+
     if isDriving:
       # rc.get_delta_time() gives the time in seconds since the last time
       # the update function was called
       counter += rc.get_delta_time()
 
       if counter < 1:
-        # drive forward at full speed for one second
+        # Drive forward at full speed for one second
         rc.drive.set_speed_angle(1, 0)
       elif counter < 2:
-        # turn left at full speed for the next second
+        # Turn left at full speed for the next second
         rc.drive.set_speed_angle(1, 1)
-      else: 
+      else:
         # Otherwise, stop the car
         rc.drive.stop()
-        isDriving = False   
+        isDriving = False
+
+    # Take and display a photo every time the X button is pressed on the
+    # controller
+    if rc.controller.was_pressed(rc.controller.Button.X):
+        # Capture an image from the RACECAR camera
+        image = rc.camera.get_image()
+
+        # If an image was captured, show it on the RACECAR monitor
+        if image is not None:
+            rc.display.show_image(image)
+        else:
+            print("Error: No image was captured")
 
 
 ################################################################################
