@@ -15,7 +15,6 @@ sys.path.insert(0, '../library')
 from racecar_core import *
 rospy.init_node('racecar')
 
-
 ################################################################################
 # Global variables
 ################################################################################
@@ -34,8 +33,8 @@ def start():
     """
     This function is run once every time the start button is pressed
     """
-    # If you use a global variable in your function, you have to list it at
-    # the beginning of you function like this
+    # If we use a global variable in our function, we must list it at
+    # the beginning of our function like this
     global counter
     global isDriving
 
