@@ -86,7 +86,7 @@ class Controller:
 
         # subscribe to the controller topic, which will call
         # __controller_callback every time the controller state changes
-        self.__subscriber = rospy.Subscriber(self.__TOPIC, 
+        self.__subscriber = rospy.Subscriber(self.__TOPIC,
             Joy, self.__controller_callback)
 
 
@@ -152,10 +152,10 @@ class Controller:
         Inputs:
             button (Button enum) = which button to check
 
-        Output (bool): True if button is currently released and was pressed 
+        Output (bool): True if button is currently released and was pressed
             last frame
 
-        Note: The parameter must be an associated value of the Button enum, 
+        Note: The parameter must be an associated value of the Button enum,
             which is defined in the Controller module
 
         Example:
@@ -180,10 +180,10 @@ class Controller:
         Inputs:
             trigger (Trigger enum) = which trigger to check
 
-        Output (float): A value from 0.0 (not pressed) to 
+        Output (float): A value from 0.0 (not pressed) to
             1.0 (fully pressed)
 
-        Note: The parameter must be an associated value of the Trigger enum, 
+        Note: The parameter must be an associated value of the Trigger enum,
             which is defined in the Controller module
 
         Example:
@@ -208,7 +208,7 @@ class Controller:
         Output (float, float): The x and y coordinate of the joystick, with
             each axis ranging from -1.0 (left or down) to 1.0 (right or up)
 
-        Note: The parameter must be an associated value of the Joystick enum, 
+        Note: The parameter must be an associated value of the Joystick enum,
             which is defined in the Controller module
 
         Example:
@@ -229,9 +229,9 @@ class Controller:
         function is called to update the state of the Controller module
 
         Inputs:
-            message (ROS controller message object) = an object encoding the 
-                physical state of the controller 
-        """            
+            message (ROS controller message object) = an object encoding the
+                physical state of the controller
+        """
         self.__cur_down = [bool(b) \
             for b in message.buttons[:6] + message.buttons[9:10]]
 

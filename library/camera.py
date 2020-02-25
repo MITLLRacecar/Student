@@ -31,8 +31,8 @@ class Camera:
         Returns a two dimensional array representing a colored photo
 
         Output (2D numpy array of triples): a two dimensional array indexed
-            from top left to the bottom right representing the pixels in the 
-            image. Each entry in the array is a triple of the form 
+            from top left to the bottom right representing the pixels in the
+            image. Each entry in the array is a triple of the form
             (blue, green, red) representing a single pixel
 
         Triple format: (blue, green, red)
@@ -48,8 +48,8 @@ class Camera:
         information
 
         Output (2D numpy array of quadruples): a two dimensional array indexed
-            from top left to the bottom right representing the pixels in the 
-            image. Each entry in the array is a quadruple of the form 
+            from top left to the bottom right representing the pixels in the
+            image. Each entry in the array is a quadruple of the form
             (blue, green, red, depth) representing a single pixel
 
         Quadruple format: (blue, green, red, depth)

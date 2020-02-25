@@ -30,9 +30,9 @@ class Drive:
         wheels
 
         Inputs:
-            speed (float) = the speed from -1.0 to 1.0, with positive for 
+            speed (float) = the speed from -1.0 to 1.0, with positive for
                 forward and negative for reverse
-            angle (float) = the angle of the front wheels from -1.0 to 1.0, 
+            angle (float) = the angle of the front wheels from -1.0 to 1.0,
                     with positive for right negative for left
 
         Example:
@@ -63,7 +63,7 @@ class Drive:
         """
         Brings the car to a stop and points the front wheels forward
 
-        Example: 
+        Example:
         ```Python
         # Stops the car if the counter is greater than 5
         if counter > 5:
