@@ -11,6 +11,7 @@ import cv2 as cv
 import numpy as np
 
 # ROS
+import rospy
 from sensor_msgs.msg import Image
 
 class Camera:
