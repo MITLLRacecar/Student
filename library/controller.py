@@ -99,12 +99,12 @@ class Controller:
 
         Output (bool): True if button is currently pressed
 
-        Note: The parameter must be an associated value of the Button enum, 
+        Note: The parameter must be an associated value of the Button enum,
             which is defined in the Controller module
 
         Example:
         ```Python
-        # This update function will print a message for every frame in which 
+        # This update function will print a message for every frame in which
         # the A button is held down, so multiple messages will be printed
         # if we press and hold the A button.
         def update():
@@ -127,7 +127,7 @@ class Controller:
         Output (bool): True if button is currently pressed and was not pressed
             last frame
 
-        Note: The parameter must be an associated value of the Button enum, 
+        Note: The parameter must be an associated value of the Button enum,
             which is defined in the Controller module
 
         Example:
@@ -188,7 +188,7 @@ class Controller:
 
         Example:
         ```Python
-        # Speed will be given a value from 0.0 to 1.0 based on how much the left
+        # Speed will receive a value from 0.0 to 1.0 based on how much the left
         # trigger is pressed
         speed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
         ```
