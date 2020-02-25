@@ -95,7 +95,7 @@ class Controller:
         Returns whether a certain button is currently pressed
 
         Inputs:
-            button (Button enum) = which button to check
+            button (Button enum) = Which button to check
 
         Output (bool): True if button is currently pressed
 
@@ -122,7 +122,7 @@ class Controller:
         Returns whether a certain button was pressed this frame
 
         Inputs:
-            button (Button enum) = which button to check
+            button (Button enum) = Which button to check
 
         Output (bool): True if button is currently pressed and was not pressed
             last frame
@@ -150,7 +150,7 @@ class Controller:
         Returns whether a certain button was released this frame
 
         Inputs:
-            button (Button enum) = which button to check
+            button (Button enum) = Which button to check
 
         Output (bool): True if button is currently released and was pressed
             last frame
@@ -178,7 +178,7 @@ class Controller:
         Returns the position of a certain trigger as a value from 0.0 to 1.0
 
         Inputs:
-            trigger (Trigger enum) = which trigger to check
+            trigger (Trigger enum) = Which trigger to check
 
         Output (float): A value from 0.0 (not pressed) to
             1.0 (fully pressed)
@@ -203,7 +203,7 @@ class Controller:
         Returns the position of a certain joystick as an (x, y) tuple
 
         Inputs:
-            joystick (Joystick enum) = which joystick to check
+            joystick (Joystick enum) = Which joystick to check
 
         Output (float, float): The x and y coordinate of the joystick, with
             each axis ranging from -1.0 (left or down) to 1.0 (right or up)
@@ -229,7 +229,7 @@ class Controller:
         function is called to update the state of the Controller module
 
         Inputs:
-            message (ROS controller message object) = an object encoding the
+            message (ROS controller message object) = An object encoding the
                 physical state of the controller
         """
         self.__cur_down = [bool(b) \
@@ -280,7 +280,7 @@ class Controller:
         range for the get_trigger method
 
         Inputs:
-            value = the value of the controller provided in the ROS message
+            value = The value of the controller provided in the ROS message
         """
         value = (1.0 - value) / 2
         if value < self.__TRIGGER_DEAD_ZONE:
@@ -294,7 +294,7 @@ class Controller:
         joystick into the desired range for the get_joystick method
 
         Inputs:
-            value = the value of the joystick axis provided in the ROS message
+            value = The value of the joystick axis provided in the ROS message
         """
         if abs(value) < self.__JOYSTICK_DEAD_ZONE:
             return 0

@@ -30,9 +30,9 @@ class Drive:
         wheels
 
         Inputs:
-            speed (float) = the speed from -1.0 to 1.0, with positive for
+            speed (float) = The speed from -1.0 to 1.0, with positive for
                 forward and negative for reverse
-            angle (float) = the angle of the front wheels from -1.0 to 1.0,
+            angle (float) = The angle of the front wheels from -1.0 to 1.0,
                     with positive for right negative for left
 
         Example:
