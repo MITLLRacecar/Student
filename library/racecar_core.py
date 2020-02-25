@@ -27,6 +27,11 @@ class Racecar:
     The top level racecar module containing several submodules which interface
     with and control the different pieces of the RACECAR hardware
     """
+    # Default number of seconds to wait between calls to update_slow
+    __DEFAULT_UPDATE_SLOW_TIME = 1
+
+    # Number of frames per second
+    __FRAME_RATE = 60
 
     def __init__(self):
         # Modules
@@ -46,8 +51,12 @@ class Racecar:
         # Variables relating to the run thread
         self.__run_thread = None
         self.__cur_update = self.__default_update
+        self.__cur_update_slow = None
         self.__cur_frame_time = datetime.now()
         self.__last_frame_time = datetime.now()
+        self.__cur_update_counter = 0
+        self.__max_update_counter = 1
+        self.set_update_slow_time(self.__DEFAULT_UPDATE_SLOW_TIME)
 
         # Start run_thread in default drive mode
         self.__handle_back()
@@ -130,6 +139,22 @@ class Racecar:
         """
         return (self.__cur_frame_time - self.__last_frame_time).total_seconds()
 
+    def set_update_slow_time(self, time):
+        """
+        Changes the time between calls to update_slow
+
+        Inputs:
+            time (float): The time in seconds between calls to update_slow
+
+        Note: The default value is 1 second
+
+        Example:
+        ```Python
+        # Sets the time between calls to update_slow to 2 seconds
+        rc.set_update_slow_ratio(2)
+        ```
+        """
+        self.__max_update_counter = max(1, round(time * self.__FRAME_RATE))
 
     def __handle_start(self):
         """
@@ -143,6 +168,7 @@ class Racecar:
             print(">> Entering user program mode")
             self.__user_start()
             self.__cur_update = self.__user_update
+            self.__cur_update_slow = self.__user_update_slow
 
 
     def __handle_back(self):
@@ -152,6 +178,7 @@ class Racecar:
         print(">> Entering default drive mode")
         self.__default_start()
         self.__cur_update = self.__default_update
+        self.__cur_update_slow = None
 
 
     def __handle_exit(self):
@@ -167,14 +194,20 @@ class Racecar:
         Calls the current update function (determined by the current mode)
         and update_modules functions once per frame
         """
-        FRAME_RATE = 60     # Number of frames per second
-
-        timer = rospy.Rate(FRAME_RATE)
+        timer = rospy.Rate(self.__FRAME_RATE)
         while True:
-            self.__last_frame_time = self.__cur_frame_time #TODO: deep copy?
+            self.__last_frame_time = self.__cur_frame_time
             self.__cur_frame_time = datetime.now()
             self.__cur_update()
             self.__update_modules()
+
+            # Use a counter to decide when we need to call update_slow
+            if self.__cur_update_slow is not None:
+                self.__cur_update_counter -= 1
+                if self.__cur_update_counter <= 0:
+                    self.__cur_update_slow()
+                    self.__cur_update_counter = self.__max_update_counter
+
             timer.sleep()
 
 
