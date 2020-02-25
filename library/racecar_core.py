@@ -19,15 +19,12 @@ from sensor_msgs.msg import LaserScan
 # racecar_core modules
 import camera
 import controller
+import display
 import drive
-
-################################################################################
-# Racecar class
-################################################################################
 
 class Racecar:
     """
-    The top level racecar module containing several submodules which interface 
+    The top level racecar module containing several submodules which interface
     with and control the different pieces of the RACECAR hardware
     """
 
@@ -35,12 +32,13 @@ class Racecar:
         # Modules
         self.camera = camera.Camera()
         self.controller = controller.Controller(self)
-        self.display = self.Display()
+        self.display = display.Display()
         self.drive = drive.Drive()
 
         # User provided start and update functions
         self.__user_start = None
         self.__user_update = None
+        self.__user_update_slow = None
 
         # True if the main thread should be running
         self.__running = False
@@ -68,7 +66,7 @@ class Racecar:
 
     def go(self):
         """
-        Idles in the main thread until the car program is exited 
+        Idles in the main thread until the car program is exited
         (START + END pressed simultaneously)
 
         Example: See set_start_update below
@@ -78,12 +76,12 @@ class Racecar:
             pass
 
 
-    def set_start_update(self, start, update):
+    def set_start_update(self, start, update, update_slow = None):
         """
         Sets the start and update functions used in user program mode
 
         Inputs:
-            start (function): The function called once every time we enter 
+            start (function): The function called once every time we enter
                 user program mode
             update (function): The function called every frame in user program
                 modes
@@ -113,6 +111,7 @@ class Racecar:
         """
         self.__user_start = start
         self.__user_update = update
+        self.__user_update_slow = update_slow
 
 
     def get_delta_time(self):
@@ -165,7 +164,7 @@ class Racecar:
 
     def __run(self):
         """
-        Calls the current update function (determined by the current mode) 
+        Calls the current update function (determined by the current mode)
         and update_modules functions once per frame
         """
         FRAME_RATE = 60     # Number of frames per second
@@ -192,7 +191,7 @@ class Racecar:
         The start function for default drive mode
         """
         pass
-    
+
 
     def __default_update(self):
         """
@@ -223,18 +222,3 @@ class Racecar:
 
         if self.controller.was_pressed(self.controller.Button.A):
             print("Kachow!")
-
-
-    class Display:
-        """
-        Class docstring
-        """
-
-        def __init__(self):
-            pass
-
-        def show_image(self, image):
-            cv.imshow("display", image)
-
-        def show_text(self, text, size, color):
-            pass
