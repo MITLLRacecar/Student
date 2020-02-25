@@ -91,11 +91,25 @@ def update():
         else:
             print("Error: No image was captured")
 
+# update_slow() is similar to update() but is called once per second by default.
+# It is especially useful for printing debug messages, since printing a message
+# every frame in update is computationally expensive and creates clutter
+def update_slow():
+    """
+    After start() is run, this function is run at a constant rate that is slower
+    than update().  By default, update_slow() is run once per second
+    """
+    # This prints a message every time that the right bumper is pressed during
+    # a call to to update_slow.  If we press and hold the right bumper, it
+    # will print a message once per second
+    if rc.controller.is_down(rc.controller.Button.RB):
+        print("The right bumper is currently down (update_slow)")
+
 
 ################################################################################
 # Do not modify any code beyond this point
 ################################################################################
 
 if __name__ == "__main__":
-    rc.set_start_update(start, update)
+    rc.set_start_update(start, update, update_slow)
     rc.go()
