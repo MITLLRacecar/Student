@@ -1,28 +1,24 @@
 """
-File docstring
+Copyright Harvey Mudd College
+MIT License
+Spring 2020
+
+Contains the Racecar class, the top level of the racecar_core library
 """
 
-################################################################################
-# Imports
-################################################################################
-
 # General
-import copy
-import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 import time # TODO: can we remove this?
 import threading
-from enum import Enum
 import os # TODO: see if this can be removed
-import cv2 as cv
-import numpy as np
 
 # ROS
 import rospy
 from sensor_msgs.msg import LaserScan
-from sensor_msgs.msg import Image
-from sensor_msgs.msg import Joy
-from ackermann_msgs.msg import AckermannDriveStamped
+
+# racecar_core modules
+import drive
+import controller
 
 
 ################################################################################
@@ -31,8 +27,8 @@ from ackermann_msgs.msg import AckermannDriveStamped
 
 class Racecar:
     """
-    The core racecar module which contains several submodules which interface 
-    with and control the different pieces of hardware
+    The top level racecar module containing several submodules which interface 
+    with and control the different pieces of the RACECAR hardware
     """
 
     def __init__(self):
@@ -74,6 +70,8 @@ class Racecar:
         """
         Idles in the main thread until the car program is exited 
         (START + END pressed simultaneously)
+
+        Example: See set_start_update below
         """
         self.__running = True
         while(self.__running):
@@ -89,6 +87,29 @@ class Racecar:
                 user program mode
             update (function): The function called every frame in user program
                 modes
+
+        Note: The provided start and update functions should not take any
+        parameters
+
+        Example:
+        ```Python
+        # Create a racecar object
+        rc = Racecar()
+
+        # Define a start function
+        def start():
+            print("This function is called once")
+
+        # Define an update function
+        def update():
+            print("This function is called every frame")
+
+        # Provide the racecar with the start and update functions
+        rc.set_start_update(start, update)
+
+        # Tell the racecar to run until the program is exited
+        rc.go()
+        ```
         """
         self.__user_start = start
         self.__user_update = update
@@ -100,6 +121,13 @@ class Racecar:
 
         Output (float): The number of seconds between the start of the previous
             frame and the start of the current frame
+
+        Example:
+        ```Python
+        # Increases counter by the number of seconds elapsed in the previous
+        # frame.
+        counter += rc.get_delta_time()
+        ```
         """
         return (self.__cur_frame_time - self.__last_frame_time).total_seconds()
 
@@ -168,8 +196,13 @@ class Racecar:
 
     def __default_update(self):
         """
-        The update function for default drive mode, which controls the car with
-        the triggers and left joystick
+        The update function for default drive mode
+
+        Controls:
+            Left trigger: Accelerate forward
+            Right trigger: Accelerate backward
+            Left joystick: Turn left and right
+            A button: Print "Kachow!" to the terminal
         """
         MAX_SPEED = 1.0     # The speed when the trigger is fully pressed
         MAX_ANGLE = 1.0     # The angle when the joystick is fully moved
@@ -192,340 +225,6 @@ class Racecar:
             print("Kachow!")
 
 
-
-    class Drive:
-        """
-        Controls the car's movement by allowing the user to set the state
-        associated with speed and turning
-        """
-        __TOPIC = "/drive"
-
-
-        def __init__(self):
-            self.__publisher = rospy.Publisher(self.__TOPIC, \
-                AckermannDriveStamped, queue_size=1)
-            self.__message = AckermannDriveStamped()
-
-
-        def set_speed_angle(self, speed, angle):
-            """
-            Sets the speed at which the wheels turn and the angle of the front
-            wheels
-
-            Inputs:
-                speed (float) = the speed from -1 to 1, with positive for 
-                    forward and negative for reverse
-                angle (float) = the angle of the front wheels from -1 to 1, 
-                        with positive for right negative for left
-            """
-            MAX_SPEED = 1  # The maximum speed magnitude allowed
-            MAX_ANGLE = 1  # The maximum angle magnitude allowed
-            SPEED_CONVERSION_FACTOR = 4
-            ANGLE_CONVERSION_FACTOR = 1 / 4.0
-
-            speed = max(-MAX_SPEED, min(MAX_SPEED, speed))
-            angle = max(-MAX_ANGLE, min(MAX_ANGLE, angle))
-            self.__message.drive.speed = speed * SPEED_CONVERSION_FACTOR
-            self.__message.drive.steering_angle = angle * \
-                ANGLE_CONVERSION_FACTOR
-
-
-        def stop(self):
-            """
-            Brings the car to a stop and points the front wheels forward
-            """
-            self.set_speed_angle(0, 0)
-
-
-        def __update(self):
-            """
-            Publishes the current drive message
-            """
-            self.__publisher.publish(self.__message)
-
-
-
-    class Controller:
-        """
-        Handles input from the controller and exposes constant input state
-        per frame
-        """
-        TRIGGER_DEAD_ZONE = 0.05
-        JOYSTICK_DEAD_ZONE = 0.2
-
-        class Button(Enum):
-            """
-            The buttons on the controller
-            """
-            A = 0       # A button
-            B = 1       # B button
-            X = 2       # X button
-            Y = 3       # Y button
-            LB = 4      # Left bumper
-            RB = 5      # Right bumper
-            LJOY = 6    # Left joystick button
-            RJOY = 7    # Right joystick button
-
-
-        class Trigger(Enum):
-            """
-            The triggers on the controller
-            """
-            LEFT = 0
-            RIGHT = 1
-
-
-        class Joystick(Enum):
-            """
-            The joysticks on the controller
-            """
-            LEFT = 0
-            RIGHT = 1
-
-
-        def __init__(self, racecar):
-            self.__racecar = racecar
-
-            # Button state at the start of last frame
-            self.__was_down = [False] * len(self.Button)
-            # Button state at the start of this frame
-            self.__is_down = [False] * len(self.Button)
-            # Button state received since the start of this frame
-            self.__cur_down = [False] * len(self.Button)
-
-            # Trigger state at the start of this frame
-            self.__last_trigger = [0, 0]
-            # Trigger state received since the start of this frame
-            self.__cur_trigger = [0, 0]
-
-            # Joystick state at the start of this frame
-            self.__last_joystick = [[0, 0], [0, 0]]
-            # Joystick state received since the start of this frame
-            self.__cur_joystick = [[0, 0], [0, 0]]
-
-            # Current start and back button state
-            self.__cur_start = 0
-            self.__cur_back = 0
-
-            # subscribe to the controller topic, which will call
-            # __controller_callback every time the controller state changes
-            self.__subscriber = rospy.Subscriber('/joy', 
-                Joy, self.__controller_callback)
-
-
-        def is_down(self, button):
-            """
-            Returns whether a certain button is currently pressed
-
-            Inputs:
-                button (Button enum) = which button to check
-
-            Output (bool): True if button is currently pressed
-            """
-            if isinstance(button, self.Button):
-                return self.__is_down[button.value]
-            return False
-
-
-        def was_pressed(self, button):
-            """
-            Returns whether a certain button was pressed this frame
-
-            Inputs:
-                button (Button enum) = which button to check
-
-            Output (bool): True if button is currently pressed and was not pressed
-                last frame
-            """
-            if isinstance(button, self.Button):
-                return self.__is_down[button.value] \
-                    and not self.__was_down[button.value]
-            return False
-
-
-        def was_released(self, button):
-            """
-            Returns whether a certain button was released this frame
-
-            Inputs:
-                button (Button enum) = which button to check
-
-            Output (bool): True if button is currently released and was pressed 
-                last frame
-            """
-            if isinstance(button, self.Button):
-                return not self.__is_down[button.value] \
-                    and self.__was_down[button.value]
-            return False
-
-
-        def get_trigger(self, trigger):
-            """
-            Returns the position of a certain trigger
-
-            Inputs:
-                trigger (Trigger enum) = which trigger to check
-
-            Output (float): A value from 0.0 (not pressed) to 
-                1.0 (fully pressed)
-            """
-            if isinstance(trigger, self.Trigger):
-                return self.__last_trigger[trigger.value]
-            return 0
-
-
-        def get_joystick(self, joystick):
-            """
-            Returns the position of a certain joystick
-
-            Inputs:
-                joystick (Joystick enum) = which joystick to check
-
-            Output (float, float): The x and y coordinate of the joystick, with
-                each axis ranging from -1.0 to 1.0
-            """
-            if isinstance(joystick, self.Joystick):
-                return self.__last_joystick[joystick.value]
-            return (0, 0)
-
-
-        def __controller_callback(self, msg):
-            """
-            TODO: Docstring
-            """            
-            self.__cur_down = [bool(b) \
-                for b in msg.buttons[:6] + msg.buttons[9:10]]
-
-            self.__cur_trigger = \
-                [self.__convert_trigger_value(msg.axes[2]), \
-                 self.__convert_trigger_value(msg.axes[5])]
-
-            self.__cur_joystick = \
-                [(self.__convert_joystick_value(msg.axes[0]), \
-                  self.__convert_joystick_value(msg.axes[1])), \
-                 (self.__convert_joystick_value(msg.axes[3]), \
-                  self.__convert_joystick_value(msg.axes[4]))]
-
-            start = msg.buttons[7]
-            if start != self.__cur_start:
-                self.__cur_start = start
-                if start:
-                    if self.__cur_back:
-                        self.__racecar._Racecar__handle_exit()
-                    else:
-                        self.__racecar._Racecar__handle_start()
-
-            back = msg.buttons[6]
-            if back != self.__cur_back:
-                self.__cur_back = back
-                if back:
-                    if self.__cur_start:
-                        self.__racecar._Racecar__handle_exit()
-                    else:
-                        self.__racecar._Racecar__handle_back()
-
-
-        def __update(self):
-            """
-            Updates the stored input registers when the current frame ends
-            """
-            self.__was_down = copy.deepcopy(self.__is_down)
-            self.__is_down = copy.deepcopy(self.__cur_down)
-            self.__last_trigger = copy.deepcopy(self.__cur_trigger)
-            self.__last_joystick = copy.deepcopy(self.__cur_joystick)
-
-
-        def __convert_trigger_value(self, value):
-            """
-            TODO: docstring 
-            """
-            value = (1.0 - value) / 2
-            if value < self.TRIGGER_DEAD_ZONE:
-                return 0
-            return value
-
-
-        def __convert_joystick_value(self, value):
-            """
-            TODO: docstring
-            """
-            if abs(value) < self.JOYSTICK_DEAD_ZONE:
-                return 0
-            return value
-
-
-
-    # class Physics:
-    #     def get_acceleration(self) -> Tuple[float, float, float]:
-    #         return (0, 0, 0)
-
-    #     def get_angular_velocity(self) -> Tuple[float, float, float]:
-    #         return (0, 0, 0)
-
-    #     def get_speed(self) -> float:
-    #         return 0
-
-    class Camera:
-        """
-        Provides the user with basic image capture functionality so they can get rbg/depth information from
-        the Camera on the robot.
-        """
-
-        __TOPIC = "/camera"
-
-        def __init__(self):
-            #self.__subscriber = rospy.Subscriber(self.__TOPIC, Image, callback=self.__image_callback)
-            #self.__last_image = None
-            self.__cam = cv.VideoCapture(2)
-
-        def __del__(self):
-            self.__cam.release()
-
-#        def __image_callback(self, msg):
-#            self.__last_image = msg.data
-
-        def get_image(self):
-            """
-            Get's color image data from Intel Realsense Camera and returns the raw data in numpy array
-            """
-#            if self.__last_image is None:
-#                return None
-            #return np.fromstring(self.__last_image,dtype=np.uint8).reshape((480,-1,3))[...,::-1]
-            return self.__cam.read()[1]
-            #return np.zeros((480, 640, 3), np.uint8)
-
-        def get_depth_image(self):
-            """
-            Get's color+depth image (4 channels) from Intel Realsense Camera and returns the raw data in numpy array
-            """
-            #TODO Add depth channel to image gotten from realsense
-            return None
-
-    # class Lidar:
-    #     def get_raw(self):
-    #         return None
-        
-    #     def get_map(self):
-    #         return None    
-
-    # class GPIO:
-    #     def get_pin(self, pin: int) -> int:
-    #         return 0
-
-    #     def set_pin(self, pin: int, value: int):
-    #         raise NotImplementedError()
-
-
-    # class Controller:
-    #     def is_pressed(self, button) -> bool:
-    #         return False
-
-    #     def get_trigger(self, trigger) -> float:
-    #         return 0
-
-    #     def get_joystick(self, joystick) -> Tuple[float, float]:
-    #         return (0, 0)
-
     class Display:
         """
         Class docstring
@@ -539,39 +238,3 @@ class Racecar:
 
         def show_text(self, text, size, color):
             pass
-
-
-
-    # class Sound: 
-
-
-        
-
-    # def image_callback(self, msg):
-    #     self.last_image = msg.data
-        
-    # def scan_callback(self, msg):
-    #     self.last_scan = msg.ranges
-        
-    # def get_lidar(self):
-    #     return None
-
-
-
-    # def show_image(self, image):
-    #     raise NotImplementedError()
-
-    # def show_text(self, text: str, size: float = 12, color: Tuple[float, float, float] = (0, 0, 0)):
-    #     raise NotImplementedError()
-    
-    # def get_mic_amplitude(self, ) -> float:
-    #     return 0
-
-    # def set_wav(self, wav):
-    #     raise NotImplementedError()
-
-    # def play_wave(self):
-    #     raise NotImplementedError()
-
-    # def is_wav_playing(self) -> bool:
-    #     return False
