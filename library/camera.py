@@ -36,9 +36,9 @@ class Camera:
             (blue, green, red) representing a single pixel
 
         Triple format: (blue, green, red)
-            blue: the amount of blue at that pixel from 0 (none) to 255 (max)
-            green: the amount of green at that pixel from 0 (none) to 255 (max)
-            red: the amount of red at that pixel from 0 (none) to 255 (max)
+            blue = the amount of blue at that pixel from 0 (none) to 255 (max)
+            green = the amount of green at that pixel from 0 (none) to 255 (max)
+            red = the amount of red at that pixel from 0 (none) to 255 (max)
         """
         return self.__cam.read()[1]
 
@@ -53,10 +53,10 @@ class Camera:
             (blue, green, red, depth) representing a single pixel
 
         Quadruple format: (blue, green, red, depth)
-            blue: the amount of blue at that pixel from 0 (none) to 255 (max)
-            green: the amount of green at that pixel from 0 (none) to 255 (max)
-            red: the amount of red at that pixel from 0 (none) to 255 (max)
-            depth: ???
+            blue = the amount of blue at that pixel from 0 (none) to 255 (max)
+            green = the amount of green at that pixel from 0 (none) to 255 (max)
+            red = the amount of red at that pixel from 0 (none) to 255 (max)
+            depth = ???
         """
         #TODO Add depth channel to image gotten from realsense
         return None

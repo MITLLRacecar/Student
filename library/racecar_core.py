@@ -17,9 +17,9 @@ import rospy
 from sensor_msgs.msg import LaserScan
 
 # racecar_core modules
-import drive
+import camera
 import controller
-
+import drive
 
 ################################################################################
 # Racecar class
@@ -33,10 +33,10 @@ class Racecar:
 
     def __init__(self):
         # Modules
-        self.drive = self.Drive()
-        self.controller = self.Controller(self)
+        self.camera = camera.Camera()
+        self.controller = controller.Controller(self)
         self.display = self.Display()
-        self.camera = self.Camera()
+        self.drive = drive.Drive()
 
         # User provided start and update functions
         self.__user_start = None

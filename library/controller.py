@@ -223,24 +223,29 @@ class Controller:
         return (0, 0)
 
 
-    def __controller_callback(self, msg):
+    def __controller_callback(self, message):
         """
-        TODO: Docstring
+        Every time the physical state of the controller is changed, this
+        function is called to update the state of the Controller module
+
+        Inputs:
+            message (ROS controller message object) = an object encoding the 
+                physical state of the controller 
         """            
         self.__cur_down = [bool(b) \
-            for b in msg.buttons[:6] + msg.buttons[9:10]]
+            for b in message.buttons[:6] + message.buttons[9:10]]
 
         self.__cur_trigger = \
-            [self.__convert_trigger_value(msg.axes[2]), \
-              self.__convert_trigger_value(msg.axes[5])]
+            [self.__convert_trigger_value(message.axes[2]), \
+              self.__convert_trigger_value(message.axes[5])]
 
         self.__cur_joystick = \
-            [(self.__convert_joystick_value(msg.axes[0]), \
-              self.__convert_joystick_value(msg.axes[1])), \
-              (self.__convert_joystick_value(msg.axes[3]), \
-              self.__convert_joystick_value(msg.axes[4]))]
+            [(self.__convert_joystick_value(message.axes[0]), \
+              self.__convert_joystick_value(message.axes[1])), \
+              (self.__convert_joystick_value(message.axes[3]), \
+              self.__convert_joystick_value(message.axes[4]))]
 
-        start = msg.buttons[7]
+        start = message.buttons[7]
         if start != self.__cur_start:
             self.__cur_start = start
             if start:
@@ -249,7 +254,7 @@ class Controller:
                 else:
                     self.__racecar._Racecar__handle_start()
 
-        back = msg.buttons[6]
+        back = message.buttons[6]
         if back != self.__cur_back:
             self.__cur_back = back
             if back:
@@ -271,7 +276,11 @@ class Controller:
 
     def __convert_trigger_value(self, value):
         """
-        TODO: docstring 
+        Convert the trigger value received from the controller into the desired
+        range for the get_trigger method
+
+        Inputs:
+            value = the value of the controller provided in the ROS message
         """
         value = (1.0 - value) / 2
         if value < self.__TRIGGER_DEAD_ZONE:
@@ -281,7 +290,11 @@ class Controller:
 
     def __convert_joystick_value(self, value):
         """
-        TODO: docstring
+        Convert the value received from the controller for one axis of the
+        joystick into the desired range for the get_joystick method
+
+        Inputs:
+            value = the value of the joystick axis provided in the ROS message
         """
         if abs(value) < self.__JOYSTICK_DEAD_ZONE:
             return 0
