@@ -137,10 +137,18 @@ def update():
     RC.drive.set_speed_angle(SPEED, ANGLE)
     print("Speed:",SPEED,"Angle:",ANGLE)
 
+def update_slow():
+    """
+    After start() is run, this function is run at a constant rate that is slower
+    than update().  By default, update_slow() is run once per second
+    """
+    # TODO(emi): Print ascii stuff here
+    pass
+
 ################################################################################
 # Do not modify any code beyond this point
 ################################################################################
 
 if __name__ == "__main__":
-    RC.set_start_update(start, update)
+    RC.set_start_update(start, update, update_slow)
     RC.go()
