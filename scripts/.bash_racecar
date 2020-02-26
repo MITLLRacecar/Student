@@ -7,9 +7,10 @@
 # https://matthewcalligaro.github.io/RacecarWebsite/scripts/tool_setup.html
 ################################################################################
 
-RACECAR_ABSOLUTE_PATH="/mnt/c/Users/matth/OneDrive/_MetaFolder/_School/Clinic/MITLLRacecar2019-2020"
+
+RACECAR_ABSOLUTE_PATH="/home/evan/Documents/Clinic/MITLLRacecar2019-2020/MITLLRacecar2019-2020"
 RACECAR_IP="192.168.1.200"
-RACECAR_TEAM="matthew"
+RACECAR_TEAM="evan"
 
 ################################################################################
 # DO NOT MODIFY ANY CODE BEYOND THIS POINT
