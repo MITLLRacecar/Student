@@ -155,8 +155,20 @@ def update_slow():
     After start() is run, this function is run at a constant rate that is slower
     than update().  By default, update_slow() is run once per second
     """
-    # TODO(emi): Print ascii stuff here
-    pass
+    iamge = RC.camera.get_image()
+    if image is None:
+        print("X"*32)
+    else:
+        hsv_lower, hsv_upper = BLUE
+        exists, contour = contours_exist(find_contouts(crop(image, (400,0), (480,640)), hsv_lower, hsv_upper))
+
+        if exists:
+            contour_center = get_center(contour)
+            s = ["-"]*32
+            s[int(contour_center / 20)] = "|"
+            print("".join(s))
+        else:
+            print("-"*32)
 
 ################################################################################
 # Do not modify any code beyond this point
