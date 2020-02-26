@@ -66,7 +66,6 @@ def contours_exist(contours):
     if len(contours) == 0:
         return (False, None)
     greatest_contour = max(contours, key=cv.contourArea)
-    print greatest_contour
     if cv.contourArea(greatest_contour) > MIN_CONTOUR_SIZE:
         return (True, greatest_contour)
     return (False, greatest_contour)
