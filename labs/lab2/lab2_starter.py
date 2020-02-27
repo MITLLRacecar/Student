@@ -40,12 +40,13 @@ def crop(image, top_left, bottom_right):
     bottom_right: a pair of numbers representing the bottom right coordinate
 
     Helper function to make cropping images easier
-    
+
     returns: a cropped version of the image
     '''
     x1, y1 = top_left
     x2, y2 = bottom_right
     return image[x1:x2,y1:y2]
+
 
 def find_contours(img, HSV_lower, HSV_upper):
     """
@@ -56,6 +57,7 @@ def find_contours(img, HSV_lower, HSV_upper):
     mask = cv.inRange(hsv, HSV_lower, HSV_upper)
     _,contours,_ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
     return contours
+
 
 def contours_exist(contours):
     """
@@ -70,6 +72,7 @@ def contours_exist(contours):
         return (True, greatest_contour)
     return (False, greatest_contour)
 
+
 def get_center(contour):
     """
     This function takes an image, finds its greatest contour
@@ -77,10 +80,10 @@ def get_center(contour):
     find a contour of the specified color range it returns
     the old angle.
     """
-    
+
     # We want to find the center of the contour, also known
     # as the 1st moment of the contour
-    
+
     M = cv.moments(contour)
     if M['m00'] == 0: # No pixels in contour
         return ANGLE
@@ -88,7 +91,8 @@ def get_center(contour):
     # Now we compute the center of the contour
     contour_center = M['m10']/M['m00']
     return contour_center
-    
+
+
 def start():
     """
     This function is run once every time the start button is pressed
@@ -100,12 +104,12 @@ def start():
 
     # In this starter code, we will only mask the blue tape color
     BLUE = ((90,50,50), (110,255,255))
-    
+
 
     #TODO: Mask for another color of tape
 
     rc.drive.set_speed_angle(SPEED, ANGLE)
-     
+
 
 def update():
     '''
@@ -117,7 +121,7 @@ def update():
     global BLUE
 
     image = rc.camera.get_image()
-    
+
     #TODO: Implement a way to cycle through following multiple colors of tape
 
     if image is None:
@@ -127,7 +131,7 @@ def update():
     else:
         hsv_lower, hsv_upper = BLUE
         exists, contour = contours_exist(find_contours(crop(image, (400,0), (480,640)), hsv_lower, hsv_upper))
-        
+
         if exists:
             #TODO: Implement a smoother way for the car to follow the lines
 
