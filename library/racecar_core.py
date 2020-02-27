@@ -223,7 +223,7 @@ class Racecar:
         """
         The start function for default drive mode
         """
-        pass
+        self.drive.stop()
 
 
     def __default_update(self):
