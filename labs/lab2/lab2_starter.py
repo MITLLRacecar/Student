@@ -21,7 +21,7 @@ import numpy as np
 # Global variables
 ################################################################################
 
-RC = Racecar()
+rc = Racecar()
 MIN_CONTOUR_SIZE = 30
 
 SPEED = 0.0
@@ -104,7 +104,7 @@ def start():
 
     #TODO: Mask for another color of tape
 
-    RC.drive.set_speed_angle(SPEED, ANGLE)
+    rc.drive.set_speed_angle(SPEED, ANGLE)
      
 
 def update():
@@ -116,7 +116,7 @@ def update():
     global ANGLE
     global BLUE
 
-    image = RC.camera.get_image()
+    image = rc.camera.get_image()
     
     #TODO: Implement a way to cycle through following multiple colors of tape
 
@@ -141,12 +141,15 @@ def update():
                 ANGLE = 0
 
    # Use Trigger to set speed for better control
-    forward_speed = RC.controller.get_trigger(RC.controller.Trigger.RIGHT)
-    back_speed = RC.controller.get_trigger(RC.controller.Trigger.LEFT)
+    forward_speed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
+    back_speed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
     SPEED = (forward_speed - back_speed) if (forward_speed <= 0 or back_speed <= 0) else 0
 
-    RC.drive.set_speed_angle(SPEED, ANGLE)
-    print("Speed:",SPEED,"Angle:",ANGLE)
+    rc.drive.set_speed_angle(SPEED, ANGLE)
+
+    # Print the current speed and angle when A button is held down
+    if rc.controller.is_down(rc.controller.Button.A):
+        print("Speed:",SPEED,"Angle:",ANGLE)
 
 
 def update_slow():
@@ -154,12 +157,12 @@ def update_slow():
     After start() is run, this function is run at a constant rate that is slower
     than update().  By default, update_slow() is run once per second
     """
-    iamge = RC.camera.get_image()
+    image = rc.camera.get_image()
     if image is None:
         print("X"*32)
     else:
         hsv_lower, hsv_upper = BLUE
-        exists, contour = contours_exist(find_contouts(crop(image, (400,0), (480,640)), hsv_lower, hsv_upper))
+        exists, contour = contours_exist(find_contours(crop(image, (400,0), (480,640)), hsv_lower, hsv_upper))
 
         if exists:
             contour_center = get_center(contour)
@@ -174,5 +177,5 @@ def update_slow():
 ################################################################################
 
 if __name__ == "__main__":
-    RC.set_start_update(start, update, update_slow)
-    RC.go()
+    rc.set_start_update(start, update, update_slow)
+    rc.go()
