@@ -3,7 +3,7 @@ Copyright Harvey Mudd College
 MIT License
 Fall 2019
 
-Lab 2 - Line Following
+Lab 2 - Image Processing
 """
 
 ################################################################################
@@ -22,12 +22,19 @@ import numpy as np
 ################################################################################
 
 rc = Racecar()
-MIN_CONTOUR_SIZE = 30
 
-SPEED = 0.0
-ANGLE = 0
-BLUE = ((0,0,0),(0,0,0))
-SCREEN_CENTER = 320
+# Constants
+MIN_CONTOUR_SIZE = 30   # The smallest
+SCREEN_CENTER = 320     # The center x coordinate of the camera image
+
+# Variables
+speed = 0.0     # The current speed of the car
+angle = 0.0     # The current angle of the car's wheels
+
+# Colors, stored as a pair (hsv_min, hsv_max)
+BLUE = ((90,50,50), (110,255,255))  # The HSV range for the color blue
+# TODO: add HSV ranges for other colors
+
 
 ################################################################################
 # Functions
@@ -35,35 +42,62 @@ SCREEN_CENTER = 320
 
 def crop(image, top_left, bottom_right):
     '''
-    image: an image (these are stored as arrays, top left is (0,0))
-    top_left: a pair of numbers representing the top left coordinate
-    bottom_right: a pair of numbers representing the bottom right coordinate
+    Crops an image to a rectangle based on the specified pixel points
 
-    Helper function to make cropping images easier
+    Inputs:
+        image (2D numpy array of tripples): The image to crop
+        top_left ((int, int)): The (row, column) of the top left pixel of the
+            crop rectangle
+        bottom_right((int, int)): The (row, column) of the bottom right pixel
+            of the crop rectangle
 
-    returns: a cropped version of the image
+    Output (2D numpy array of tripples): a cropped version of the image
     '''
-    x1, y1 = top_left
-    x2, y2 = bottom_right
-    return image[x1:x2,y1:y2]
+    # Extract minimum and maximum pixel rows and columns from the parameters
+    r_min, c_min = top_left
+    r_max = bottom_right[0] + 1
+    c_max = bottom_right[1] + 1
+
+    # Shorten the array to the specified row and column ranges
+    return image[r_min:r_max, c_min:c_max]
 
 
-def find_contours(img, HSV_lower, HSV_upper):
+def find_contours(image, hsv_lower, hsv_upper):
     """
-    This function finds all contours in the image of the color range specified
-    HSV min and max
+    Finds all contours of the specified color range in the provided image
+
+    Inputs:
+        image (2D numpy array of tripples): The image in which to find contours,
+            with pixels represented in the bgr (blue-green-red) format
+        hsv_lower ((int, int, int)): The lower bound for the hue, saturation,
+            and value of colors to contour
+        hsv_upper ((int, int, int)): The upper bound for the hue, saturation,
+            and value of the colors to contour
+
+    Output ([contours]): 
     """
-    hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-    mask = cv.inRange(hsv, HSV_lower, HSV_upper)
+    # Convert the image from a blue-green-red pixel representation to a
+    # hue-saturation-value representation
+    hsv_image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
+
+    # Create a mask based on the pixels in the image with hsv values that
+    # fall between HSV_lower and HSV_upper
+    mask = cv.inRange(hsv_image, hsv_lower, hsv_upper)
+
+    # Find and return a list of all contours of this mask
     _,contours,_ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
     return contours
 
 
 def contours_exist(contours):
     """
-    This function extracts the largest contour if it exists.
-    If it doesn't exist, or is too small, it returns false.
-    Else, it returns true along with the associated contour.
+    Extracts the largest contour from a list of contours with an area
+    greater than MIN_CONTOUR_SIZE
+
+    Inputs:
+        contours ([contours]): A list of contours found in an image
+
+    Outputs:
     """
     if len(contours) == 0:
         return (False, None)
@@ -98,17 +132,19 @@ def start():
     This function is run once every time the start button is pressed
     """
     print("Started")
-    global SPEED
-    global ANGLE
-    global BLUE
+    global speed
+    global angle
+
+    # Initialize variables
+    speed = 0
+    angle = 0
 
     # In this starter code, we will only mask the blue tape color
     BLUE = ((90,50,50), (110,255,255))
 
-
     #TODO: Mask for another color of tape
 
-    rc.drive.set_speed_angle(SPEED, ANGLE)
+    rc.drive.set_speed_angle(speed, angle)
 
 
 def update():
