@@ -11,9 +11,11 @@ Lab 2 - Image Processing
 ################################################################################
 
 import sys
-sys.path.insert(0, '../../library')
+
+sys.path.insert(0, "../../library")
 from racecar_core import *
-rospy.init_node('racecar')
+
+rospy.init_node("racecar")
 import cv2 as cv
 import numpy as np
 
@@ -24,15 +26,16 @@ import numpy as np
 rc = Racecar()
 
 # Constants
-MIN_CONTOUR_SIZE = 30   # The smallest
-SCREEN_CENTER = 320     # The center x coordinate of the camera image
+MIN_CONTOUR_SIZE = 30  # The smallest contour
+SCREEN_CENTER = 320  # The center x coordinate of the camera image
+CROP_BOTTOM = ((400, 0), (479, 639))
 
 # Variables
-speed = 0.0     # The current speed of the car
-angle = 0.0     # The current angle of the car's wheels
+speed = 0.0  # The current speed of the car
+angle = 0.0  # The current angle of the car's wheels
 
 # Colors, stored as a pair (hsv_min, hsv_max)
-BLUE = ((90,50,50), (110,255,255))  # The HSV range for the color blue
+BLUE = ((90, 50, 50), (110, 255, 255))  # The HSV range for the color blue
 # TODO: add HSV ranges for other colors
 
 
@@ -40,8 +43,9 @@ BLUE = ((90,50,50), (110,255,255))  # The HSV range for the color blue
 # Functions
 ################################################################################
 
+
 def crop(image, top_left, bottom_right):
-    '''
+    """
     Crops an image to a rectangle based on the specified pixel points
 
     Inputs:
@@ -52,7 +56,17 @@ def crop(image, top_left, bottom_right):
             of the crop rectangle
 
     Output (2D numpy array of tripples): a cropped version of the image
-    '''
+
+    Example:
+    ```Python
+    image = rc.camera.get_image()
+
+    # Crop the image to only keep the top half
+    cropped_image = crop(
+        image, (0, 0), (rc.camera.get_height() - 1, rc.camera.get_width() - 1)
+    )
+    ```
+    """
     # Extract minimum and maximum pixel rows and columns from the parameters
     r_min, c_min = top_left
     r_max = bottom_right[0] + 1
@@ -74,7 +88,20 @@ def find_contours(image, hsv_lower, hsv_upper):
         hsv_upper ((int, int, int)): The upper bound for the hue, saturation,
             and value of the colors to contour
 
-    Output ([contours]): 
+    Note: Each channel in hsv_lower and hsv_upper ranges from 0 to 255
+
+    Output ([contours]): a list of contours around the specified color ranges
+        found in the provided image
+
+    Example:
+    ```Python
+    # Define the lower and upper hsv ranges for the color blue
+    BLUE_HSV_MIN = (90, 50, 50)
+    BLUE_HSV_MAX = (110, 255, 255)
+
+    # Extract contours around all blue portions of the current image
+    contours = find_contours(rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX)
+    ```
     """
     # Convert the image from a blue-green-red pixel representation to a
     # hue-saturation-value representation
@@ -85,11 +112,11 @@ def find_contours(image, hsv_lower, hsv_upper):
     mask = cv.inRange(hsv_image, hsv_lower, hsv_upper)
 
     # Find and return a list of all contours of this mask
-    _,contours,_ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+    _, contours, _ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
     return contours
 
 
-def contours_exist(contours):
+def get_largest_contour(contours):
     """
     Extracts the largest contour from a list of contours with an area
     greater than MIN_CONTOUR_SIZE
@@ -97,14 +124,25 @@ def contours_exist(contours):
     Inputs:
         contours ([contours]): A list of contours found in an image
 
-    Outputs:
+    Outputs (contour or None): The largest contour from the list, or None if no
+        contour was larger than MIN_CONTOUR_SIZE
+
+    Example:
+    ```Python
+    # Extract the blue contours
+    BLUE_HSV_MIN = (90, 50, 50)
+    BLUE_HSV_MAX = (110, 255, 255)
+    contours = find_contours(rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX)
+
+    # Find the largest contour
+    largest_contour = get_largest_contour(contours)
     """
     if len(contours) == 0:
-        return (False, None)
+        return None
     greatest_contour = max(contours, key=cv.contourArea)
     if cv.contourArea(greatest_contour) > MIN_CONTOUR_SIZE:
-        return (True, greatest_contour)
-    return (False, greatest_contour)
+        return greatest_contour
+    return None
 
 
 def get_center(contour):
@@ -119,11 +157,11 @@ def get_center(contour):
     # as the 1st moment of the contour
 
     M = cv.moments(contour)
-    if M['m00'] == 0: # No pixels in contour
+    if M["m00"] == 0:  # No pixels in contour
         return ANGLE
 
     # Now we compute the center of the contour
-    contour_center = M['m10']/M['m00']
+    contour_center = M["m10"] / M["m00"]
     return contour_center
 
 
@@ -140,25 +178,25 @@ def start():
     angle = 0
 
     # In this starter code, we will only mask the blue tape color
-    BLUE = ((90,50,50), (110,255,255))
+    BLUE = ((90, 50, 50), (110, 255, 255))
 
-    #TODO: Mask for another color of tape
+    # TODO: Mask for another color of tape
 
     rc.drive.set_speed_angle(speed, angle)
 
 
 def update():
-    '''
+    """
     After start() is run, this function is run every frame until the back button
     is pressed
-    '''
+    """
     global SPEED
     global ANGLE
     global BLUE
 
     image = rc.camera.get_image()
 
-    #TODO: Implement a way to cycle through following multiple colors of tape
+    # TODO: Implement a way to cycle through following multiple colors of tape
 
     if image is None:
         print("No Image")
@@ -166,10 +204,12 @@ def update():
 
     else:
         hsv_lower, hsv_upper = BLUE
-        exists, contour = contours_exist(find_contours(crop(image, (400,0), (480,640)), hsv_lower, hsv_upper))
+        exists, contour = contours_exist(
+            find_contours(crop(image, (400, 0), (480, 640)), hsv_lower, hsv_upper)
+        )
 
         if exists:
-            #TODO: Implement a smoother way for the car to follow the lines
+            # TODO: Implement a smoother way for the car to follow the lines
 
             contour_center = get_center(contour)
 
@@ -180,16 +220,18 @@ def update():
             else:
                 ANGLE = 0
 
-   # Use Trigger to set speed for better control
+    # Use Trigger to set speed for better control
     forward_speed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
     back_speed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
-    SPEED = (forward_speed - back_speed) if (forward_speed <= 0 or back_speed <= 0) else 0
+    SPEED = (
+        (forward_speed - back_speed) if (forward_speed <= 0 or back_speed <= 0) else 0
+    )
 
     rc.drive.set_speed_angle(SPEED, ANGLE)
 
     # Print the current speed and angle when A button is held down
     if rc.controller.is_down(rc.controller.Button.A):
-        print("Speed:",SPEED,"Angle:",ANGLE)
+        print("Speed:", SPEED, "Angle:", ANGLE)
 
 
 def update_slow():
@@ -199,18 +241,21 @@ def update_slow():
     """
     image = rc.camera.get_image()
     if image is None:
-        print("X"*32)
+        print("X" * 32)
     else:
         hsv_lower, hsv_upper = BLUE
-        exists, contour = contours_exist(find_contours(crop(image, (400,0), (480,640)), hsv_lower, hsv_upper))
+        exists, contour = contours_exist(
+            find_contours(crop(image, (400, 0), (480, 640)), hsv_lower, hsv_upper)
+        )
 
         if exists:
             contour_center = get_center(contour)
-            s = ["-"]*32
+            s = ["-"] * 32
             s[int(contour_center / 20)] = "|"
             print("".join(s))
         else:
-            print("-"*32)
+            print("-" * 32)
+
 
 ################################################################################
 # Do not modify any code beyond this point
