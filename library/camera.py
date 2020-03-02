@@ -14,12 +14,14 @@ import numpy as np
 import rospy
 from sensor_msgs.msg import Image
 
+
 class Camera:
     """
     Returns the color images and depth images captured by the camera
     """
     # The ROS topic from which we read camera data
     __TOPIC = "/camera"
+    __DIMENSIONS = (640, 480)
 
     def __init__(self):
         self.__cam = cv.VideoCapture(2)
@@ -40,6 +42,12 @@ class Camera:
             blue = the amount of blue at that pixel from 0 (none) to 255 (max)
             green = the amount of green at that pixel from 0 (none) to 255 (max)
             red = the amount of red at that pixel from 0 (none) to 255 (max)
+
+        Example:
+        ```Python
+        # Initialize image with the most recent image captured by the camera
+        image = rc.camera.get_image()
+        ```
         """
         return self.__cam.read()[1]
 
@@ -58,6 +66,45 @@ class Camera:
             green = the amount of green at that pixel from 0 (none) to 255 (max)
             red = the amount of red at that pixel from 0 (none) to 255 (max)
             depth = ???
+
+        Example:
+        ```Python
+        # Initialize depth_image with the most recent depth image captured
+        # by the camera
+        depth_image = rc.camera.get_depth_image()
+        ```
         """
-        #TODO Add depth channel to image gotten from realsense
+        # TODO Add depth channel to image gotten from realsense
         return None
+
+    def get_width(self):
+        """
+        Returns the width of the captured images
+
+        Output (int): The width (number of pixel columns) of the captured images
+
+        Example:
+        ```Python
+        image = rc.camera.get_image()
+
+        # Access the top right pixel of the image
+        top_right_pixel = image[0, rc.camera.get_width() - 1]
+        ```
+        """
+        return self.__DIMENSIONS[0]
+
+    def get_height(self):
+        """
+        Returns the height of the captured images
+
+        Output (int): The height (number of pixel rows) of the captured images
+
+        Example:
+        ```Python
+        image = rc.camera.get_image()
+
+        # Access the top bottom left pixel of the image
+        bottom_left_pixel = image[rc.camera.get_height() - 1, 0]
+        ```
+        """
+        return self.__DIMENSIONS[1]
