@@ -10,19 +10,21 @@ Contains the Drive module of the racecar_core library
 import rospy
 from ackermann_msgs.msg import AckermannDriveStamped
 
+
 class Drive:
     """
     Controls the car's movement by allowing the user to set the state
     associated with speed and turning
     """
+
     # The ROS topic to which we publish drive messages
     __TOPIC = "/drive"
 
     def __init__(self):
-        self.__publisher = rospy.Publisher(self.__TOPIC, \
-            AckermannDriveStamped, queue_size=1)
+        self.__publisher = rospy.Publisher(
+            self.__TOPIC, AckermannDriveStamped, queue_size=1
+        )
         self.__message = AckermannDriveStamped()
-
 
     def set_speed_angle(self, speed, angle):
         """
@@ -30,9 +32,9 @@ class Drive:
         wheels
 
         Inputs:
-            speed (float) = The speed from -1.0 to 1.0, with positive for
+            speed (float): The speed from -1.0 to 1.0, with positive for
                 forward and negative for reverse
-            angle (float) = The angle of the front wheels from -1.0 to 1.0,
+            angle (float): The angle of the front wheels from -1.0 to 1.0,
                     with positive for right negative for left
 
         Example:
@@ -56,8 +58,7 @@ class Drive:
         speed = max(-MAX_SPEED, min(MAX_SPEED, speed))
         angle = max(-MAX_ANGLE, min(MAX_ANGLE, angle))
         self.__message.drive.speed = speed * SPEED_CONVERSION_FACTOR
-        self.__message.drive.steering_angle = angle * \
-            ANGLE_CONVERSION_FACTOR
+        self.__message.drive.steering_angle = angle * ANGLE_CONVERSION_FACTOR
 
     def stop(self):
         """
@@ -71,7 +72,6 @@ class Drive:
         ```
         """
         self.set_speed_angle(0, 0)
-
 
     def __update(self):
         """

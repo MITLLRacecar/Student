@@ -8,9 +8,9 @@ Contains the Racecar class, the top level of the racecar_core library
 
 # General
 from datetime import datetime
-import time # TODO: can we remove this?
+import time  # TODO: can we remove this?
 import threading
-import os # TODO: see if this can be removed
+import os  # TODO: see if this can be removed
 
 # ROS
 import rospy
@@ -22,11 +22,13 @@ import controller
 import display
 import drive
 
+
 class Racecar:
     """
     The top level racecar module containing several submodules which interface
     with and control the different pieces of the RACECAR hardware
     """
+
     # Default number of seconds to wait between calls to update_slow
     __DEFAULT_UPDATE_SLOW_TIME = 1
 
@@ -66,12 +68,13 @@ class Racecar:
 
         # Print welcome message
         print(">> Racecar initialization successful")
-        print(">> Controlls:\n"
+        print(
+            ">> Controlls:\n"
             "     START button = run your program\n"
             "     BACK button = enter default drive mode\n"
             "     BACK + START buttons simultaneously = exit the program\n"
-            "     CTRL + Z on keyboard = force quit the program")
-
+            "     CTRL + Z on keyboard = force quit the program"
+        )
 
     def go(self):
         """
@@ -81,11 +84,10 @@ class Racecar:
         Example: See set_start_update below
         """
         self.__running = True
-        while(self.__running):
+        while self.__running:
             pass
 
-
-    def set_start_update(self, start, update, update_slow = None):
+    def set_start_update(self, start, update, update_slow=None):
         """
         Sets the start and update functions used in user program mode
 
@@ -121,7 +123,6 @@ class Racecar:
         self.__user_start = start
         self.__user_update = update
         self.__user_update_slow = update_slow
-
 
     def get_delta_time(self):
         """
@@ -161,15 +162,16 @@ class Racecar:
         Handles when the START button is pressed by entering user program mode
         """
         if self.__user_start is None or self.__user_update is None:
-            print(">> No user start and update functions found.  "
+            print(
+                ">> No user start and update functions found.  "
                 "Did you call set_start_update with valid start and "
-                "update functions?")
+                "update functions?"
+            )
         else:
             print(">> Entering user program mode")
             self.__user_start()
             self.__cur_update = self.__user_update
             self.__cur_update_slow = self.__user_update_slow
-
 
     def __handle_back(self):
         """
@@ -180,14 +182,12 @@ class Racecar:
         self.__cur_update = self.__default_update
         self.__cur_update_slow = None
 
-
     def __handle_exit(self):
         """
         Handles when BACK and START are pressed together by exiting the program
         """
         print(">> Goodbye!")
         self.__running = False
-
 
     def __run(self):
         """
@@ -210,7 +210,6 @@ class Racecar:
 
             timer.sleep()
 
-
     def __update_modules(self):
         """
         Calls the update function on each module
@@ -218,13 +217,11 @@ class Racecar:
         self.drive._Drive__update()
         self.controller._Controller__update()
 
-
     def __default_start(self):
         """
         The start function for default drive mode
         """
         self.drive.stop()
-
 
     def __default_update(self):
         """
@@ -236,11 +233,10 @@ class Racecar:
             Left joystick: Turn left and right
             A button: Print "Kachow!" to the terminal
         """
-        MAX_SPEED = 1.0     # The speed when the trigger is fully pressed
-        MAX_ANGLE = 1.0     # The angle when the joystick is fully moved
+        MAX_SPEED = 1.0  # The speed when the trigger is fully pressed
+        MAX_ANGLE = 1.0  # The angle when the joystick is fully moved
 
-        forwardSpeed = self.controller.get_trigger(\
-            self.controller.Trigger.RIGHT)
+        forwardSpeed = self.controller.get_trigger(self.controller.Trigger.RIGHT)
         backSpeed = self.controller.get_trigger(self.controller.Trigger.LEFT)
         speed = (forwardSpeed - backSpeed) * MAX_SPEED
 
@@ -248,8 +244,9 @@ class Racecar:
         if forwardSpeed > 0 and backSpeed > 0:
             speed = 0
 
-        angle = self.controller.get_joystick(self.controller.Joystick.LEFT)[0] \
-            * MAX_ANGLE
+        angle = (
+            self.controller.get_joystick(self.controller.Joystick.LEFT)[0] * MAX_ANGLE
+        )
 
         self.drive.set_speed_angle(speed, angle)
 

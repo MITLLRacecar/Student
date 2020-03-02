@@ -19,6 +19,7 @@ class Camera:
     """
     Returns the color images and depth images captured by the camera
     """
+
     # The ROS topic from which we read camera data
     __TOPIC = "/camera"
     __DIMENSIONS = (640, 480)
