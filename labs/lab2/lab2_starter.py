@@ -19,6 +19,7 @@ rospy.init_node("racecar")
 import cv2 as cv
 import numpy as np
 
+
 ################################################################################
 # Global variables
 ################################################################################
@@ -26,13 +27,15 @@ import numpy as np
 rc = Racecar()
 
 # Constants
-MIN_CONTOUR_SIZE = 30  # The smallest contour
-SCREEN_CENTER = 320  # The center x coordinate of the camera image
+# The smallest contour we will recognize as a valid contour
+MIN_CONTOUR_SIZE = 30
+# A crop window for the floor directly in front of the car
 CROP_BOTTOM = ((400, 0), (479, 639))
 
 # Variables
 speed = 0.0  # The current speed of the car
 angle = 0.0  # The current angle of the car's wheels
+center = (0, 0)  # The (row, column) of the center pixel of the line (if found)
 
 # Colors, stored as a pair (hsv_min, hsv_max)
 BLUE = ((90, 50, 50), (110, 255, 255))  # The HSV range for the color blue
@@ -67,7 +70,7 @@ def crop(image, top_left, bottom_right):
     )
     ```
     """
-    # Extract minimum and maximum pixel rows and columns from the parameters
+    # Extract the minimum and maximum pixel rows and columns from the parameters
     r_min, c_min = top_left
     r_max = bottom_right[0] + 1
     c_max = bottom_right[1] + 1
@@ -112,8 +115,7 @@ def find_contours(image, hsv_lower, hsv_upper):
     mask = cv.inRange(hsv_image, hsv_lower, hsv_upper)
 
     # Find and return a list of all contours of this mask
-    _, contours, _ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-    return contours
+    return cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)[1]
 
 
 def get_largest_contour(contours):
@@ -122,7 +124,7 @@ def get_largest_contour(contours):
     greater than MIN_CONTOUR_SIZE
 
     Inputs:
-        contours ([contours]): A list of contours found in an image
+        contours ([contour]): A list of contours found in an image
 
     Outputs (contour or None): The largest contour from the list, or None if no
         contour was larger than MIN_CONTOUR_SIZE
@@ -136,53 +138,81 @@ def get_largest_contour(contours):
 
     # Find the largest contour
     largest_contour = get_largest_contour(contours)
+    ```
     """
+    # Check that the list contains at least one contour
     if len(contours) == 0:
         return None
+
+    # Find and return the largest contour if it is larger than MIN_CONTOUR_SIZE
     greatest_contour = max(contours, key=cv.contourArea)
-    if cv.contourArea(greatest_contour) > MIN_CONTOUR_SIZE:
-        return greatest_contour
-    return None
+    if cv.contourArea(greatest_contour) < MIN_CONTOUR_SIZE:
+        return None
+
+    return greatest_contour
 
 
 def get_center(contour):
     """
-    This function takes an image, finds its greatest contour
-    given a color range, then finds it's center. If it can't
-    find a contour of the specified color range it returns
-    the old angle.
-    """
+    Finds the center of a contour of an image
 
-    # We want to find the center of the contour, also known
-    # as the 1st moment of the contour
+    Input:
+        contour (contour): The contour of which to find the center
+
+    Output ((int, int)): The (row, column) of the pixel at the center of the 
+        contour
+
+    Note: Returns a None if the contour parameter is None or contains no pixels
+
+    Example:
+    ```Python
+    # Extract the largest blue contour
+    BLUE_HSV_MIN = (90, 50, 50)
+    BLUE_HSV_MAX = (110, 255, 255)
+    contours = find_contours(rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX)
+    largest_contour = get_largest_contour(contours)
+
+    # Find the center of this contour if it exists
+    if (contour is not None):
+        center = get_center(contour)
+    ```
+    """
+    # Make sure that we were passed a valid contour
+    if contour is None:
+        return None
 
     M = cv.moments(contour)
-    if M["m00"] == 0:  # No pixels in contour
-        return ANGLE
 
-    # Now we compute the center of the contour
-    contour_center = M["m10"] / M["m00"]
-    return contour_center
+    # Check that the contour is not empty
+    # (M["m00"] is the number of pixels in the contour)
+    if M["m00"] <= 0:
+        return None
+
+    # Compute and return the center of mass of the contour
+    return (M["m01"] / M["m00"], M["m10"] / M["m00"])
 
 
 def start():
     """
     This function is run once every time the start button is pressed
     """
-    print("Started")
     global speed
     global angle
+    global center
 
     # Initialize variables
     speed = 0
     angle = 0
+    center = None
 
-    # In this starter code, we will only mask the blue tape color
-    BLUE = ((90, 50, 50), (110, 255, 255))
-
-    # TODO: Mask for another color of tape
-
+    # Set initial driving speed and angle
     rc.drive.set_speed_angle(speed, angle)
+
+    # Set update_slow to refresh every half second
+    rc.set_update_slow_time(0.5)
+
+    # Print start message
+    print("")
 
 
 def update():
@@ -190,48 +220,46 @@ def update():
     After start() is run, this function is run every frame until the back button
     is pressed
     """
-    global SPEED
-    global ANGLE
-    global BLUE
+    global speed
+    global angle
+    global center
 
     image = rc.camera.get_image()
 
     # TODO: Implement a way to cycle through following multiple colors of tape
 
     if image is None:
-        print("No Image")
-        return
-
+        # If no image is found, center the wheels
+        center = None
+        angle = 0
     else:
-        hsv_lower, hsv_upper = BLUE
-        exists, contour = contours_exist(
-            find_contours(crop(image, (400, 0), (480, 640)), hsv_lower, hsv_upper)
-        )
+        # Crop the image to only show the floor in front of the car
+        cropped_image = crop(image, CROP_BOTTOM[0], CROP_BOTTOM[1])
 
-        if exists:
-            # TODO: Implement a smoother way for the car to follow the lines
+        # Find all of the blue contours
+        blueContours = find_contours(cropped_image, BLUE[0], BLUE[1])
 
-            contour_center = get_center(contour)
+        # Find the center of the largest blue contour
+        largestBlueContour = get_largest_contour(blueContours)
+        center = get_center(largestBlueContour)
 
-            if contour_center < SCREEN_CENTER:
-                ANGLE = 1
-            elif contour_center > SCREEN_CENTER:
-                ANGLE = -1
-            else:
-                ANGLE = 0
+    # Choose an angle based on center
+    # If we could not find a contour center, keep the previous angle
+    if center is not None:
+        # TODO: Implement a smoother way for the car to follow the line
+        if center[1] < rc.camera.get_width() / 2:
+            angle = 1
+        else:
+            angle = -1
 
-    # Use Trigger to set speed for better control
-    forward_speed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
-    back_speed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
-    SPEED = (
-        (forward_speed - back_speed) if (forward_speed <= 0 or back_speed <= 0) else 0
-    )
+    # Use the right trigger to control the car's forward speed
+    speed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
 
-    rc.drive.set_speed_angle(SPEED, ANGLE)
+    rc.drive.set_speed_angle(speed, angle)
 
-    # Print the current speed and angle when A button is held down
+    # Print the current speed and angle when the A button is held down
     if rc.controller.is_down(rc.controller.Button.A):
-        print("Speed:", SPEED, "Angle:", ANGLE)
+        print("Speed:", speed, "Angle:", angle)
 
 
 def update_slow():
@@ -239,22 +267,20 @@ def update_slow():
     After start() is run, this function is run at a constant rate that is slower
     than update().  By default, update_slow() is run once per second
     """
-    image = rc.camera.get_image()
-    if image is None:
-        print("X" * 32)
-    else:
-        hsv_lower, hsv_upper = BLUE
-        exists, contour = contours_exist(
-            find_contours(crop(image, (400, 0), (480, 640)), hsv_lower, hsv_upper)
-        )
+    # Print a line of ascii text denoting where the car sees the line
+    # If no image is found, print all X's
+    if rc.camera.get_image() is None:
+        print("X" * 10 + " (No image) " + "X" * 10)
 
-        if exists:
-            contour_center = get_center(contour)
-            s = ["-"] * 32
-            s[int(contour_center / 20)] = "|"
-            print("".join(s))
-        else:
-            print("-" * 32)
+    # If an image is found but no contour is found, print all dashes
+    elif center is None:
+        print("-" * 32)
+
+    # Otherwise, print a line of dashes with a | where the line is seen
+    else:
+        s = ["-"] * 32
+        s[int(center[1] / 20)] = "|"
+        print("".join(s))
 
 
 ################################################################################
