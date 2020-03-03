@@ -22,7 +22,9 @@ class Camera:
 
     # The ROS topic from which we read camera data
     __TOPIC = "/camera"
-    __DIMENSIONS = (640, 480)
+
+    # The dimensions of the image in pixels, as (rows, columns)
+    __DIMENSIONS = (480, 640)
 
     def __init__(self):
         self.__cam = cv.VideoCapture(2)
