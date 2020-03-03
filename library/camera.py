@@ -94,7 +94,7 @@ class Camera:
         top_right_pixel = image[0, rc.camera.get_width() - 1]
         ```
         """
-        return self.__DIMENSIONS[0]
+        return self.__DIMENSIONS[1]
 
     def get_height(self):
         """
@@ -110,4 +110,4 @@ class Camera:
         bottom_left_pixel = image[rc.camera.get_height() - 1, 0]
         ```
         """
-        return self.__DIMENSIONS[1]
+        return self.__DIMENSIONS[0]
