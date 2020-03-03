@@ -35,7 +35,8 @@ CROP_BOTTOM = ((400, 0), (479, 639))
 # Variables
 speed = 0.0  # The current speed of the car
 angle = 0.0  # The current angle of the car's wheels
-center = (0, 0)  # The (row, column) of the center pixel of the line (if found)
+center = (0, 0)  # The (row, column) of the center pixel of the line
+area = 0  # The number of pixels in the largest contour
 
 # Colors, stored as a pair (hsv_min, hsv_max)
 BLUE = ((90, 50, 50), (110, 255, 255))  # The HSV range for the color blue
@@ -154,7 +155,7 @@ def get_largest_contour(contours):
 
 def get_center(contour):
     """
-    Finds the center of a contour of an image
+    Finds the center of a contour from an image
 
     Input:
         contour (contour): The contour of which to find the center
@@ -173,11 +174,11 @@ def get_center(contour):
     largest_contour = get_largest_contour(contours)
 
     # Find the center of this contour if it exists
-    if (contour is not None):
-        center = get_center(contour)
+    if (largest_contour is not None):
+        center = get_center(largest_contour)
     ```
     """
-    # Make sure that we were passed a valid contour
+    # Verify that we were passed a valid contour
     if contour is None:
         return None
 
@@ -192,6 +193,35 @@ def get_center(contour):
     return (M["m01"] / M["m00"], M["m10"] / M["m00"])
 
 
+def get_area(contour):
+    """
+    Finds the area of a contour from an image
+
+    Input:
+        contour (contour): The contour of which to measure the area
+
+    Output (float): The number of pixels contained within the contour, or 0 if
+        an invalid contour is provided
+
+    Example:
+    ```Python
+    # Extract the largest blue contour
+    BLUE_HSV_MIN = (90, 50, 50)
+    BLUE_HSV_MAX = (110, 255, 255)
+    contours = find_contours(rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX)
+    largest_contour = get_largest_contour(contours)
+
+    # Find the area of this contour (will evaluate to 0 if no contour was found)
+    area = get_contour_area(contour)
+    ```
+    """
+    # Verify that we were passed a valid contour
+    if contour is None:
+        return 0
+
+    return cv.contourArea(contour)
+
+
 def start():
     """
     This function is run once every time the start button is pressed
@@ -199,11 +229,13 @@ def start():
     global speed
     global angle
     global center
+    global area
 
     # Initialize variables
     speed = 0
     angle = 0
     center = None
+    area = 0
 
     # Set initial driving speed and angle
     rc.drive.set_speed_angle(speed, angle)
@@ -212,7 +244,14 @@ def start():
     rc.set_update_slow_time(0.5)
 
     # Print start message
-    print("")
+    print(
+        ">> Lab 2 - Image processing\n"
+        "\n"
+        "Controlls:\n"
+        "   Right trigger = control forward speed\n"
+        "   A button = print current speed and angle\n"
+        "   B button = print contour center and area"
+    )
 
 
 def update():
@@ -223,6 +262,7 @@ def update():
     global speed
     global angle
     global center
+    global area
 
     image = rc.camera.get_image()
 
@@ -232,6 +272,7 @@ def update():
         # If no image is found, center the wheels
         center = None
         angle = 0
+        area = 0
     else:
         # Crop the image to only show the floor in front of the car
         cropped_image = crop(image, CROP_BOTTOM[0], CROP_BOTTOM[1])
@@ -239,9 +280,10 @@ def update():
         # Find all of the blue contours
         blueContours = find_contours(cropped_image, BLUE[0], BLUE[1])
 
-        # Find the center of the largest blue contour
+        # Find the center and area of the largest blue contour
         largestBlueContour = get_largest_contour(blueContours)
         center = get_center(largestBlueContour)
+        area = get_area(largestBlueContour)
 
     # Choose an angle based on center
     # If we could not find a contour center, keep the previous angle
@@ -261,26 +303,35 @@ def update():
     if rc.controller.is_down(rc.controller.Button.A):
         print("Speed:", speed, "Angle:", angle)
 
+    # Print the center and area of the largest contour when B is held down
+    if rc.controller.is_down(rc.controller.Button.B):
+        if center is None:
+            print("No contour found")
+        else:
+            print("Center:", center, "Area:", angle)
+
 
 def update_slow():
     """
     After start() is run, this function is run at a constant rate that is slower
     than update().  By default, update_slow() is run once per second
     """
-    # Print a line of ascii text denoting where the car sees the line
+    # Print a line of ascii text denoting where the car sees the line and the
+    # area of the contour
+
     # If no image is found, print all X's
     if rc.camera.get_image() is None:
-        print("X" * 10 + " (No image) " + "X" * 10)
+        print("X" * 10 + " (No image) " + "X" * 10 + " : area = " + str(area))
 
     # If an image is found but no contour is found, print all dashes
     elif center is None:
-        print("-" * 32)
+        print("-" * 32 + " : area = " + str(area))
 
     # Otherwise, print a line of dashes with a | where the line is seen
     else:
         s = ["-"] * 32
         s[int(center[1] / 20)] = "|"
-        print("".join(s))
+        print("".join(s) + " : area = " + str(area))
 
 
 ################################################################################
