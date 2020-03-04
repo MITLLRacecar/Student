@@ -17,7 +17,8 @@ class Display:
         pass
 
     def show_image(self, image):
-        cv.imshow("display", image)
+        cv.imshow("display window", image)
+        cv.waitKey(1)
 
     def show_text(self, text, size, color):
         pass
