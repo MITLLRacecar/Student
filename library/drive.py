@@ -25,6 +25,7 @@ class Drive:
             self.__TOPIC, AckermannDriveStamped, queue_size=1
         )
         self.__message = AckermannDriveStamped()
+        self.__max_speed_scale_factor = 0.25
 
     def set_speed_angle(self, speed, angle):
         """
@@ -50,15 +51,15 @@ class Drive:
             rc.drive.set_speed_angle(0.5, 0.7)
         ```
         """
-        MAX_SPEED = 1  # The maximum speed magnitude allowed
-        MAX_ANGLE = 1  # The maximum angle magnitude allowed
-        SPEED_CONVERSION_FACTOR = 4
-        ANGLE_CONVERSION_FACTOR = 1 / 4.0
+        assert (
+            speed >= -1.0 and speed <= 1.0
+        ), "speed must be a float between -1.0 and 1.0 inclusive"
+        assert (
+            angle >= -1.0 and angle <= 1.0
+        ), "angle must be a float between -1.0 and 1.0 inclusive"
 
-        speed = max(-MAX_SPEED, min(MAX_SPEED, speed))
-        angle = max(-MAX_ANGLE, min(MAX_ANGLE, angle))
-        self.__message.drive.speed = speed * SPEED_CONVERSION_FACTOR
-        self.__message.drive.steering_angle = angle * ANGLE_CONVERSION_FACTOR
+        self.__message.drive.speed = speed * self.__max_speed_scale_factor
+        self.__message.drive.steering_angle = angle
 
     def stop(self):
         """
@@ -72,6 +73,12 @@ class Drive:
         ```
         """
         self.set_speed_angle(0, 0)
+
+    def set_max_speed_scale_factor(self, scale_factor):
+        assert (
+            scale_factor >= 0.0 and scale_factor <= 1.0
+        ), "max_speed_scale_factor must be a float between 0.0 and 1.0 inclusive"
+        self.__max_speed_scale_factor = scale_factor
 
     def __update(self):
         """
