@@ -1,4 +1,5 @@
 import cv2 as cv
+import numpy as np
 
 
 def crop(image, top_left_inclusive, bottom_right_exclusive):
@@ -28,6 +29,10 @@ def crop(image, top_left_inclusive, bottom_right_exclusive):
     )
     ```
     """
+    assert (
+        len(image.shape) == 3 and image.shape[2] >= 3
+    ), "image must be a 2D numpy array of pixels"
+
     # Extract the minimum and maximum pixel rows and columns from the parameters
     r_min, c_min = top_left_inclusive
     r_max, c_max = bottom_right_exclusive
@@ -65,6 +70,10 @@ def find_contours(image, hsv_lower, hsv_upper):
     )
     ```
     """
+    assert (
+        len(image.shape) == 3 and image.shape[2] >= 3
+    ), "image must be a 2D numpy array of pixels"
+
     # Convert the image from a blue-green-red pixel representation to a
     # hue-saturation-value representation
     hsv_image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
@@ -124,8 +133,12 @@ def draw_contour(image, contour, color=(0, 255, 0)):
         color ((int, int, int)): The color to draw the contour, specified as
             blue-green-red channels each ranging from 0 to 255
 
-    Output (2D numpy array ): a copy of image with the contour drawn on it
+    Output (2D numpy array ): A copy of image with the contour drawn on it
     """
+    assert (
+        len(image.shape) == 3 and image.shape[2] >= 3
+    ), "image must be a 2D numpy array of pixels"
+
     return cv.drawContours(np.copy(image), [contour], 0, color, 3)
 
 
@@ -200,3 +213,89 @@ def get_area(contour):
         return 0
 
     return cv.contourArea(contour)
+
+
+def get_center_distance(depth_image, kernel_size=7):
+    """
+    Finds the distance of the center object in a depth image
+
+    Inputs:
+        depth_image (2D numpy array of quadruples): The depth image to process
+        kernel_size (int): The size of the area to average around the center
+
+    Output (float): The distance in centimeters of the object in the center of
+        the image
+
+    Warning: kernel_size must be an odd integer
+
+    Note: The larger the kernel_size, the more that the center is averaged
+        with the depth of the surrounding pixels.  This helps reduce noise but
+        also reduces accuracy if the center object is not flat.
+
+    Example:
+    ```Python
+    depth_image = rc.camera.get_depth_image()
+
+    # Find the distance of the object in the center of depth_image
+    center_distance = rc_utils.get_center_distance(depth_image)
+    ```
+    """
+    assert (
+        len(depth_image.shape) == 3 and depth_image.shape[2] == 4
+    ), "depth_image must be a 2D numpy array of 4-channel pixels"
+    assert kernel_size % 2 == 1, "kernel_size must be odd"
+
+    # Crop out the center kernel of the depth image
+    just_depth = depth_image[:, :, 3]
+    center = (just_depth.shape[0] // 2, just_depth.shape[1] // 2)
+    cropped_center = crop(
+        just_depth,
+        (center[0] - kernel_size // 2, center[1] - kernel_size // 2),
+        (center[0] + kernel_size // 2, center[1] + kernel_size // 2),
+    )
+
+    # Apply a Gaussian blur to the cropped depth image to reduce noise
+    blurred_center = cv.GaussianBlur(cropped_center, (kernel_size, kernel_size), 0)
+
+    # Return the depth of the center pixel
+    return blurred_center[kernel_size // 2, kernel_size // 2]
+
+
+def get_closest_pixel(depth_image, kernel_size=5):
+    """
+    Finds the closest pixel in a depth image
+
+    Inputs:
+        depth_image (2D numpy array of quadruples): The depth image to process
+        kernel_size (int): The size of the area to average around each pixel
+
+    Output ((int,int)): The (row, column) position of the pixel which is closest
+        to the car
+
+    Warning: kernel_size must be an odd integer
+
+    Note: The larger the kernel_size, the more that the depth of each pixel is
+        averaged with the depth of surrounding pixels.  This helps reduce noise
+        but also reduces accuracy.
+
+    Example:
+    ```Python
+    depth_image = rc.camera.get_depth_image()
+
+    # Find the closest pixel
+    closest_pixel = rc_utils.get_closest_pixel(depth_image)
+    ```
+    """
+    assert (
+        len(depth_image.shape) == 3 and depth_image.shape[2] == 4
+    ), "depth_image must be a 2D numpy array of 4-channel pixels"
+    assert kernel_size % 2 == 1, "kernel_size must be odd"
+
+    # Apply a Gaussian blur to the depth portion of the image to reduce noise
+    just_depth = depth_image[:, :, 3]
+    blurred_depth = cv.GaussianBlur(just_depth, (kernel_size, kernel_size), 0)
+
+    # Find the pixel location of the minimum depth
+    (_, _, minLoc, _) = cv.minMaxLoc(blurred_depth)
+
+    return minLoc
