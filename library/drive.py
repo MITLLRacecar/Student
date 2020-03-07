@@ -52,10 +52,10 @@ class Drive:
         ```
         """
         assert (
-            speed >= -1.0 and speed <= 1.0
+            -1.0 <= speed <= 1.0
         ), "speed must be a float between -1.0 and 1.0 inclusive"
         assert (
-            angle >= -1.0 and angle <= 1.0
+            -1.0 <= angle <= 1.0
         ), "angle must be a float between -1.0 and 1.0 inclusive"
 
         self.__message.drive.speed = speed * self.__max_speed_scale_factor
@@ -76,7 +76,7 @@ class Drive:
 
     def set_max_speed_scale_factor(self, scale_factor):
         assert (
-            scale_factor >= 0.0 and scale_factor <= 1.0
+            0.0 <= scale_factor <= 1.0
         ), "max_speed_scale_factor must be a float between 0.0 and 1.0 inclusive"
         self.__max_speed_scale_factor = scale_factor
 
