@@ -3,7 +3,7 @@ Copyright Harvey Mudd College
 MIT License
 Spring 2020
 
-Contains the Camera module of the racecar_core library
+Contains the depth camera module of the racecar_core library
 """
 
 # General
@@ -16,63 +16,41 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
 
-class Camera:
+class DepthCamera:
     """
     Returns the color images and depth images captured by the camera
     """
 
     # The ROS topic from which we read camera data
-    __TOPIC = "/camera/color/image_raw"
+    __TOPIC = "/camera/depth/image_rect_raw"
 
     # The dimensions of the image in pixels, as (rows, columns)
     __DIMENSIONS = (480, 640)
 
     def __init__(self):
         #self.__cam = cv.VideoCapture(2)
-        self.image_pub = rospy.Publisher("/camera/color/image_raw", Image, queue_size=10)
-        self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.callback)
-        self.image = None
+        self.depth_pub = rospy.Publisher("/camera/depth/image_rect_raw", Image, queue_size=10)
+        self.depth_bridge = CvBridge()
+        self.depth_sub = rospy.Subscriber("/camera/depth/image_rect_raw", Image, self.depth_callback)
+        self.depth_image = None
 
-    def callback(self, data):
+    def depth_callback(self, data):
         try:
-           cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+           cv_depth_image = self.depth_bridge.imgmsg_to_cv2(data, "16UC1")
         except CvBridgeError as e:
            print(e)
 
-        (rows,cols,channels) = cv_image.shape
+        #(rows,cols,channels) = cv_depth_image.shape
 
         try:
-           self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
+           self.depth_pub.publish(self.depth_bridge.cv2_to_imgmsg(cv_depth_image, "16UC1"))
         except CvBridgeError as e:
            print(e)
 
-        self.image = cv_image
+        self.depth_image = cv_depth_image
 
     def __del__(self):
         self.__cam.release()
-
-    def get_image(self):
-        """
-        Returns a two dimensional array representing a colored photo
-
-        Output (2D numpy array of triples): A two dimensional array indexed
-            from top left to the bottom right representing the pixels in the
-            image. Each entry in the array is a triple of the form
-            (blue, green, red) representing a single pixel
-
-        Triple format: (blue, green, red)
-            blue = the amount of blue at that pixel from 0 (none) to 255 (max)
-            green = the amount of green at that pixel from 0 (none) to 255 (max)
-            red = the amount of red at that pixel from 0 (none) to 255 (max)
-
-        Example:
-        ```Python
-        # Initialize image with the most recent image captured by the camera
-        image = rc.camera.get_image()
-        ```
-        """
-        return self.image
 
     def get_depth_image(self):
         """
@@ -97,8 +75,7 @@ class Camera:
         depth_image = rc.camera.get_depth_image()
         ```
         """
-        # TODO Add depth channel to image gotten from realsense
-        return None
+        return self.depth_image
 
     def get_width(self):
         """

@@ -114,9 +114,11 @@ class Controller:
                 print("The A button is currently pressed")
         ```
         """
-        if isinstance(button, self.Button):
-            return self.__is_down[button.value]
-        return False
+        assert isinstance(
+            button, self.Button
+        ), "button must be member of the rc.controller.Button enum"
+
+        return self.__is_down[button.value]
 
     def was_pressed(self, button):
         """
@@ -140,9 +142,11 @@ class Controller:
                 print("The A button was pressed")
         ```
         """
-        if isinstance(button, self.Button):
-            return self.__is_down[button.value] and not self.__was_down[button.value]
-        return False
+        assert isinstance(
+            button, self.Button
+        ), "button must be member of the rc.controller.Button enum"
+
+        return self.__is_down[button.value] and not self.__was_down[button.value]
 
     def was_released(self, button):
         """
@@ -166,9 +170,11 @@ class Controller:
                 print("The A button was released")
         ```
         """
-        if isinstance(button, self.Button):
-            return not self.__is_down[button.value] and self.__was_down[button.value]
-        return False
+        assert isinstance(
+            button, self.Button
+        ), "button must be member of the rc.controller.Button enum"
+
+        return not self.__is_down[button.value] and self.__was_down[button.value]
 
     def get_trigger(self, trigger):
         """
@@ -190,9 +196,11 @@ class Controller:
         speed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
         ```
         """
-        if isinstance(trigger, self.Trigger):
-            return self.__last_trigger[trigger.value]
-        return 0
+        assert isinstance(
+            trigger, self.Trigger
+        ), "trigger must be member of the rc.controller.Trigger enum"
+
+        return self.__last_trigger[trigger.value]
 
     def get_joystick(self, joystick):
         """
@@ -214,9 +222,11 @@ class Controller:
         x, y = rc.controller.get_joystick(rc.controller.Joystick.LEFT)
         ```
         """
-        if isinstance(joystick, self.Joystick):
-            return self.__last_joystick[joystick.value]
-        return (0, 0)
+        assert isinstance(
+            joystick, self.Joystick
+        ), "joystick must be member of the rc.controller.Joystick enum"
+
+        return self.__last_joystick[joystick.value]
 
     def __controller_callback(self, message):
         """
