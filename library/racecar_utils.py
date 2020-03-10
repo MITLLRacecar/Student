@@ -83,7 +83,7 @@ def find_contours(image, hsv_lower, hsv_upper):
     mask = cv.inRange(hsv_image, hsv_lower, hsv_upper)
 
     # Find and return a list of all contours of this mask
-    return cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)[1]
+    return cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)[0]
 
 
 def get_largest_contour(contours, min_contour_size=30):
