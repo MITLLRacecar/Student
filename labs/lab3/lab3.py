@@ -76,7 +76,7 @@ def update():
     global angle
 
     image = rc.camera.get_image()
-    depthImage = rc.depth_camera.get_depth_image()
+    depthImage = rc.camera.get_depth_image()
     center = None
     area = 0
 
@@ -98,7 +98,7 @@ def update():
 
         # Find the distance to image center
         if depthImage is not None:
-            pix = (rc.depth_camera.get_width()/2, rc.depth_camera.get_height()/2)
+            pix = (rc.camera.get_width()/2, rc.camera.get_height()/2)
             safetyDistance = depthImage[pix[1], pix[0]]
 
             #If the car is within 100 cm of an object have it stop
@@ -138,14 +138,14 @@ def update_slow():
     #    on top in bright green
 
     image = rc.camera.get_image()
-    depth_image = rc.depth_camera.get_depth_image()
+    depth_image = rc.camera.get_depth_image()
 
     if image is None:
         # If no image is found, print all X's and don't display an image
         print("X" * 10 + " (No image) " + "X" * 10)
     else:
 
-        pix = (rc.depth_camera.get_width()/2, rc.depth_camera.get_height()/2)
+        pix = (rc.camera.get_width()/2, rc.camera.get_height()/2)
         print('{}: Depth at center({}, {}): {}(mm)'.format("Depth Topic", pix[0], pix[1], depth_image[pix[1], pix[0]]))
         # Display the image to the screen
 
