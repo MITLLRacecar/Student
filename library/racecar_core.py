@@ -21,7 +21,6 @@ import camera
 import controller
 import display
 import drive
-import depth_camera
 
 
 class Racecar:
@@ -38,7 +37,6 @@ class Racecar:
 
     def __init__(self):
         # Modules
-        self.depth_camera = depth_camera.DepthCamera()
         self.camera = camera.Camera()
         self.controller = controller.Controller(self)
         self.display = display.Display()

@@ -1,3 +1,4 @@
+
 """
 Copyright Harvey Mudd College
 MIT License
@@ -22,32 +23,35 @@ class Camera:
     """
 
     # The ROS topic from which we read camera data
-    __TOPIC = "/camera/color/image_raw"
+    __COLOR_TOPIC = "/camera/color/image_raw"
+    __DEPTH_TOPIC = "/camera/depth/image_rect_raw"
 
     # The dimensions of the image in pixels, as (rows, columns)
     __DIMENSIONS = (480, 640)
 
     def __init__(self):
-        #self.__cam = cv.VideoCapture(2)
-        self.image_pub = rospy.Publisher("/camera/color/image_raw", Image, queue_size=10)
-        self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.callback)
-        self.image = None
+        self.__bridge = CvBridge()
 
-    def callback(self, data):
+        self.__color_image_sub = rospy.Subscriber(self.__COLOR_TOPIC, Image, self.__color_callback)
+        self.__color_image = None
+
+        self.__depth_image_sub = rospy.Subscriber(self.__DEPTH_TOPIC, Image, self.__depth_callback)
+
+    def __color_callback(self, data):
         try:
-           cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+           cv_color_image = self.__bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
            print(e)
 
-        (rows,cols,channels) = cv_image.shape
+        self.__color_image = cv_color_image
 
+    def __depth_callback(self, data):
         try:
-           self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
+            cv_depth_image = self.__bridge.imgmsg_to_cv2(data, "16UC1")
         except CvBridgeError as e:
-           print(e)
+            print(e)
 
-        self.image = cv_image
+        self.__depth_image = cv_depth_image
 
     def __del__(self):
         self.__cam.release()
@@ -72,7 +76,7 @@ class Camera:
         image = rc.camera.get_image()
         ```
         """
-        return self.image
+        return self.__color_image
 
     def get_depth_image(self):
         """
@@ -97,8 +101,7 @@ class Camera:
         depth_image = rc.camera.get_depth_image()
         ```
         """
-        # TODO Add depth channel to image gotten from realsense
-        return None
+        return self.__depth_image
 
     def get_width(self):
         """
