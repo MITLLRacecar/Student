@@ -7,7 +7,7 @@ def crop(image, top_left_inclusive, bottom_right_exclusive):
     Crops an image to a rectangle based on the specified pixel points
 
     Inputs:
-        image (2D numpy array of triples): The image to crop
+        image (2D numpy array of pixels): The image to crop
         top_left_inclusive ((int, int)): The (row, column) of the top left pixel
             of the crop rectangle
         bottom_right_exclusive ((int, int)): The (row, column) of the pixel one
@@ -30,7 +30,7 @@ def crop(image, top_left_inclusive, bottom_right_exclusive):
     ```
     """
     assert (
-        len(image.shape) == 3 and image.shape[2] >= 3
+        2 <= len(image.shape) <= 3
     ), "image must be a 2D numpy array of pixels"
 
     # Extract the minimum and maximum pixel rows and columns from the parameters
@@ -214,13 +214,12 @@ def get_area(contour):
 
     return cv.contourArea(contour)
 
-
 def get_center_distance(depth_image, kernel_size=7):
     """
     Finds the distance of the center object in a depth image
 
     Inputs:
-        depth_image (2D numpy array of quadruples): The depth image to process
+        depth_image (2D numpy array of depth values): The depth image to process
         kernel_size (int): The size of the area to average around the center
 
     Output (float): The distance in centimeters of the object in the center of
@@ -241,15 +240,14 @@ def get_center_distance(depth_image, kernel_size=7):
     ```
     """
     assert (
-        len(depth_image.shape) == 3 and depth_image.shape[2] == 4
-    ), "depth_image must be a 2D numpy array of 4-channel pixels"
+        len(depth_image.shape) == 2
+    ), "depth_image must be a 2D numpy array of pixels, instead it has shape " + str(depth_image.shape)
     assert kernel_size % 2 == 1, "kernel_size must be odd"
 
     # Crop out the center kernel of the depth image
-    just_depth = depth_image[:, :, 3]
-    center = (just_depth.shape[0] // 2, just_depth.shape[1] // 2)
+    center = (depth_image.shape[0] // 2, depth_image.shape[1] // 2)
     cropped_center = crop(
-        just_depth,
+        depth_image,
         (center[0] - kernel_size // 2, center[1] - kernel_size // 2),
         (center[0] + kernel_size // 2, center[1] + kernel_size // 2),
     )
@@ -266,7 +264,7 @@ def get_closest_pixel(depth_image, kernel_size=5):
     Finds the closest pixel in a depth image
 
     Inputs:
-        depth_image (2D numpy array of quadruples): The depth image to process
+        depth_image (2D numpy array of depth values): The depth image to process
         kernel_size (int): The size of the area to average around each pixel
 
     Output ((int,int)): The (row, column) position of the pixel which is closest
@@ -287,13 +285,12 @@ def get_closest_pixel(depth_image, kernel_size=5):
     ```
     """
     assert (
-        len(depth_image.shape) == 3 and depth_image.shape[2] == 4
-    ), "depth_image must be a 2D numpy array of 4-channel pixels"
+        len(depth_image.shape) == 2
+    ), "depth_image must be a 2D numpy array of pixels"
     assert kernel_size % 2 == 1, "kernel_size must be odd"
 
     # Apply a Gaussian blur to the depth portion of the image to reduce noise
-    just_depth = depth_image[:, :, 3]
-    blurred_depth = cv.GaussianBlur(just_depth, (kernel_size, kernel_size), 0)
+    blurred_depth = cv.GaussianBlur(depth_image, (kernel_size, kernel_size), 0)
 
     # Find the pixel location of the minimum depth
     (_, _, minLoc, _) = cv.minMaxLoc(blurred_depth)

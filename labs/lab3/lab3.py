@@ -98,8 +98,8 @@ def update():
 
         # Find the distance to image center
         if depthImage is not None:
-            pix = (rc.camera.get_width()/2, rc.camera.get_height()/2)
-            safetyDistance = depthImage[pix[1], pix[0]]
+            
+            safetyDistance = rc_utils.get_center_distance(depthImage)
 
             #If the car is within 100 cm of an object have it stop
             if safetyDistance > 1000:
@@ -144,9 +144,10 @@ def update_slow():
         # If no image is found, print all X's and don't display an image
         print("X" * 10 + " (No image) " + "X" * 10)
     else:
-
+        
+        depth = rc_utils.get_center_distance(depth_image)
         pix = (rc.camera.get_width()/2, rc.camera.get_height()/2)
-        print('{}: Depth at center({}, {}): {}(mm)'.format("Depth Topic", pix[0], pix[1], depth_image[pix[1], pix[0]]))
+        print('{}: Depth at center({}, {}): {}(mm)'.format("Depth Topic", pix[0], pix[1], depth))
         # Display the image to the screen
 
         # rc.display.show_image(image)
