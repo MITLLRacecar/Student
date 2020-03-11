@@ -138,14 +138,14 @@ def update_slow():
     #    on top in bright green
 
     image = rc.camera.get_image()
-    depth_image = rc.camera.get_depth_image()
+    depthImage = rc.camera.get_depth_image()
 
     if image is None:
         # If no image is found, print all X's and don't display an image
         print("X" * 10 + " (No image) " + "X" * 10)
     else:
         
-        depth = rc_utils.get_center_distance(depth_image)
+        depth = rc_utils.get_center_distance(depthImage)
         pix = (rc.camera.get_width()/2, rc.camera.get_height()/2)
         print('{}: Depth at center({}, {}): {}(mm)'.format("Depth Topic", pix[0], pix[1], depth))
         # Display the image to the screen
