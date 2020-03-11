@@ -27,7 +27,7 @@ racecar() {
       fi
     elif [ $# -eq 1 ] && [ "$1" == "connect" ]; then
       echo "Attempting to connect to RACECAR ("$RACECAR_IP")..."
-      ssh -t racecar@"$RACECAR_IP" "cd "$RACECAR_DESTINATION_PATH" && export DISPLAY=":1" && bash"
+      ssh -t racecar@"$RACECAR_IP" "cd "$RACECAR_DESTINATION_PATH" && export DISPLAY=":0" && bash"
     elif [ $# -eq 1 ] && [ "$1" == "setup" ]; then
       echo "Creating your team directory ("$RACECAR_DESTINATION_PATH") on your RACECAR..."
       ssh racecar@"$RACECAR_IP" mkdir -p "$RACECAR_DESTINATION_PATH"
