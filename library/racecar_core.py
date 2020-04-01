@@ -91,34 +91,26 @@ class Racecar:
         """
         Sets the start and update functions used in user program mode
 
-        Inputs:
-            start (function): The function called once every time we enter
-                user program mode
-            update (function): The function called every frame in user program
-                modes
+        Args:
+            start: (function) The function called once every time we enter user program mode and lots more than that
+            update: (function) The function called every frame in user program modes
 
         Note: The provided start and update functions should not take any
         parameters
 
         Example:
-        ```Python
-        # Create a racecar object
-        rc = Racecar()
-
-        # Define a start function
-        def start():
-            print("This function is called once")
-
-        # Define an update function
-        def update():
-            print("This function is called every frame")
-
-        # Provide the racecar with the start and update functions
-        rc.set_start_update(start, update)
-
-        # Tell the racecar to run until the program is exited
-        rc.go()
-        ```
+            # Create a racecar object
+            rc = Racecar()
+            # Define a start function
+            def start():
+                print("This function is called once")
+            # Define an update function
+            def update():
+                print("This function is called every frame")
+            # Provide the racecar with the start and update functions
+            rc.set_start_update(start, update)
+            # Tell the racecar to run until the program is exited
+            rc.go()
         """
         self.__user_start = start
         self.__user_update = update
@@ -128,15 +120,14 @@ class Racecar:
         """
         Returns the number of seconds elapsed in the previous frame
 
-        Output (float): The number of seconds between the start of the previous
-            frame and the start of the current frame
+        Returns:
+            (float) The number of seconds between the start of the previous
+                frame and the start of the current frame
 
         Example:
-        ```Python
-        # Increases counter by the number of seconds elapsed in the previous
-        # frame.
-        counter += rc.get_delta_time()
-        ```
+            # Increases counter by the number of seconds elapsed in the previous
+            # frame.
+            counter += rc.get_delta_time()
         """
         return (self.__cur_frame_time - self.__last_frame_time).total_seconds()
 
@@ -144,16 +135,14 @@ class Racecar:
         """
         Changes the time between calls to update_slow
 
-        Inputs:
+        Args:
             time (float): The time in seconds between calls to update_slow
 
         Note: The default value is 1 second
 
         Example:
-        ```Python
-        # Sets the time between calls to update_slow to 2 seconds
-        rc.set_update_slow_ratio(2)
-        ```
+            # Sets the time between calls to update_slow to 2 seconds
+            rc.set_update_slow_ratio(2)
         """
         self.__max_update_counter = max(1, round(time * self.__FRAME_RATE))
 
