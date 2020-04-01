@@ -78,10 +78,11 @@ class Racecar:
 
     def go(self):
         """
-        Idles in the main thread until the car program is exited
-        (START + END pressed simultaneously)
+        Starts the RACECAR, beginning in default drive mode.
 
-        Example: See set_start_update below
+        Note:
+            go idles in the main thread until the car program is exited
+            (START + END pressed simultaneously).
         """
         self.__running = True
         while self.__running:
@@ -89,14 +90,7 @@ class Racecar:
 
     def set_start_update(self, start, update, update_slow=None):
         """
-        Sets the start and update functions used in user program mode
-
-        Args:
-            start: (function) The function called once every time we enter user program mode and lots more than that
-            update: (function) The function called every frame in user program modes
-
-        Note: The provided start and update functions should not take any
-        parameters
+        Sets the start and update functions used in user program mode.
 
         Example:
             # Create a racecar object
@@ -111,6 +105,14 @@ class Racecar:
             rc.set_start_update(start, update)
             # Tell the racecar to run until the program is exited
             rc.go()
+
+        Args:
+            start: (function) The function called once every time we enter user
+                program mode.
+            update: (function) The function called every frame in user program modes.
+
+        Note:
+            The provided start and update functions should not take any parameters.
         """
         self.__user_start = start
         self.__user_update = update
@@ -118,27 +120,27 @@ class Racecar:
 
     def get_delta_time(self):
         """
-        Returns the number of seconds elapsed in the previous frame
+        Returns the number of seconds elapsed in the previous frame.
 
         Returns:
-            (float) The number of seconds between the start of the previous
-                frame and the start of the current frame
+            (float) The number of seconds between the start of the previous frame and
+            the start of the current frame.
 
         Example:
-            # Increases counter by the number of seconds elapsed in the previous
-            # frame.
+            # Increases counter by the number of seconds elapsed in the previous frame
             counter += rc.get_delta_time()
         """
         return (self.__cur_frame_time - self.__last_frame_time).total_seconds()
 
     def set_update_slow_time(self, time):
         """
-        Changes the time between calls to update_slow
+        Changes the time between calls to update_slow.
 
         Args:
-            time (float): The time in seconds between calls to update_slow
+            time (float): The time in seconds between calls to update_slow.
 
-        Note: The default value is 1 second
+        Note:
+            The default value is 1 second.
 
         Example:
             # Sets the time between calls to update_slow to 2 seconds
@@ -148,7 +150,7 @@ class Racecar:
 
     def __handle_start(self):
         """
-        Handles when the START button is pressed by entering user program mode
+        Handles when the START button is pressed by entering user program mode.
         """
         if self.__user_start is None or self.__user_update is None:
             print(
@@ -164,7 +166,7 @@ class Racecar:
 
     def __handle_back(self):
         """
-        Handles when the BACK button is pressed by entering default drive mode
+        Handles when the BACK button is pressed by entering default drive mode.
         """
         print(">> Entering default drive mode")
         self.__default_start()
@@ -173,15 +175,14 @@ class Racecar:
 
     def __handle_exit(self):
         """
-        Handles when BACK and START are pressed together by exiting the program
+        Handles when BACK and START are pressed together by exiting the program.
         """
         print(">> Goodbye!")
         self.__running = False
 
     def __run(self):
         """
-        Calls the current update function (determined by the current mode)
-        and update_modules functions once per frame
+        Calls the current update and update_modules once per frame.
         """
         timer = rospy.Rate(self.__FRAME_RATE)
         while True:
@@ -201,20 +202,20 @@ class Racecar:
 
     def __update_modules(self):
         """
-        Calls the update function on each module
+        Calls the update function on each module.
         """
         self.drive._Drive__update()
         self.controller._Controller__update()
 
     def __default_start(self):
         """
-        The start function for default drive mode
+        The start function for default drive mode.
         """
         self.drive.stop()
 
     def __default_update(self):
         """
-        The update function for default drive mode
+        The update function for default drive mode.
 
         Controls:
             Left trigger: Accelerate forward

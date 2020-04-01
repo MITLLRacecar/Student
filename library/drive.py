@@ -25,32 +25,28 @@ class Drive:
             self.__TOPIC, AckermannDriveStamped, queue_size=1
         )
         self.__message = AckermannDriveStamped()
-        self.__max_forward_speed_scale_factor = 0.25
-        self.__max_backward_speed_Scale_factor = 0.33
+        self.__max_speed_scale_factor = (0.25, 0.33)
 
     def set_speed_angle(self, speed, angle):
         """
-        Sets the speed at which the wheels turn and the angle of the front
-        wheels
+        Sets the speed at which the wheels turn and the angle of the front wheels.
 
-        Inputs:
-            speed (float): The speed from -1.0 to 1.0, with positive for
-                forward and negative for reverse
-            angle (float): The angle of the front wheels from -1.0 to 1.0,
-                    with positive for right negative for left
+        Args:
+            speed: (float) The speed from -1.0 to 1.0, with positive for
+                forward and negative for reverse.
+            angle: (float) The angle of the front wheels from -1.0 to 1.0,
+                    with positive for right negative for left.
 
         Example:
-        ```Python
-        if counter < 1:
-            # Drive forward at full speed
-            rc.drive.set_speed_angle(1, 0)
-        elif counter < 2:
-            # Drive fully to the left at full speed
-            rc.drive.set_speed_angle(1, -1)
-        else:
-            # Drive 70% to the right at half speed
-            rc.drive.set_speed_angle(0.5, 0.7)
-        ```
+            if counter < 1:
+                # Drive forward at full speed
+                rc.drive.set_speed_angle(1, 0)
+            elif counter < 2:
+                # Drive fully to the left at full speed
+                rc.drive.set_speed_angle(1, -1)
+            else:
+                # Drive 70% to the right at half speed
+                rc.drive.set_speed_angle(0.5, 0.7)
         """
         assert (
             -1.0 <= speed <= 1.0
@@ -58,32 +54,53 @@ class Drive:
         assert (
             -1.0 <= angle <= 1.0
         ), "angle must be a float between -1.0 and 1.0 inclusive"
-        
-        self.__message.drive.speed = speed * (self.__max_forward_speed_scale_factor if speed > 0 
-                else self.__max_backward_speed_scale_factor)
+
+        self.__message.drive.speed = speed * (
+            self.__max_speed_scale_factor[0]
+            if speed > 0
+            else self.__max_speed_scale_factor[1]
+        )
         self.__message.drive.steering_angle = angle
 
     def stop(self):
         """
-        Brings the car to a stop and points the front wheels forward
+        Brings the car to a stop and points the front wheels forward.
 
         Example:
-        ```Python
-        # Stops the car if the counter is greater than 5
-        if counter > 5:
-            rc.drive.stop()
-        ```
+            # Stops the car if the counter is greater than 5
+            if counter > 5:
+                rc.drive.stop()
         """
         self.set_speed_angle(0, 0)
 
     def set_max_speed_scale_factor(self, scale_factor):
+        """
+        Sets the maximum speed in the forward and backward direction.
+
+        Args:
+            scale_factor: (float, float) The maximum speed scale factor for
+                forward and backward, each ranging from 0.0 to 1.0.
+
+        Note:
+            The RACECAR motor is naturally faster forward than backward, so we
+            recommended using a larger scale factor in the backward direction
+            to compensate.
+
+        Example:
+            # Update the max speed scale factor to 0.5 forward, 0.7 backward
+            rc.set_max_speed_scale_factor((0.5, 0.7))
+        """
         assert (
-            0.0 <= scale_factor <= 1.0
-        ), "max_speed_scale_factor must be a float between 0.0 and 1.0 inclusive"
+            len(scale_factor) == 2
+        ), "scale_factor must be a two element tuple of floats"
+        assert (
+            0.0 <= scale_factor[0] <= 1.0 and 0.0 <= scale_factor[1] <= 1.0
+        ), "both entries of scale_factor must be a float between 0.0 and 1.0 inclusive"
+
         self.__max_speed_scale_factor = scale_factor
 
     def __update(self):
         """
-        Publishes the current drive message
+        Publishes the current drive message.
         """
         self.__publisher.publish(self.__message)

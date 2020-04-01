@@ -58,79 +58,80 @@ class Camera:
 
     def get_image(self):
         """
-        Returns a two dimensional array representing a colored photo
+        Returns a two dimensional array representing a colored photo.
 
-        Output (2D numpy array of triples): A two dimensional array indexed
+        Returns:
+            (2D numpy array of triples) A two dimensional array indexed
             from top left to the bottom right representing the pixels in the
             image. Each entry in the array is a triple of the form
-            (blue, green, red) representing a single pixel
+            (blue, green, red) representing a single pixel.
 
-        Triple format: (blue, green, red)
-            blue = the amount of blue at that pixel from 0 (none) to 255 (max)
-            green = the amount of green at that pixel from 0 (none) to 255 (max)
-            red = the amount of red at that pixel from 0 (none) to 255 (max)
+        Note:
+            Triple format = (blue, green, red), with
+                blue = the amount of blue at that pixel from 0 (none) to 255 (max)
+                green = the amount of green at that pixel from 0 (none) to 255 (max)
+                red = the amount of red at that pixel from 0 (none) to 255 (max)
 
         Example:
-        ```Python
-        # Initialize image with the most recent image captured by the camera
-        image = rc.camera.get_image()
-        ```
+            # Initialize image with the most recent image captured by the camera
+            image = rc.camera.get_image()
         """
         return self.__color_image
 
     def get_depth_image(self):
         """
-        Returns a two dimensional array representing a colored photo with depth
-        information
+        Returns a two dimensional array representing a colored photo with depth info.
 
-        Output (2D numpy array of quadruples): A two dimensional array indexed
+        Returns:
+            (2D numpy array of quadruples) A two dimensional array indexed
             from top left to the bottom right representing the pixels in the
             image. Each entry in the array is a quadruple of the form
-            (blue, green, red, depth) representing a single pixel
+            (blue, green, red, depth) representing a single pixel.
 
-        Quadruple format: (blue, green, red, depth)
-            blue = the amount of blue at that pixel from 0 (none) to 255 (max)
-            green = the amount of green at that pixel from 0 (none) to 255 (max)
-            red = the amount of red at that pixel from 0 (none) to 255 (max)
-            depth = ???
+        Note:
+            Quadruple format = (blue, green, red, depth)
+                blue = the amount of blue at that pixel from 0 (none) to 255 (max)
+                green = the amount of green at that pixel from 0 (none) to 255 (max)
+                red = the amount of red at that pixel from 0 (none) to 255 (max)
+                depth = ???
+                Example:
+            # Initialize depth_image with the most recent depth image captured
+            # by the camera
+            depth_image = rc.camera.get_depth_image()
 
         Example:
-        ```Python
-        # Initialize depth_image with the most recent depth image captured
-        # by the camera
-        depth_image = rc.camera.get_depth_image()
-        ```
+            # Initialize depth_image with the most recent depth image captured
+            # by the camera
+            depth_image = rc.camera.get_depth_image()
         """
         return self.__depth_image
 
     def get_width(self):
         """
-        Returns the width of the captured images
+        Returns the width of the captured images.
 
-        Output (int): The width (number of pixel columns) of the captured images
+        Returns:
+            (int) The width (number of pixel columns) of the captured images.
 
         Example:
-        ```Python
-        image = rc.camera.get_image()
+            image = rc.camera.get_image()
 
-        # Access the top right pixel of the image
-        top_right_pixel = image[0, rc.camera.get_width() - 1]
-        ```
+            # Access the top right pixel of the image
+            top_right_pixel = image[0, rc.camera.get_width() - 1]
         """
         return self.__DIMENSIONS[1]
 
     def get_height(self):
         """
-        Returns the height of the captured images
+        Returns the height of the captured images.
 
-        Output (int): The height (number of pixel rows) of the captured images
+        Returns:
+            (int) The height (number of pixel rows) of the captured images.
 
         Example:
-        ```Python
-        image = rc.camera.get_image()
+            image = rc.camera.get_image()
 
-        # Access the top bottom left pixel of the image
-        bottom_left_pixel = image[rc.camera.get_height() - 1, 0]
-        ```
+            # Access the top bottom left pixel of the image
+            bottom_left_pixel = image[rc.camera.get_height() - 1, 0]
         """
         return self.__DIMENSIONS[0]
