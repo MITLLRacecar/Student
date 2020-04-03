@@ -34,8 +34,11 @@ class Camera:
 
         self.__color_image_sub = rospy.Subscriber(self.__COLOR_TOPIC, Image, self.__color_callback)
         self.__color_image = None
+        self.__color_image_new = None
 
         self.__depth_image_sub = rospy.Subscriber(self.__DEPTH_TOPIC, Image, self.__depth_callback)
+        self.__depth_image = None
+        self.__depth_image_new = None
 
     def __color_callback(self, data):
         try:
@@ -43,7 +46,7 @@ class Camera:
         except CvBridgeError as e:
            print(e)
 
-        self.__color_image = cv_color_image
+        self.__color_image_new = cv_color_image
 
     def __depth_callback(self, data):
         try:
@@ -51,10 +54,11 @@ class Camera:
         except CvBridgeError as e:
             print(e)
 
-        self.__depth_image = cv_depth_image
+        self.__depth_image_new = cv_depth_image
 
-    def __del__(self):
-        self.__cam.release()
+    def __update(self):
+        self.__depth_image = self.__depth_image_new
+        self.__color_image = self.__color_image_new
 
     def get_image(self):
         """
