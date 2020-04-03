@@ -26,7 +26,7 @@ class Drive:
         )
         self.__message = AckermannDriveStamped()
         self.__max_forward_speed_scale_factor = 0.25
-        self.__max_backward_speed_Scale_factor = 0.33
+        self.__max_backward_speed_scale_factor = 0.33
 
     def set_speed_angle(self, speed, angle):
         """
