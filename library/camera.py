@@ -98,10 +98,6 @@ class Camera:
                 green = the amount of green at that pixel from 0 (none) to 255 (max)
                 red = the amount of red at that pixel from 0 (none) to 255 (max)
                 depth = ???
-                Example:
-            # Initialize depth_image with the most recent depth image captured
-            # by the camera
-            depth_image = rc.camera.get_depth_image()
 
         Example:
             # Initialize depth_image with the most recent depth image captured
