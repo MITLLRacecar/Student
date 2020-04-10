@@ -180,5 +180,7 @@ breathe_projects = { "racecar_core": "_build/doxyxml" }
 breathe_default_project = "racecar_core"
 
 # Generate doxygen documentation
-import subprocess
-subprocess.call('doxygen', shell=True)
+import subprocess, os
+e = dict(os.environ)
+e["PATH"] += ":" + os.path.abspath(".")
+subprocess.call('doxygen', shell=True, env=e)
