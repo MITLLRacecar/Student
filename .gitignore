@@ -3,3 +3,5 @@
 /scripts/.config
 /documentation
 docs/_build
+docs/doxyhtml
+docs/doxyxml
