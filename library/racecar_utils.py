@@ -4,30 +4,30 @@ import numpy as np
 
 def crop(image, top_left_inclusive, bottom_right_exclusive):
     """
-    Crops an image to a rectangle based on the specified pixel points
+    Crops an image to a rectangle based on the specified pixel points.
 
-    Inputs:
-        image (2D numpy array of pixels): The image to crop
-        top_left_inclusive ((int, int)): The (row, column) of the top left pixel
-            of the crop rectangle
-        bottom_right_exclusive ((int, int)): The (row, column) of the pixel one
-            past the bottom right corner of the crop rectangle
+    Args:
+        image: (2D numpy array of pixels) The image to crop.
+        top_left_inclusive: ((int, int)) The (row, column) of the top left pixel
+            of the crop rectangle.
+        bottom_right_exclusive: ((int, int)) The (row, column) of the pixel one
+            past the bottom right corner of the crop rectangle.
 
-    Note: The top_left_inclusive pixel is included in the crop rectangle, but
+    Returns:
+        (2D numpy array of triples) A cropped version of the image.
+
+    Note:
+        The top_left_inclusive pixel is included in the crop rectangle, but
         the bottom_right_exclusive pixel is not.  This is similar to how the how
         range(1, 4) returns [1, 2, 3] in Python.
 
-    Output (2D numpy array of triples): a cropped version of the image
-
     Example:
-    ```Python
-    image = rc.camera.get_image()
+        image = rc.camera.get_image()
 
-    # Crop the image to only keep the top half
-    cropped_image = rc_utils.crop(
-        image, (0, 0), (rc.camera.get_height() / 2, rc.camera.get_width())
-    )
-    ```
+        # Crop the image to only keep the top half
+        cropped_image = rc_utils.crop(
+            image, (0, 0), (rc.camera.get_height() / 2, rc.camera.get_width())
+        )
     """
     assert (
         2 <= len(image.shape) <= 3
@@ -43,32 +43,32 @@ def crop(image, top_left_inclusive, bottom_right_exclusive):
 
 def find_contours(image, hsv_lower, hsv_upper):
     """
-    Finds all contours of the specified color range in the provided image
+    Finds all contours of the specified color range in the provided image.
 
-    Inputs:
-        image (2D numpy array of triples): The image in which to find contours,
-            with pixels represented in the bgr (blue-green-red) format
-        hsv_lower ((int, int, int)): The lower bound for the hue, saturation,
-            and value of colors to contour
-        hsv_upper ((int, int, int)): The upper bound for the hue, saturation,
-            and value of the colors to contour
+    Args:
+        image: (2D numpy array of triples) The image in which to find contours,
+            with pixels represented in the bgr (blue-green-red) format.
+        hsv_lower: ((int, int, int)) The lower bound for the hue, saturation,
+            and value of colors to contour.
+        hsv_upper: ((int, int, int)) The upper bound for the hue, saturation,
+            and value of the colors to contour.
 
-    Note: Each channel in hsv_lower and hsv_upper ranges from 0 to 255
+    Returns:
+        ([contours]) A list of contours around the specified color ranges
+        found in the provided image.
 
-    Output ([contours]): a list of contours around the specified color ranges
-        found in the provided image
+    Note:
+        Each channel in hsv_lower and hsv_upper ranges from 0 to 255.
 
     Example:
-    ```Python
-    # Define the lower and upper hsv ranges for the color blue
-    BLUE_HSV_MIN = (90, 50, 50)
-    BLUE_HSV_MAX = (110, 255, 255)
+        # Define the lower and upper hsv ranges for the color blue
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
 
-    # Extract contours around all blue portions of the current image
-    contours = rc_utils.find_contours(
-        rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
-    )
-    ```
+        # Extract contours around all blue portions of the current image
+        contours = rc_utils.find_contours(
+            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+        )
     """
     assert (
         len(image.shape) == 3 and image.shape[2] >= 3
@@ -88,27 +88,26 @@ def find_contours(image, hsv_lower, hsv_upper):
 
 def get_largest_contour(contours, min_contour_size=30):
     """
-    Extracts the largest contour from a list of contours with an area
-    greater than MIN_CONTOUR_SIZE
+    Finds the largest contour with size greater than min_contour_size.
 
-    Inputs:
-        contours ([contour]): A list of contours found in an image
+    Args:
+        contours: ([contour]) A list of contours found in an image.
+        min_contour_size: (int) The smallest contour to consider
 
-    Outputs (contour or None): The largest contour from the list, or None if no
-        contour was larger than MIN_CONTOUR_SIZE
+    Returns:
+        (contour or None) The largest contour from the list, or None if no
+        contour was larger than min_contour_size.
 
     Example:
-    ```Python
-    # Extract the blue contours
-    BLUE_HSV_MIN = (90, 50, 50)
-    BLUE_HSV_MAX = (110, 255, 255)
-    contours = rc_utils.find_contours(
-        rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
-    )
+        # Extract the blue contours
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
+        contours = rc_utils.find_contours(
+            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+        )
 
-    # Find the largest contour
-    largest_contour = rc_utils.get_largest_contour(contours)
-    ```
+        # Find the largest contour
+        largest_contour = rc_utils.get_largest_contour(contours)
     """
     # Check that the list contains at least one contour
     if len(contours) == 0:
@@ -124,16 +123,29 @@ def get_largest_contour(contours, min_contour_size=30):
 
 def draw_contour(image, contour, color=(0, 255, 0)):
     """
-    Draws a contour on a copy of the provided image
+    Draws a contour on a copy of the provided image.
 
-    Inputs:
-        image (2D numpy array of triples): The image on which to draw the
-            contour
-        contour (contour): A contour to draw on the image
-        color ((int, int, int)): The color to draw the contour, specified as
-            blue-green-red channels each ranging from 0 to 255
+    Example:
+        image = rc.camera.get_image()
 
-    Output (2D numpy array ): A copy of image with the contour drawn on it
+        # Extract the largest blue contour
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
+        contours = rc_utils.find_contours(image, BLUE_HSV_MIN, BLUE_HSV_MAX)
+        largest_contour = rc_utils.get_largest_contour(contours)
+
+        # Draw this contour onto image
+        if (largest_contour is not None):
+            image_labeled = draw_contour(image, largest_contour)
+
+    Args:
+        image: (2D numpy array of triples) The image on which to draw the contour.
+        contour: (contour) A contour to draw on the image.
+        color: ((int, int, int)) The color to draw the contour, specified as
+            blue-green-red channels each ranging from 0 to 255.
+
+    Returns:
+        (2D numpy array) A copy of image with the contour drawn on it.
     """
     assert (
         len(image.shape) == 3 and image.shape[2] >= 3
@@ -144,30 +156,29 @@ def draw_contour(image, contour, color=(0, 255, 0)):
 
 def get_center(contour):
     """
-    Finds the center of a contour from an image
-
-    Inputs:
-        contour (contour): The contour of which to find the center
-
-    Output ((int, int)): The (row, column) of the pixel at the center of the
-        contour
-
-    Note: Returns a None if the contour parameter is None or contains no pixels
+    Finds the center of a contour from an image.
 
     Example:
-    ```Python
-    # Extract the largest blue contour
-    BLUE_HSV_MIN = (90, 50, 50)
-    BLUE_HSV_MAX = (110, 255, 255)
-    contours = rc_utils.find_contours(
-        rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
-    )
-    largest_contour = rc_utils.get_largest_contour(contours)
+        # Extract the largest blue contour
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
+        contours = rc_utils.find_contours(
+            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+        )
+        largest_contour = rc_utils.get_largest_contour(contours)
 
-    # Find the center of this contour if it exists
-    if (largest_contour is not None):
-        center = rc_utils.get_center(largest_contour)
-    ```
+        # Find the center of this contour if it exists
+        if (largest_contour is not None):
+            center = rc_utils.get_center(largest_contour)
+
+    Args:
+        contour: (contour) The contour of which to find the center.
+
+    Returns:
+        ((int, int)) The (row, column) of the pixel at the center of the contour
+
+    Note:
+        Returns a None if the contour parameter is None or contains no pixels.
     """
     # Verify that we were passed a valid contour
     if contour is None:
@@ -186,27 +197,26 @@ def get_center(contour):
 
 def get_area(contour):
     """
-    Finds the area of a contour from an image
+    Finds the area of a contour from an image.
 
-    Inputs:
-        contour (contour): The contour of which to measure the area
+    Args:
+        contour: (contour) The contour of which to measure the area.
 
-    Output (float): The number of pixels contained within the contour, or 0 if
+    Returns:
+        (float) The number of pixels contained within the contour, or 0 if
         an invalid contour is provided
 
     Example:
-    ```Python
-    # Extract the largest blue contour
-    BLUE_HSV_MIN = (90, 50, 50)
-    BLUE_HSV_MAX = (110, 255, 255)
-    contours = rc_utils.find_contours(
-        rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
-    )
-    largest_contour = rc_utils.get_largest_contour(contours)
+        # Extract the largest blue contour
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
+        contours = rc_utils.find_contours(
+            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+        )
+        largest_contour = rc_utils.get_largest_contour(contours)
 
-    # Find the area of this contour (will evaluate to 0 if no contour was found)
-    area = rc_utils.get_contour_area(contour)
-    ```
+        # Find the area of this contour (will evaluate to 0 if no contour was found)
+        area = rc_utils.get_contour_area(contour)
     """
     # Verify that we were passed a valid contour
     if contour is None:
@@ -216,28 +226,28 @@ def get_area(contour):
 
 def get_center_distance(depth_image, kernel_size=7):
     """
-    Finds the distance of the center object in a depth image
+    Finds the distance of the center object in a depth image.
 
-    Inputs:
-        depth_image (2D numpy array of depth values): The depth image to process
-        kernel_size (int): The size of the area to average around the center
+    Args:
+        depth_image: (2D numpy array of depth values) The depth image to process.
+        kernel_size: (int) The size of the area to average around the center.
 
-    Output (float): The distance in centimeters of the object in the center of
-        the image
+    Returns:
+        (float) The distance in centimeters of the object in the center of the image
 
-    Warning: kernel_size must be an odd integer
+    Warning:
+        kernel_size must be an odd integer.
 
-    Note: The larger the kernel_size, the more that the center is averaged
+    Note:
+        The larger the kernel_size, the more that the center is averaged
         with the depth of the surrounding pixels.  This helps reduce noise but
         also reduces accuracy if the center object is not flat.
 
     Example:
-    ```Python
-    depth_image = rc.camera.get_depth_image()
+        depth_image = rc.camera.get_depth_image()
 
-    # Find the distance of the object in the center of depth_image
-    center_distance = rc_utils.get_center_distance(depth_image)
-    ```
+        # Find the distance of the object in the center of depth_image
+        center_distance = rc_utils.get_center_distance(depth_image)
     """
     assert (
         len(depth_image.shape) == 2
@@ -261,28 +271,29 @@ def get_center_distance(depth_image, kernel_size=7):
 
 def get_closest_pixel(depth_image, kernel_size=5):
     """
-    Finds the closest pixel in a depth image
+    Finds the closest pixel in a depth image.
 
-    Inputs:
-        depth_image (2D numpy array of depth values): The depth image to process
-        kernel_size (int): The size of the area to average around each pixel
+    Args:
+        depth_image: (2D numpy array of depth values) The depth image to process.
+        kernel_size: (int) The size of the area to average around each pixel.
 
-    Output ((int,int)): The (row, column) position of the pixel which is closest
-        to the car
+    Returns:
+        ((int,int)) The (row, column) position of the pixel which is closest
+        to the car.
 
-    Warning: kernel_size must be an odd integer
+    Warning:
+        kernel_size must be an odd integer.
 
-    Note: The larger the kernel_size, the more that the depth of each pixel is
+    Note:
+        The larger the kernel_size, the more that the depth of each pixel is
         averaged with the depth of surrounding pixels.  This helps reduce noise
         but also reduces accuracy.
 
     Example:
-    ```Python
-    depth_image = rc.camera.get_depth_image()
+        depth_image = rc.camera.get_depth_image()
 
-    # Find the closest pixel
-    closest_pixel = rc_utils.get_closest_pixel(depth_image)
-    ```
+        # Find the closest pixel
+        closest_pixel = rc_utils.get_closest_pixel(depth_image)
     """
     assert (
         len(depth_image.shape) == 2
