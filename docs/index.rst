@@ -10,13 +10,10 @@ Welcome to MITLL RACECAR's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. doxygenclass:: camera::Camera
-   :project: racecar_core
-   :members:
+   racecar_core
+   racecar_utils
 
-.. doxygenclass:: controller::Controller
-   :project: racecar_core
-   :members:
+
 
 Indices and tables
 ==================
