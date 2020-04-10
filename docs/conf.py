@@ -175,8 +175,10 @@ epub_exclude_files = ['search.html']
 
 
 # -- Breathe integration -----------------------------------------------------
-import sys
-# sys.path.append( "docs/ext/breathe/" )
 extensions = [ 'breathe' ]
-breathe_projects = { "racecar_core": "doxyxml" }
+breathe_projects = { "racecar_core": "_build/doxyxml" }
 breathe_default_project = "racecar_core"
+
+# Generate doxygen documentation
+import subprocess
+subprocess.call('doxygen', shell=True)
