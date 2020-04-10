@@ -206,6 +206,7 @@ class Racecar:
         """
         self.drive._Drive__update()
         self.controller._Controller__update()
+        self.camera._Camera__update()
 
     def __default_start(self):
         """
