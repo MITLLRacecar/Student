@@ -60,6 +60,30 @@ class Camera:
         self.__depth_image = self.__depth_image_new
         self.__color_image = self.__color_image_new
 
+    def _get_image_async(self):
+        """
+        Returns a two dimensional array representing a colored photo.
+        WARNING: Do not use this function unless you know what you are doing
+        This image may change mid update cycle
+
+        Output (2D numpy array of triples): A two dimensional array indexed
+            from top left to the bottom right representing the pixels in the
+            image. Each entry in the array is a triple of the form
+            (blue, green, red) representing a single pixel
+
+        Triple format: (blue, green, red)
+            blue = the amount of blue at that pixel from 0 (none) to 255 (max)
+            green = the amount of green at that pixel from 0 (none) to 255 (max)
+            red = the amount of red at that pixel from 0 (none) to 255 (max)
+
+        Example:
+        ```Python
+        # Initialize image with the most recent image captured by the camera
+        image = rc.camera._get_image_async()
+        ```
+        """
+        return self.__color_image_new
+
     def get_image(self):
         """
         Returns a two dimensional array representing a colored photo
@@ -82,6 +106,33 @@ class Camera:
         """
         return self.__color_image
 
+    def _get_depth_image_async(self):
+        """
+        Returns a two dimensional array representing a colored photo with depth
+        information
+        WARNING: Do not use this function unless you know what you are doing
+        This image may change mid update cycle
+
+        Output (2D numpy array of quadruples): A two dimensional array indexed
+            from top left to the bottom right representing the pixels in the
+            image. Each entry in the array is a quadruple of the form
+            (blue, green, red, depth) representing a single pixel
+
+        Quadruple format: (blue, green, red, depth)
+            blue = the amount of blue at that pixel from 0 (none) to 255 (max)
+            green = the amount of green at that pixel from 0 (none) to 255 (max)
+            red = the amount of red at that pixel from 0 (none) to 255 (max)
+            depth = ???
+
+        Example:
+        ```Python
+        # Initialize depth_image with the most recent depth image captured
+        # by the camera
+        depth_image = rc.camera._get_depth_image_async()
+        ```
+        """
+        return self.__depth_image_new
+    
     def get_depth_image(self):
         """
         Returns a two dimensional array representing a colored photo with depth

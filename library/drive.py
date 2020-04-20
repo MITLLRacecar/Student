@@ -10,6 +10,11 @@ Contains the Drive module of the racecar_core library
 import rospy
 from ackermann_msgs.msg import AckermannDriveStamped
 
+# Constants, do not modify these
+PWM_TURN_RIGHT = 3000
+PWM_TURN_LEFT = 9000
+PWM_SPEED_MIN = 3000
+PWM_SPEED_MAX = 9000
 
 class Drive:
     """
@@ -25,8 +30,40 @@ class Drive:
             self.__TOPIC, AckermannDriveStamped, queue_size=1
         )
         self.__message = AckermannDriveStamped()
+        # Config
+        self.__max_speed = 1.0
+        self.__max_turn = 1.0
         self.__max_forward_speed_scale_factor = 0.25
         self.__max_backward_speed_scale_factor = 0.33
+
+    @staticmethod
+    def __remap_to_range(val, old_min, old_max, new_min, new_max):
+        """
+        Helper function here being used to remap a value from a given range to a new range.
+
+        Inputs:
+            val (number): number in old range to be rescaled
+            old_min (number): 'lower' bound of old range
+            old_max (number): 'upper' bound of old range
+            new_min (number): 'lower' bound of new range
+            new_max (number): 'upper' bound of new range
+
+        Note: min need not be less than max in general.
+        Flipping the direction will cause the sign of the mapping to flip (examples below).
+
+        Example:
+
+            >>> self.__remap_to_range(5,0,10,0,50)
+            25
+
+            >>> self.__remap_to_range(5,0,20,1000,900)
+            975
+
+        """
+        old_span = old_max-old_min
+        new_span = new_max-new_min
+        return new_min + new_span*(float(val-old_min)/float(old_span))
+
 
     def set_speed_angle(self, speed, angle):
         """
@@ -61,7 +98,8 @@ class Drive:
         
         self.__message.drive.speed = speed * (self.__max_forward_speed_scale_factor if speed > 0 
                 else self.__max_backward_speed_scale_factor)
-        self.__message.drive.steering_angle = angle
+        self.__message.drive.speed = self.__remap_to_range(speed, -self.__max_speed, self.__max_speed, PWM_SPEED_MIN, PWM_SPEED_MAX)
+        self.__message.drive.steering_angle = self.__remap_to_range(angle, -self.__max_turn, self.__max_turn, PWM_TURN_LEFT, PWM_TURN_RIGHT)
 
     def stop(self):
         """
