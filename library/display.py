@@ -19,20 +19,18 @@ class Display:
 
     def show_image(self, image):
         """
-        Displays an image on a window of the RACECAR desktop
+        Displays an image on a window of the RACECAR desktop.
 
-        Inputs:
-            image: (2D numpy array of triples): The image to display to the
+        Args:
+            image: (2D numpy array of triples) The image to display to the
                 screen encoded as a 2D array of pixels, where each pixel is
-                stored as a (blue, green, red) triple
+                stored as a (blue, green, red) triple.
 
         Example:
-        ```Python
-        image = rc.camera.get_image();
+            image = rc.camera.get_image();
 
-        # Show the image captured by the camera
-        rc.display.show_image(image);
-        ```
+            # Show the image captured by the camera
+            rc.display.show_image(image);
         """
         cv.imshow("display window", image)
         cv.waitKey(1)

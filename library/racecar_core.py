@@ -78,10 +78,11 @@ class Racecar:
 
     def go(self):
         """
-        Idles in the main thread until the car program is exited
-        (START + END pressed simultaneously)
+        Starts the RACECAR, beginning in default drive mode.
 
-        Example: See set_start_update below
+        Note:
+            go idles in the main thread until the car program is exited
+            (START + END pressed simultaneously).
         """
         self.__running = True
         while self.__running:
@@ -89,36 +90,29 @@ class Racecar:
 
     def set_start_update(self, start, update, update_slow=None):
         """
-        Sets the start and update functions used in user program mode
-
-        Inputs:
-            start (function): The function called once every time we enter
-                user program mode
-            update (function): The function called every frame in user program
-                modes
-
-        Note: The provided start and update functions should not take any
-        parameters
+        Sets the start and update functions used in user program mode.
 
         Example:
-        ```Python
-        # Create a racecar object
-        rc = Racecar()
+            # Create a racecar object
+            rc = Racecar()
+            # Define a start function
+            def start():
+                print("This function is called once")
+            # Define an update function
+            def update():
+                print("This function is called every frame")
+            # Provide the racecar with the start and update functions
+            rc.set_start_update(start, update)
+            # Tell the racecar to run until the program is exited
+            rc.go()
 
-        # Define a start function
-        def start():
-            print("This function is called once")
+        Args:
+            start: (function) The function called once every time we enter user
+                program mode.
+            update: (function) The function called every frame in user program modes.
 
-        # Define an update function
-        def update():
-            print("This function is called every frame")
-
-        # Provide the racecar with the start and update functions
-        rc.set_start_update(start, update)
-
-        # Tell the racecar to run until the program is exited
-        rc.go()
-        ```
+        Note:
+            The provided start and update functions should not take any parameters.
         """
         self.__user_start = start
         self.__user_update = update
@@ -126,40 +120,37 @@ class Racecar:
 
     def get_delta_time(self):
         """
-        Returns the number of seconds elapsed in the previous frame
+        Returns the number of seconds elapsed in the previous frame.
 
-        Output (float): The number of seconds between the start of the previous
-            frame and the start of the current frame
+        Returns:
+            (float) The number of seconds between the start of the previous frame and
+            the start of the current frame.
 
         Example:
-        ```Python
-        # Increases counter by the number of seconds elapsed in the previous
-        # frame.
-        counter += rc.get_delta_time()
-        ```
+            # Increases counter by the number of seconds elapsed in the previous frame
+            counter += rc.get_delta_time()
         """
         return (self.__cur_frame_time - self.__last_frame_time).total_seconds()
 
     def set_update_slow_time(self, time):
         """
-        Changes the time between calls to update_slow
+        Changes the time between calls to update_slow.
 
-        Inputs:
-            time (float): The time in seconds between calls to update_slow
+        Args:
+            time (float): The time in seconds between calls to update_slow.
 
-        Note: The default value is 1 second
+        Note:
+            The default value is 1 second.
 
         Example:
-        ```Python
-        # Sets the time between calls to update_slow to 2 seconds
-        rc.set_update_slow_ratio(2)
-        ```
+            # Sets the time between calls to update_slow to 2 seconds
+            rc.set_update_slow_ratio(2)
         """
         self.__max_update_counter = max(1, round(time * self.__FRAME_RATE))
 
     def __handle_start(self):
         """
-        Handles when the START button is pressed by entering user program mode
+        Handles when the START button is pressed by entering user program mode.
         """
         if self.__user_start is None or self.__user_update is None:
             print(
@@ -175,7 +166,7 @@ class Racecar:
 
     def __handle_back(self):
         """
-        Handles when the BACK button is pressed by entering default drive mode
+        Handles when the BACK button is pressed by entering default drive mode.
         """
         print(">> Entering default drive mode")
         self.__default_start()
@@ -184,15 +175,14 @@ class Racecar:
 
     def __handle_exit(self):
         """
-        Handles when BACK and START are pressed together by exiting the program
+        Handles when BACK and START are pressed together by exiting the program.
         """
         print(">> Goodbye!")
         self.__running = False
 
     def __run(self):
         """
-        Calls the current update function (determined by the current mode)
-        and update_modules functions once per frame
+        Calls the current update and update_modules once per frame.
         """
         timer = rospy.Rate(self.__FRAME_RATE)
         while True:
@@ -212,7 +202,7 @@ class Racecar:
 
     def __update_modules(self):
         """
-        Calls the update function on each module
+        Calls the update function on each module.
         """
         self.drive._Drive__update()
         self.controller._Controller__update()
@@ -220,13 +210,13 @@ class Racecar:
 
     def __default_start(self):
         """
-        The start function for default drive mode
+        The start function for default drive mode.
         """
         self.drive.stop()
 
     def __default_update(self):
         """
-        The update function for default drive mode
+        The update function for default drive mode.
 
         Controls:
             Left trigger: Accelerate forward
