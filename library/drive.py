@@ -93,11 +93,11 @@ class Drive:
             -1.0 <= angle <= 1.0
         ), "angle must be a float between -1.0 and 1.0 inclusive"
         self.__message.drive.steering_angle = self.__remap_to_range(angle, -self.__max_turn, self.__max_turn, PWM_TURN_LEFT, PWM_TURN_RIGHT)
-        self.__message.drive.speed = speed * (
+        self.__message.drive.speed = self.__remap_to_range(speed * (
             self.__max_speed_scale_factor[0]
             if speed > 0
             else self.__max_speed_scale_factor[1]
-        )
+        ), -self.__max_speed, self.__max_speed, PWM_SPEED_MIN, PWM_SPEED_MAX)
 
     def stop(self):
         """
