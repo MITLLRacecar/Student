@@ -34,6 +34,7 @@ class Drive:
         # Config
         self.__max_speed = 1.0
         self.__max_turn = 1.0
+        self.__max_speed_scale_factor = (0.25, 0.33)
 
     @staticmethod
     def __remap_to_range(val, old_min, old_max, new_min, new_max):

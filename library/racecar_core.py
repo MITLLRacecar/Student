@@ -8,9 +8,7 @@ Contains the Racecar class, the top level of the racecar_core library
 
 # General
 from datetime import datetime
-import time  # TODO: can we remove this?
 import threading
-import os  # TODO: see if this can be removed
 
 # ROS
 import rospy
@@ -21,6 +19,7 @@ import camera
 import controller
 import display
 import drive
+import physics
 
 
 class Racecar:
@@ -41,6 +40,7 @@ class Racecar:
         self.controller = controller.Controller(self)
         self.display = display.Display()
         self.drive = drive.Drive()
+        self.physics = physics.Physics()
 
         # User provided start and update functions
         self.__user_start = None
@@ -207,6 +207,7 @@ class Racecar:
         self.drive._Drive__update()
         self.controller._Controller__update()
         self.camera._Camera__update()
+        self.physics._Physics__update()
 
     def __default_start(self):
         """
