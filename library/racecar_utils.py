@@ -8,14 +8,14 @@ def crop(image, top_left_inclusive, bottom_right_exclusive):
     Crops an image to a rectangle based on the specified pixel points.
 
     Args:
-        image: (2D numpy array of pixels) The image to crop.
+        image: (depth image or color image) The image to crop.
         top_left_inclusive: ((int, int)) The (row, column) of the top left pixel
             of the crop rectangle.
         bottom_right_exclusive: ((int, int)) The (row, column) of the pixel one
             past the bottom right corner of the crop rectangle.
 
     Returns:
-        (2D numpy array of triples) A cropped version of the image.
+        (depth image or color image) A cropped version of the image.
 
     Note:
         The top_left_inclusive pixel is included in the crop rectangle, but
@@ -244,7 +244,7 @@ def get_center_distance(depth_image, kernel_size=7):
         kernel_size: (int) The size of the area to average around the center.
 
     Returns:
-        (float) The distance in centimeters of the object in the center of the image
+        (float) The distance in millimeters of the object in the center of the image.
 
     Warning:
         kernel_size must be an odd integer.
@@ -257,25 +257,77 @@ def get_center_distance(depth_image, kernel_size=7):
     Example:
         depth_image = rc.camera.get_depth_image()
 
-        # Find the distance of the object in the center of depth_image
+        # Find the distance of the object (in mm) the center of depth_image
         center_distance = rc_utils.get_center_distance(depth_image)
     """
     assert len(depth_image.shape) == 2 and isinstance(
         depth_image[0][0], numbers.Number
     ), "depth_image must be a 2D numpy array of depth values (in mm)"
     assert (
-        isinstance(kernel_size, numbers.Number) and kernel_size % 2 == 1
-    ), "kernel_size must be an odd number"
+        isinstance(kernel_size, numbers.Integral) and kernel_size % 2 == 1
+    ), "kernel_size must be an odd integer"
 
-    # Crop out the center kernel of the depth image
-    center = (depth_image.shape[0] // 2, depth_image.shape[1] // 2)
+    # Calculate the center pixel
+    center_row = depth_image.shape[0] // 2
+    center_col = depth_image.shape[1] // 2
+
+    # Use get_average_distance to average the distance around this center pixel
+    return get_average_distance(depth_image, center_row, center_col, kernel_size)
+
+
+def get_average_distance(depth_image, pix_row, pix_col, kernel_size=7):
+    """
+    Finds the distance of a pixel averaged with its neighbors in a depth image.
+
+    Args:
+        depth_image: (2D numpy array of depth values) The depth image to process.
+        pix_row: (int) The row of the pixel to measure.
+        pix_col: (int) The column of the pixel to measure.
+        kernel_size: (int) The size of the area to average around the pixel.
+
+    Returns:
+        (float) The distance in millimeters of the object at the provided pixel.
+
+    Warning:
+        kernel_size must be an odd integer.
+
+    Note:
+        The larger the kernel_size, the more that the requested pixel is averaged
+        with the distances of the surrounding pixels.  This reduces noise at the cost of
+        reduced accuracy.
+
+    Example:
+        depth_image = rc.camera.get_depth_image()
+
+        # Find the distance of the object (in mm) at the pixel (100, 20) of depth_image
+        average_distance = rc_utils.get_average_distance(depth_image, 100, 20)
+    """
+    assert len(depth_image.shape) == 2 and isinstance(
+        depth_image[0][0], numbers.Number
+    ), "depth_image must be a 2D numpy array of depth values (in mm)"
+    assert (
+        isinstance(pix_row, numbers.Integral)
+        and 0 <= pix_row < depth_image.shape[0]
+    ), "pix_row must be a row index within depth_image"
+    assert (
+        isinstance(pix_col, numbers.Integral)
+        and 0 <= pix_col < depth_image.shape[1]
+    ), "pix_col must be a column index within depth_image"
+    assert (
+        isinstance(kernel_size, numbers.Integral)
+        and kernel_size > 0
+        and kernel_size % 2 == 1
+    ), "kernel_size must be a positive odd integer"
+
+    # Crop out out a kernel around the requested pixel
     cropped_center = crop(
         depth_image,
-        (center[0] - kernel_size // 2, center[1] - kernel_size // 2),
-        (center[0] + kernel_size // 2, center[1] + kernel_size // 2),
+        (pix_row - kernel_size // 2, pix_col - kernel_size // 2),
+        (pix_row + kernel_size // 2, pix_col + kernel_size // 2),
     )
 
-    # Apply a Gaussian blur to the cropped depth image to reduce noise
+    # Apply a Gaussian blur to the cropped depth image to average the surrounding
+    # pixel depths
     blurred_center = cv.GaussianBlur(cropped_center, (kernel_size, kernel_size), 0)
 
     # Return the depth of the center pixel
@@ -312,8 +364,10 @@ def get_closest_pixel(depth_image, kernel_size=5):
         depth_image[0][0], numbers.Number
     ), "depth_image must be a 2D numpy array of depth values (in mm)"
     assert (
-        isinstance(kernel_size, numbers.Number) and kernel_size % 2 == 1
-    ), "kernel_size must be an odd number"
+        isinstance(kernel_size, numbers.Integral)
+        and kernel_size > 0
+        and kernel_size % 2 == 1
+    ), "kernel_size must be a positive odd integer"
 
     # Apply a Gaussian blur to the depth portion of the image to reduce noise
     blurred_depth = cv.GaussianBlur(depth_image, (kernel_size, kernel_size), 0)
@@ -336,6 +390,13 @@ def color_depth_image(depth_image, min_depth=1, max_depth=5000):
     Returns:
         (2D numpy array of triples) A color image of bgr pixels, in which the depth
         of each pixel has been mapped to the red-blue color range.
+
+    Example:
+        depth_image = rc.camera.get_depth_image()
+
+        # Colorize and show the depth image
+        colorized_image = rc_utils.color_depth_image(depth_image)
+        rc.display.show_image(colorized_image)
     """
     assert len(depth_image.shape) == 2 and isinstance(
         depth_image[0][0], numbers.Number
