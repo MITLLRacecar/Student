@@ -10,6 +10,11 @@ import rospy
 import numbers
 from ackermann_msgs.msg import AckermannDriveStamped
 
+import sys
+
+sys.path.insert(0, "../../library")
+import racecar_utils as rc_utils
+
 
 class Drive:
     """
@@ -68,11 +73,11 @@ class Drive:
             else self.__max_speed_scale_factor[1]
         )
 
-        self.__message.drive.speed = self.__remap_to_range(
+        self.__message.drive.speed = rc_utils.remap_range(
             speedScaled, -1.0, 1.0, self.__PWM_SPEED_MIN, self.__PWM_SPEED_MAX,
         )
 
-        self.__message.drive.steering_angle = self.__remap_to_range(
+        self.__message.drive.steering_angle = rc_utils.remap_range(
             angle, -1.0, 1.0, self.__PWM_TURN_LEFT, self.__PWM_TURN_RIGHT,
         )
 
@@ -124,29 +129,3 @@ class Drive:
         Publishes the current drive message.
         """
         self.__publisher.publish(self.__message)
-
-    @staticmethod
-    def __remap_to_range(val, old_min, old_max, new_min, new_max):
-        """
-        Remaps a value from one given range to a new range.
-
-        Args:
-            val (number): number in old range to be rescaled
-            old_min (number): 'lower' bound of old range
-            old_max (number): 'upper' bound of old range
-            new_min (number): 'lower' bound of new range
-            new_max (number): 'upper' bound of new range
-
-        Note:
-            min need not be less than max; flipping the direction will cause the sign of
-            the mapping to flip.
-
-        Example:
-            >>> self.__remap_to_range(5,0,10,0,50)
-            25
-            >>> self.__remap_to_range(5,0,20,1000,900)
-            975
-        """
-        old_span = old_max - old_min
-        new_span = new_max - new_min
-        return new_min + new_span * (float(val - old_min) / float(old_span))
