@@ -14,6 +14,7 @@ import sys
 
 sys.path.insert(0, "../../library")
 from racecar_core import *
+import racecar_utils as rc_utils
 
 rospy.init_node("racecar")
 
