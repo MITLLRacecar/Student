@@ -31,9 +31,6 @@ rc = Racecar()
 speed = 0.0  # The current speed of the car
 angle = 0.0  # The current angle of the car's wheels
 
-BLUE = ((90,50,50),(110,255,255)) # The HSV range for blue
-MIN_CONTOUR_SIZE = 30 # Minimum size of an interesting contour
-
 ################################################################################
 # Functions
 ################################################################################
@@ -61,7 +58,9 @@ def start():
         ">> Lab 3 - Depth Camera\n"
         "\n"
         "Controlls:\n"
-        "   Right trigger = control forward speed\n"
+        "   Right trigger = accelerate forward\n"
+        "   Left trigger = accelerate backward\n"
+        "   Left joystick = turn front wheels\n"
         "   A button = print current speed and angle\n"
         "   B button = print contour center and area"
     )
@@ -75,55 +74,33 @@ def update():
     global speed
     global angle
 
-    image = rc.camera.get_image()
-    depthImage = rc.camera.get_depth_image()
-    center = None
-    area = 0
+    # Use the triggers to control the car's speed
+    forwardSpeed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
+    backSpeed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
+    speed = forwardSpeed - backSpeed
 
-    if image is None:
-        # If no image is found, center the wheels
-        angle = 0
-        area = 0 
-    
-    #TODO: Make the safety feature better
-    else:
-        
-        # Find blue center
-        blueContours = rc_utils.find_contours(image, BLUE[0], BLUE[1])
-        largestBlueContour = rc_utils.get_largest_contour(
-            blueContours, MIN_CONTOUR_SIZE        
-        )
-        center = rc_utils.get_center(largestBlueContour)
-        area = rc_utils.get_area(largestBlueContour)
+    # Calculate center distance
+    depth_image = rc.camera.get_depth_image()
+    center_distance = rc_utils.get_center_distance(depth_image)
 
-        # Find the distance to image center
-        if depthImage is not None:
-            
-            safetyDistance = rc_utils.get_center_distance(depthImage)
+    # TODO: Prevent forward movement if the car is about to hit something
 
-            #If the car is within 100 cm of an object have it stop
-            if safetyDistance > 1000:
-               speed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
-           
-            else:
-                speed = 0
-
-    # Calculate angle from left joystick
+    # Use the left joystick to control the angle of the front wheels
     angle = rc.controller.get_joystick(rc.controller.Joystick.LEFT)[0]
 
     rc.drive.set_speed_angle(speed, angle)
-
 
     # Print the current speed and angle when the A button is held down
     if rc.controller.was_pressed(rc.controller.Button.A):
         print("Speed:", speed, "Angle:", angle)
 
-    # Print the center and area of the largest contour when B is held down
-    if rc.controller.was_pressed(rc.controller.Button.B):
-        if center is None:
-            print("No contour found")
-        else:
-            print("Center:", center, "Area:", area)
+    # TODO: When the left bumper (LB) is pressed, drive up to the closest cone
+    # and stop six inches in front of it.  Your approach should use both color
+    # and depth information and should work with cones of varying size.  You may
+    # wish to reference lab 2.
+
+    # TODO: When the right bumper (RB) is pressed, slalom through a line of cones
+    # using color and/or depth images.
 
 
 def update_slow():
@@ -137,20 +114,19 @@ def update_slow():
     # 2. Shows the current image to the screen with the largest contour drawn
     #    on top in bright green
 
-    image = rc.camera.get_image()
-    depthImage = rc.camera.get_depth_image()
+    depth_image = rc.camera.get_depth_image()
 
-    if image is None:
-        # If no image is found, print all X's and don't display an image
-        print("X" * 10 + " (No image) " + "X" * 10)
+    if depth_image is None:
+        print("No depth image found")
     else:
-        
-        depth = rc_utils.get_center_distance(depthImage)
-        pix = (rc.camera.get_width()/2, rc.camera.get_height()/2)
-        print('{}: Depth at center({}, {}): {}(mm)'.format("Depth Topic", pix[0], pix[1], depth))
-        # Display the image to the screen
+        # Calculate and print center depth
+        center_depth = rc_utils.get_center_distance(depth_image)
+        print("Depth at center: {} mm".format(center_depth))
 
-        # rc.display.show_image(image)
+        # Colorize and display the depth image to the screen
+        colorized_depth = rc_utils.color_depth_image(depth_image)
+        rc.display.show_image(colorized_depth)
+
 
 ################################################################################
 # Do not modify any code beyond this point
