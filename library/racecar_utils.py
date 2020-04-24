@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import numbers
 
 
 def crop(image, top_left_inclusive, bottom_right_exclusive):
@@ -29,9 +30,9 @@ def crop(image, top_left_inclusive, bottom_right_exclusive):
             image, (0, 0), (rc.camera.get_height() / 2, rc.camera.get_width())
         )
     """
-    assert (
-        2 <= len(image.shape) <= 3
-    ), "image must be a 2D numpy array of pixels"
+    assert (len(image.shape) == 3 and image.shape[2] == 3) or (
+        len(image.shape) == 2 and isinstance(image[0][0], numbers.Number)
+    ), "image must be a color (2D array of pixels) or depth (2D array of depths) image"
 
     # Extract the minimum and maximum pixel rows and columns from the parameters
     r_min, c_min = top_left_inclusive
@@ -71,8 +72,14 @@ def find_contours(image, hsv_lower, hsv_upper):
         )
     """
     assert (
-        len(image.shape) == 3 and image.shape[2] >= 3
-    ), "image must be a 2D numpy array of pixels"
+        len(image.shape) == 3 and image.shape[2] == 3
+    ), "image must be a 2D numpy array of pixels, with each pixel stored as a triple"
+    assert (
+        len(hsv_lower) == 3 and len(filter(hsv_lower, lambda x: 0 <= x <= 255)) == 3
+    ), "hsv_lower must be a triple of numbers ranging from 0 to 255 inclusive"
+    assert (
+        len(hsv_upper) == 3 and len(filter(hsv_upper, lambda x: 0 <= x <= 255)) == 3
+    ), "hsv_upper must be a triple of numbers ranging from 0 to 255 inclusive"
 
     # Convert the image from a blue-green-red pixel representation to a
     # hue-saturation-value representation
@@ -145,11 +152,14 @@ def draw_contour(image, contour, color=(0, 255, 0)):
             blue-green-red channels each ranging from 0 to 255.
 
     Returns:
-        (2D numpy array) A copy of image with the contour drawn on it.
+        (2D numpy array of triples) A copy of image with the contour drawn on it.
     """
     assert (
-        len(image.shape) == 3 and image.shape[2] >= 3
-    ), "image must be a 2D numpy array of pixels"
+        len(image.shape) == 3 and image.shape[2] == 3
+    ), "image must be a 2D numpy array of pixels, with each pixel stored as a triple"
+    assert (
+        len(color) == 3 and len(filter(color, lambda x: 0 <= x <= 255)) == 3
+    ), "color must be a triple of numbers ranging from 0 to 255 inclusive"
 
     return cv.drawContours(np.copy(image), [contour], 0, color, 3)
 
@@ -224,6 +234,7 @@ def get_area(contour):
 
     return cv.contourArea(contour)
 
+
 def get_center_distance(depth_image, kernel_size=7):
     """
     Finds the distance of the center object in a depth image.
@@ -249,10 +260,12 @@ def get_center_distance(depth_image, kernel_size=7):
         # Find the distance of the object in the center of depth_image
         center_distance = rc_utils.get_center_distance(depth_image)
     """
+    assert len(depth_image.shape) == 2 and isinstance(
+        depth_image[0][0], numbers.Number
+    ), "depth_image must be a 2D numpy array of depth values (in mm)"
     assert (
-        len(depth_image.shape) == 2
-    ), "depth_image must be a 2D numpy array of pixels, instead it has shape " + str(depth_image.shape)
-    assert kernel_size % 2 == 1, "kernel_size must be odd"
+        isinstance(kernel_size, numbers.Number) and kernel_size % 2 == 1
+    ), "kernel_size must be an odd number"
 
     # Crop out the center kernel of the depth image
     center = (depth_image.shape[0] // 2, depth_image.shape[1] // 2)
@@ -295,10 +308,12 @@ def get_closest_pixel(depth_image, kernel_size=5):
         # Find the closest pixel
         closest_pixel = rc_utils.get_closest_pixel(depth_image)
     """
+    assert len(depth_image.shape) == 2 and isinstance(
+        depth_image[0][0], numbers.Number
+    ), "depth_image must be a 2D numpy array of depth values (in mm)"
     assert (
-        len(depth_image.shape) == 2
-    ), "depth_image must be a 2D numpy array of pixels"
-    assert kernel_size % 2 == 1, "kernel_size must be odd"
+        isinstance(kernel_size, numbers.Number) and kernel_size % 2 == 1
+    ), "kernel_size must be an odd number"
 
     # Apply a Gaussian blur to the depth portion of the image to reduce noise
     blurred_depth = cv.GaussianBlur(depth_image, (kernel_size, kernel_size), 0)
@@ -307,3 +322,42 @@ def get_closest_pixel(depth_image, kernel_size=5):
     (_, _, minLoc, _) = cv.minMaxLoc(blurred_depth)
 
     return minLoc
+
+
+def color_depth_image(depth_image, min_depth=1, max_depth=5000):
+    """
+    Converts a depth image into a color image.
+
+    Args:
+        depth_image: (2D numpy array of depth values) The depth image to convert.
+        min_depth: (float) The depth to represent as the reddest color.
+        max_depth: (float) The depth to represent as the bluest color.
+
+    Returns:
+        (2D numpy array of triples) A color image of bgr pixels, in which the depth
+        of each pixel has been mapped to the red-blue color range.
+    """
+    assert len(depth_image.shape) == 2 and isinstance(
+        depth_image[0][0], numbers.Number
+    ), "depth_image must be a 2D numpy array of depth values (in mm)"
+    assert (
+        isinstance(min_depth, numbers.Number) and min_depth >= 0
+    ), "min_depth must be a positive number"
+    assert (
+        isinstance(max_depth, numbers.Number) and max_depth >= 0
+    ), "max_depth must be a positive number"
+
+    # Use map to apply __convert_depth_to_color to each pixel
+    return map(depth_image, lambda row: map(row, __convert_depth_to_color))
+
+
+def __convert_depth_to_color(depth, min_depth, max_depth):
+    """
+    A helper function for show_depth_image which convents a depth into a bgr
+    color on the red-blue range (red is closest, blue is farthest)
+    """
+    # Scale depth to the range (0, 255)
+    scaled = max(0, min(255, (depth - min_depth) / (max_depth - min_depth)))
+
+    # Map depth to a red-blue scale (red is closest, blue is farthest)
+    return (255 - scaled, 0, scaled)
