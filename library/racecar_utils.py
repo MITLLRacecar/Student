@@ -2,6 +2,35 @@ import cv2 as cv
 import numpy as np
 import numbers
 
+def remap_range(val, old_min, old_max, new_min, new_max):
+        """
+        Remaps a value from one given range to a new range.
+
+        Args:
+            val: (number) A number form the old range to be rescaled.
+            old_min: (number) The 'lower' bound of the old range.
+            old_max: (number) The 'upper' bound of the old range.
+            new_min: (number) The 'lower' bound of the new range.
+            new_max: (number) The 'upper' bound of the new range.
+
+        Note:
+            min need not be less than max; flipping the direction will cause the sign of
+            the mapping to flip.  val does not have to be between old_min and old_max.
+
+        Example:
+            # a will be set to 25
+            a = remap_range(5, 0, 10, 0, 50)
+
+            # b will be set to 975
+            b = remap_range(5, 0, 20, 1000, 900)
+
+            # c will be set to 30
+            c = remap_range(2, 0, 1, -10, 10)
+        """
+        old_span = old_max - old_min
+        new_span = new_max - new_min
+        return new_min + new_span * (float(val - old_min) / float(old_span))
+
 
 def crop(image, top_left_inclusive, bottom_right_exclusive):
     """
