@@ -6,15 +6,10 @@ Spring 2020
 Contains the Drive module of the racecar_core library
 """
 
-# ROS
 import rospy
+import numbers
 from ackermann_msgs.msg import AckermannDriveStamped
 
-# Constants, do not modify these
-PWM_TURN_RIGHT = 3000
-PWM_TURN_LEFT = 9000
-PWM_SPEED_MIN = 3000
-PWM_SPEED_MAX = 9000
 
 class Drive:
     """
@@ -25,45 +20,18 @@ class Drive:
     # The ROS topic to which we publish drive messages
     __TOPIC = "/drive"
 
+    # PWM constants
+    __PWM_TURN_RIGHT = 3000
+    __PWM_TURN_LEFT = 9000
+    __PWM_SPEED_MIN = 3000
+    __PWM_SPEED_MAX = 9000
+
     def __init__(self):
         self.__publisher = rospy.Publisher(
             self.__TOPIC, AckermannDriveStamped, queue_size=1
         )
         self.__message = AckermannDriveStamped()
-        
-        # Config
-        self.__max_speed = 1.0
-        self.__max_turn = 1.0
         self.__max_speed_scale_factor = (0.25, 0.33)
-
-    @staticmethod
-    def __remap_to_range(val, old_min, old_max, new_min, new_max):
-        """
-        Helper function here being used to remap a value from a given range to a new range.
-
-        Inputs:
-            val (number): number in old range to be rescaled
-            old_min (number): 'lower' bound of old range
-            old_max (number): 'upper' bound of old range
-            new_min (number): 'lower' bound of new range
-            new_max (number): 'upper' bound of new range
-
-        Note: min need not be less than max in general.
-        Flipping the direction will cause the sign of the mapping to flip (examples below).
-
-        Example:
-
-            >>> self.__remap_to_range(5,0,10,0,50)
-            25
-
-            >>> self.__remap_to_range(5,0,20,1000,900)
-            975
-
-        """
-        old_span = old_max-old_min
-        new_span = new_max-new_min
-        return new_min + new_span*(float(val-old_min)/float(old_span))
-
 
     def set_speed_angle(self, speed, angle):
         """
@@ -87,17 +55,26 @@ class Drive:
                 rc.drive.set_speed_angle(0.5, 0.7)
         """
         assert (
-            -1.0 <= speed <= 1.0
-        ), "speed must be a float between -1.0 and 1.0 inclusive"
+            isinstance(speed, numbers.Number) and -1.0 <= speed <= 1.0
+        ), "speed must be a number between -1.0 and 1.0 inclusive"
         assert (
-            -1.0 <= angle <= 1.0
-        ), "angle must be a float between -1.0 and 1.0 inclusive"
-        self.__message.drive.steering_angle = self.__remap_to_range(angle, -self.__max_turn, self.__max_turn, PWM_TURN_LEFT, PWM_TURN_RIGHT)
-        self.__message.drive.speed = self.__remap_to_range(speed * (
-            self.__max_speed_scale_factor[0]
+            isinstance(speed, numbers.Number) and -1.0 <= angle <= 1.0
+        ), "angle must be a number between -1.0 and 1.0 inclusive"
+
+        # Scale speed by __max_speed_scale_factor
+        speedScaled = (
+            speed * self.__max_speed_scale_factor[0]
             if speed > 0
             else self.__max_speed_scale_factor[1]
-        ), -self.__max_speed, self.__max_speed, PWM_SPEED_MIN, PWM_SPEED_MAX)
+        )
+
+        self.__message.drive.speed = self.__remap_to_range(
+            speedScaled, -1.0, 1.0, self.__PWM_SPEED_MIN, self.__PWM_SPEED_MAX,
+        )
+
+        self.__message.drive.steering_angle = self.__remap_to_range(
+            angle, -1.0, 1.0, self.__PWM_TURN_LEFT, self.__PWM_TURN_RIGHT,
+        )
 
     def stop(self):
         """
@@ -131,8 +108,14 @@ class Drive:
             len(scale_factor) == 2
         ), "scale_factor must be a two element tuple of floats"
         assert (
-            0.0 <= scale_factor[0] <= 1.0 and 0.0 <= scale_factor[1] <= 1.0
-        ), "both entries of scale_factor must be a float between 0.0 and 1.0 inclusive"
+            len(
+                filter(
+                    scale_factor,
+                    lambda x: isinstance(x, numbers.Number) and 0.0 <= x <= 1.0,
+                )
+            )
+            == 2
+        ), "both entries of scale_factor must be numbers between 0.0 and 1.0 inclusive"
 
         self.__max_speed_scale_factor = scale_factor
 
@@ -141,3 +124,29 @@ class Drive:
         Publishes the current drive message.
         """
         self.__publisher.publish(self.__message)
+
+    @staticmethod
+    def __remap_to_range(val, old_min, old_max, new_min, new_max):
+        """
+        Remaps a value from one given range to a new range.
+
+        Args:
+            val (number): number in old range to be rescaled
+            old_min (number): 'lower' bound of old range
+            old_max (number): 'upper' bound of old range
+            new_min (number): 'lower' bound of new range
+            new_max (number): 'upper' bound of new range
+
+        Note:
+            min need not be less than max; flipping the direction will cause the sign of
+            the mapping to flip.
+
+        Example:
+            >>> self.__remap_to_range(5,0,10,0,50)
+            25
+            >>> self.__remap_to_range(5,0,20,1000,900)
+            975
+        """
+        old_span = old_max - old_min
+        new_span = new_max - new_min
+        return new_min + new_span * (float(val - old_min) / float(old_span))
