@@ -2,34 +2,51 @@ import cv2 as cv
 import numpy as np
 import numbers
 
-def remap_range(val, old_min, old_max, new_min, new_max):
-        """
-        Remaps a value from one given range to a new range.
 
-        Args:
-            val: (number) A number form the old range to be rescaled.
-            old_min: (number) The 'lower' bound of the old range.
-            old_max: (number) The 'upper' bound of the old range.
-            new_min: (number) The 'lower' bound of the new range.
-            new_max: (number) The 'upper' bound of the new range.
+def remap_range(val, old_min, old_max, new_min, new_max, saturate=False):
+    """
+    Remaps a value from one given range to a new range.
 
-        Note:
-            min need not be less than max; flipping the direction will cause the sign of
-            the mapping to flip.  val does not have to be between old_min and old_max.
+    Args:
+        val: (number) A number form the old range to be rescaled.
+        old_min: (number) The 'lower' bound of the old range.
+        old_max: (number) The 'upper' bound of the old range.
+        new_min: (number) The 'lower' bound of the new range.
+        new_max: (number) The 'upper' bound of the new range.
+        saturate: (bool) If true, the new_min and new_max limits are enforced.
 
-        Example:
-            # a will be set to 25
-            a = remap_range(5, 0, 10, 0, 50)
+    Note:
+        min need not be less than max; flipping the direction will cause the sign of
+        the mapping to flip.  val does not have to be between old_min and old_max.
 
-            # b will be set to 975
-            b = remap_range(5, 0, 20, 1000, 900)
+    Example:
+        # a will be set to 25
+        a = remap_range(5, 0, 10, 0, 50)
 
-            # c will be set to 30
-            c = remap_range(2, 0, 1, -10, 10)
-        """
-        old_span = old_max - old_min
-        new_span = new_max - new_min
-        return new_min + new_span * (float(val - old_min) / float(old_span))
+        # b will be set to 975
+        b = remap_range(5, 0, 20, 1000, 900)
+
+        # c will be set to 30
+        c = remap_range(2, 0, 1, -10, 10)
+
+        # d will be set to 20
+        d = remap_range(2, 0, 1, -10, 10, True)
+    """
+    assert isinstance(val, numbers.Number), "val must be a number"
+    assert isinstance(old_min, numbers.Number), "old_min must be a number"
+    assert isinstance(old_max, numbers.Number), "old_max must be a number"
+    assert isinstance(new_min, numbers.Number), "new_min must be a number"
+    assert isinstance(new_max, numbers.Number), "new_max must be a number"
+
+    old_span = old_max - old_min
+    new_span = new_max - new_min
+    new_val = new_min + new_span * (float(val - old_min) / float(old_span))
+
+    # If saturate is true, enforce the new_min and new_max limits
+    if saturate:
+        new_val = max(new_min, min(new_max, new_val))
+
+    return new_val
 
 
 def crop(image, top_left_inclusive, bottom_right_exclusive):
@@ -335,12 +352,10 @@ def get_average_distance(depth_image, pix_row, pix_col, kernel_size=7):
         depth_image[0][0], numbers.Number
     ), "depth_image must be a 2D numpy array of depth values (in mm)"
     assert (
-        isinstance(pix_row, numbers.Integral)
-        and 0 <= pix_row < depth_image.shape[0]
+        isinstance(pix_row, numbers.Integral) and 0 <= pix_row < depth_image.shape[0]
     ), "pix_row must be a row index within depth_image"
     assert (
-        isinstance(pix_col, numbers.Integral)
-        and 0 <= pix_col < depth_image.shape[1]
+        isinstance(pix_col, numbers.Integral) and 0 <= pix_col < depth_image.shape[1]
     ), "pix_col must be a column index within depth_image"
     assert (
         isinstance(kernel_size, numbers.Integral)
