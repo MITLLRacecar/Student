@@ -21,7 +21,7 @@ import camera
 import controller
 import display
 import drive
-
+import lidar
 
 class Racecar:
     """
@@ -41,6 +41,7 @@ class Racecar:
         self.controller = controller.Controller(self)
         self.display = display.Display()
         self.drive = drive.Drive()
+        self.lidar = lidar.Lidar()
 
         # User provided start and update functions
         self.__user_start = None

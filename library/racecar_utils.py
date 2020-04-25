@@ -296,3 +296,47 @@ def get_closest_pixel(depth_image, kernel_size=5):
     (_, _, minLoc, _) = cv.minMaxLoc(blurred_depth)
 
     return minLoc
+
+def get_closest_point(scan):
+    """
+    Finds the closest point from the lidar scan
+
+    Inputs:
+        scan ()
+
+    Output ((int, int)): The (angle, distance) of the location of the point which
+        is closest to the car
+
+    Warning: 
+
+    Note: In areas with glass, mirrors, or large open spaces, there is a high 
+        liklihood of distance error.
+
+    Example:
+    ```Python
+
+
+
+    ```
+    """
+    length = rc.lidar.get_length()
+    print(length)
+    return length
+def distance_ahead(scan):
+    """
+    Finds the average distance to obstacles in front of the car
+
+    Inputs:
+        scan ()
+
+    Ouput (int): The (ditance) over an average of the points ahead of the car
+
+    Warning:
+
+    Note: 
+
+    Example:
+    ```Python
+
+    ```
+    """
