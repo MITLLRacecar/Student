@@ -94,25 +94,25 @@ class Controller:
 
     def is_down(self, button):
         """
-        Returns whether a certain button is currently pressed
-
-        Inputs:
-            button (Button enum): Which button to check
-
-        Output (bool): True if button is currently pressed
-
-        Note: The parameter must be an associated value of the Button enum,
-            which is defined in the Controller module
+        Returns whether a certain button is currently pressed.
 
         Example:
-        ```Python
-        # This update function will print a message for every frame in which
-        # the A button is held down, so multiple messages will be printed
-        # if we press and hold the A button.
-        def update():
-            if rc.controller.is_down(rc.controller.Button.A):
-                print("The A button is currently pressed")
-        ```
+            # This update function will print a message for every frame in which
+            # the A button is held down, so multiple messages will be printed
+            # if we press and hold the A button.
+            def update():
+                if rc.controller.is_down(rc.controller.Button.A):
+                    print("The A button is currently pressed")
+
+        Args:
+            button: (Button enum) Which button to check.
+
+        Returns:
+            (bool) True if button is currently pressed.
+
+        Note:
+            The parameter must be an associated value of the Button enum,
+            which is defined in the Controller module.
         """
         assert isinstance(
             button, self.Button
@@ -122,25 +122,24 @@ class Controller:
 
     def was_pressed(self, button):
         """
-        Returns whether a certain button was pressed this frame
-
-        Inputs:
-            button (Button enum): Which button to check
-
-        Output (bool): True if button is currently pressed and was not pressed
-            last frame
-
-        Note: The parameter must be an associated value of the Button enum,
-            which is defined in the Controller module
+        Returns whether a certain button was pressed this frame.
 
         Example:
-        ```Python
-        # This update function will print a single message each time the A
-        # button is pressed on the controller
-        def update():
-            if rc.controller.was_pressed(rc.controller.Button.A):
-                print("The A button was pressed")
-        ```
+            # This update function will print a single message each time the A
+            # button is pressed on the controller
+            def update():
+                if rc.controller.was_pressed(rc.controller.Button.A):
+                    print("The A button was pressed")
+
+        Args:
+            button: (Button enum) Which button to check.
+
+        Returns:
+            (bool) True if button is currently pressed and was not pressed last frame.
+
+        Note:
+            The parameter must be an associated value of the Button enum,
+            which is defined in the Controller module.
         """
         assert isinstance(
             button, self.Button
@@ -150,25 +149,24 @@ class Controller:
 
     def was_released(self, button):
         """
-        Returns whether a certain button was released this frame
-
-        Inputs:
-            button (Button enum): Which button to check
-
-        Output (bool): True if button is currently released and was pressed
-            last frame
-
-        Note: The parameter must be an associated value of the Button enum,
-            which is defined in the Controller module
+        Returns whether a certain button was released this frame.
 
         Example:
-        ```Python
-        # This update function will print a single message each time the A
-        # button is released on the controller
-        def update():
-            if rc.controller.was_pressed(rc.controller.Button.A):
-                print("The A button was released")
-        ```
+            # This update function will print a single message each time the A
+            # button is released on the controller
+            def update():
+                if rc.controller.was_pressed(rc.controller.Button.A):
+                    print("The A button was released")
+
+        Args:
+            button: (Button enum) Which button to check.
+
+        Returns:
+            (bool) True if button is currently released and was pressed last frame.
+
+        Note:
+            The parameter must be an associated value of the Button enum,
+            which is defined in the Controller module.
         """
         assert isinstance(
             button, self.Button
@@ -178,23 +176,22 @@ class Controller:
 
     def get_trigger(self, trigger):
         """
-        Returns the position of a certain trigger as a value from 0.0 to 1.0
+        Returns the position of a certain trigger as a value from 0.0 to 1.0.
 
-        Inputs:
-            trigger (Trigger enum): Which trigger to check
+        Args:
+            trigger: (Trigger enum) Which trigger to check.
 
-        Output (float): A value from 0.0 (not pressed) to
-            1.0 (fully pressed)
+        Returns:
+            (float) A value from 0.0 (not pressed) to 1.0 (fully pressed).
 
-        Note: The parameter must be an associated value of the Trigger enum,
-            which is defined in the Controller module
+        Note:
+            The parameter must be an associated value of the Trigger enum,
+            which is defined in the Controller module.
 
         Example:
-        ```Python
-        # Speed will receive a value from 0.0 to 1.0 based on how much the left
-        # trigger is pressed
-        speed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
-        ```
+            # Speed will receive a value from 0.0 to 1.0 based on how much the left
+            # trigger is pressed
+            speed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
         """
         assert isinstance(
             trigger, self.Trigger
@@ -204,23 +201,23 @@ class Controller:
 
     def get_joystick(self, joystick):
         """
-        Returns the position of a certain joystick as an (x, y) tuple
+        Returns the position of a certain joystick as an (x, y) tuple.
 
-        Inputs:
-            joystick (Joystick enum): Which joystick to check
+        Args:
+            joystick: (Joystick enum) Which joystick to check.
 
-        Output (float, float): The x and y coordinate of the joystick, with
-            each axis ranging from -1.0 (left or down) to 1.0 (right or up)
+        Returns:
+            (float, float) The x and y coordinate of the joystick, with
+            each axis ranging from -1.0 (left or down) to 1.0 (right or up).
 
-        Note: The parameter must be an associated value of the Joystick enum,
-            which is defined in the Controller module
+        Note:
+            The parameter must be an associated value of the Joystick enum,
+            which is defined in the Controller module.
 
         Example:
-        ```Python
-        # x and y will be given values from -1.0 to 1.0 based on the position of
-        # the left joystick
-        x, y = rc.controller.get_joystick(rc.controller.Joystick.LEFT)
-        ```
+            # x and y will be given values from -1.0 to 1.0 based on the position of
+            # the left joystick
+            x, y = rc.controller.get_joystick(rc.controller.Joystick.LEFT)
         """
         assert isinstance(
             joystick, self.Joystick
@@ -230,12 +227,11 @@ class Controller:
 
     def __controller_callback(self, message):
         """
-        Every time the physical state of the controller is changed, this
-        function is called to update the state of the Controller module
+        Updates the state of Controller in response to a change in controller state.
 
-        Inputs:
-            message (ROS controller message object): An object encoding the
-                physical state of the controller
+        Args:
+            message: (ROS controller message object) An object encoding the
+                physical state of the controller.
         """
         self.__cur_down = [bool(b) for b in message.buttons[:6] + message.buttons[9:10]]
 
@@ -275,7 +271,7 @@ class Controller:
 
     def __update(self):
         """
-        Updates the stored input registers when the current frame ends
+        Updates the input registers when the current frame ends.
         """
         self.__was_down = copy.deepcopy(self.__is_down)
         self.__is_down = copy.deepcopy(self.__cur_down)
@@ -284,11 +280,10 @@ class Controller:
 
     def __convert_trigger_value(self, value):
         """
-        Convert the trigger value received from the controller into the desired
-        range for the get_trigger method
+        Converts a received trigger value into the desired range.
 
-        Inputs:
-            value: The value of the controller provided in the ROS message
+        Args:
+            value: (float) The value of the controller provided in the ROS message.
         """
         value = (1.0 - value) / 2
         if value < self.__TRIGGER_DEAD_ZONE:
@@ -297,11 +292,10 @@ class Controller:
 
     def __convert_joystick_value(self, value):
         """
-        Convert the value received from the controller for one axis of the
-        joystick into the desired range for the get_joystick method
+        Converts a received joystick axis value into the desired range.
 
-        Inputs:
-            value: The value of the joystick axis provided in the ROS message
+        Args:
+            value: (float) The value of the joystick axis provided in the ROS message.
         """
         if abs(value) < self.__JOYSTICK_DEAD_ZONE:
             return 0

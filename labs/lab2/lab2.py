@@ -31,11 +31,15 @@ rc = Racecar()
 # The smallest contour we will recognize as a valid contour
 MIN_CONTOUR_SIZE = 30
 # A crop window for the floor directly in front of the car
-CROP_BOTTOM = ((400, 0), (rc.camera.get_height(), rc.camera.get_width()))
+CROP_FLOOR = ((400, 0), (rc.camera.get_height(), rc.camera.get_width()))
 
 # Variables
 speed = 0.0  # The current speed of the car
 angle = 0.0  # The current angle of the car's wheels
+contour = None  # The current contour used for navigation
+contour_image = None  # The image from which the contour was extracted
+contour_center = None  # The (pixel row, pixel column) of contour
+contour_area = 0  # The area of contour
 
 # Colors, stored as a pair (hsv_min, hsv_max)
 BLUE = ((90, 50, 50), (110, 255, 255))  # The HSV range for the color blue
@@ -45,6 +49,43 @@ BLUE = ((90, 50, 50), (110, 255, 255))  # The HSV range for the color blue
 ################################################################################
 # Functions
 ################################################################################
+
+
+def update_contour(image):
+    """
+    Identifies a contour in the provided image to update global variables.
+
+    Args:
+        image: (2D numpy array of pixels) The image in which to find contours.
+
+    Note:
+        Updates the global variables contour, contour_image, contour_center,
+        and contour_area.
+    """
+    global contour
+    global contour_image
+    global contour_center
+    global contour_area
+
+    contour_image = image
+
+    if image is None:
+        contour = None
+        contour_center = None
+        contour_area = 0
+    else:
+        # TODO: Search for multiple tape colors with a priority order
+        # (currently we only search for blue)
+
+        # Find all of the blue contours
+        contours = rc_utils.find_contours(image, BLUE[0], BLUE[1])
+
+        # Select the largest contour
+        contour = rc_utils.get_largest_contour(contours, MIN_CONTOUR_SIZE)
+
+        # Update contour variables
+        contour_center = rc_utils.get_center(contour)
+        contour_area = rc_utils.get_area(contour)
 
 
 def start():
@@ -69,7 +110,8 @@ def start():
         ">> Lab 2 - Image processing\n"
         "\n"
         "Controlls:\n"
-        "   Right trigger = control forward speed\n"
+        "   Right trigger = accelerate forward\n"
+        "   Left trigger = accelerate backward\n"
         "   A button = print current speed and angle\n"
         "   B button = print contour center and area"
     )
@@ -84,41 +126,26 @@ def update():
     global angle
 
     image = rc.camera.get_image()
-    center = None
-    area = 0
 
-    # TODO: Implement a way to cycle through following multiple colors of tape
+    # Crop the image to the floor directly in front of the car
+    cropped_image = rc_utils.crop(image, CROP_FLOOR[0], CROP_FLOOR[1])
 
-    if image is None:
-        # If no image is found, center the wheels
-        angle = 0
-        center = None
-        area = 0
-    else:
-        # Crop the image to only show the floor in front of the car
-        cropped_image = rc_utils.crop(image, CROP_BOTTOM[0], CROP_BOTTOM[1])
+    # Search for contours in the cropped
+    update_contour(cropped_image)
 
-        # Find all of the blue contours
-        blueContours = rc_utils.find_contours(cropped_image, BLUE[0], BLUE[1])
-
-        # Find the center and area of the largest blue contour
-        largestBlueContour = rc_utils.get_largest_contour(
-            blueContours, MIN_CONTOUR_SIZE
-        )
-        center = rc_utils.get_center(largestBlueContour)
-        area = rc_utils.get_area(largestBlueContour)
-
-    # Choose an angle based on center
-    # If we could not find a contour center, keep the previous angle
-    if center is not None:
+    # Choose an angle based on contour_center
+    # If we could not find a contour, keep the previous angle
+    if contour_center is not None:
         # TODO: Implement a smoother way for the car to follow the line
-        if center[1] < rc.camera.get_width() / 2:
+        if contour_center[1] < rc.camera.get_width() / 2:
             angle = 1
         else:
             angle = -1
 
-    # Use the right trigger to control the car's forward speed
-    speed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
+    # Use the triggers to control the car's speed
+    forwardSpeed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
+    backSpeed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
+    speed = forwardSpeed - backSpeed
 
     rc.drive.set_speed_angle(speed, angle)
 
@@ -128,10 +155,13 @@ def update():
 
     # Print the center and area of the largest contour when B is held down
     if rc.controller.is_down(rc.controller.Button.B):
-        if center is None:
+        if contour_center is None:
             print("No contour found")
         else:
-            print("Center:", center, "Area:", area)
+            print("Center:", contour_center, "Area:", contour_area)
+
+    # TODO: When the left bumper (LB) is pressed, drive up to the closest cone
+    # and stop six inches in front of it.
 
 
 def update_slow():
@@ -142,44 +172,28 @@ def update_slow():
     # To help debug, update_slow does the following:
     # 1. Prints a line of ascii text to the console denoting the area of the
     #    contour and where the car sees the line
-    # 2. Shows the current image to the screen with the largest contour drawn
-    #    on top in bright green
+    # 2. Shows the most recent image to the screen with the largest contour
+    #    drawn on top in bright green
 
-    image = rc.camera.get_image()
-    if image is None:
+    if contour_image is None:
         # If no image is found, print all X's and don't display an image
         print("X" * 10 + " (No image) " + "X" * 10)
     else:
-        # Crop the image to only show the floor in front of the car
-        cropped_image = rc_utils.crop(image, CROP_BOTTOM[0], CROP_BOTTOM[1])
-
-        # Find all of the blue contours
-        blueContours = rc_utils.find_contours(cropped_image, BLUE[0], BLUE[1])
-
-        # Find the center and area of the largest blue contour
-        largestBlueContour = rc_utils.get_largest_contour(
-            blueContours, MIN_CONTOUR_SIZE
-        )
-        center = rc_utils.get_center(largestBlueContour)
-        area = rc_utils.get_area(largestBlueContour)
-
         # If an image is found but no contour is found, print all dashes
-        if center is None:
-            print("-" * 32 + " : area = " + str(area))
+        if contour_center is None:
+            print("-" * 32 + " : area = " + str(contour_area))
 
         # Otherwise, print a line of dashes with a | where the line is seen
         else:
             s = ["-"] * 32
-            s[int(center[1] / 20)] = "|"
-            print("".join(s) + " : area = " + str(area))
+            s[int(contour_center[1] / 20)] = "|"
+            print("".join(s) + " : area = " + str(contour_area))
 
             # Draw the contour onto the image
-            cropped_image = rc_utils.draw_contour(
-                cropped_image, largestBlueContour
-            )
+            drawn_image = rc_utils.draw_contour(contour_image, contour)
 
         # Display the image to the screen
-        rc.display.show_image(cropped_image)
+        rc.display.show_image(drawn_image)
 
 
 ################################################################################

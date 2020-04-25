@@ -1,37 +1,67 @@
 import cv2 as cv
 import numpy as np
+import numbers
+
+def remap_range(val, old_min, old_max, new_min, new_max):
+        """
+        Remaps a value from one given range to a new range.
+
+        Args:
+            val: (number) A number form the old range to be rescaled.
+            old_min: (number) The 'lower' bound of the old range.
+            old_max: (number) The 'upper' bound of the old range.
+            new_min: (number) The 'lower' bound of the new range.
+            new_max: (number) The 'upper' bound of the new range.
+
+        Note:
+            min need not be less than max; flipping the direction will cause the sign of
+            the mapping to flip.  val does not have to be between old_min and old_max.
+
+        Example:
+            # a will be set to 25
+            a = remap_range(5, 0, 10, 0, 50)
+
+            # b will be set to 975
+            b = remap_range(5, 0, 20, 1000, 900)
+
+            # c will be set to 30
+            c = remap_range(2, 0, 1, -10, 10)
+        """
+        old_span = old_max - old_min
+        new_span = new_max - new_min
+        return new_min + new_span * (float(val - old_min) / float(old_span))
 
 
 def crop(image, top_left_inclusive, bottom_right_exclusive):
     """
-    Crops an image to a rectangle based on the specified pixel points
+    Crops an image to a rectangle based on the specified pixel points.
 
-    Inputs:
-        image (2D numpy array of pixels): The image to crop
-        top_left_inclusive ((int, int)): The (row, column) of the top left pixel
-            of the crop rectangle
-        bottom_right_exclusive ((int, int)): The (row, column) of the pixel one
-            past the bottom right corner of the crop rectangle
+    Args:
+        image: (depth image or color image) The image to crop.
+        top_left_inclusive: ((int, int)) The (row, column) of the top left pixel
+            of the crop rectangle.
+        bottom_right_exclusive: ((int, int)) The (row, column) of the pixel one
+            past the bottom right corner of the crop rectangle.
 
-    Note: The top_left_inclusive pixel is included in the crop rectangle, but
+    Returns:
+        (depth image or color image) A cropped version of the image.
+
+    Note:
+        The top_left_inclusive pixel is included in the crop rectangle, but
         the bottom_right_exclusive pixel is not.  This is similar to how the how
         range(1, 4) returns [1, 2, 3] in Python.
 
-    Output (2D numpy array of triples): a cropped version of the image
-
     Example:
-    ```Python
-    image = rc.camera.get_image()
+        image = rc.camera.get_image()
 
-    # Crop the image to only keep the top half
-    cropped_image = rc_utils.crop(
-        image, (0, 0), (rc.camera.get_height() / 2, rc.camera.get_width())
-    )
-    ```
+        # Crop the image to only keep the top half
+        cropped_image = rc_utils.crop(
+            image, (0, 0), (rc.camera.get_height() / 2, rc.camera.get_width())
+        )
     """
-    assert (
-        2 <= len(image.shape) <= 3
-    ), "image must be a 2D numpy array of pixels"
+    assert (len(image.shape) == 3 and image.shape[2] == 3) or (
+        len(image.shape) == 2 and isinstance(image[0][0], numbers.Number)
+    ), "image must be a color (2D array of pixels) or depth (2D array of depths) image"
 
     # Extract the minimum and maximum pixel rows and columns from the parameters
     r_min, c_min = top_left_inclusive
@@ -43,36 +73,42 @@ def crop(image, top_left_inclusive, bottom_right_exclusive):
 
 def find_contours(image, hsv_lower, hsv_upper):
     """
-    Finds all contours of the specified color range in the provided image
+    Finds all contours of the specified color range in the provided image.
 
-    Inputs:
-        image (2D numpy array of triples): The image in which to find contours,
-            with pixels represented in the bgr (blue-green-red) format
-        hsv_lower ((int, int, int)): The lower bound for the hue, saturation,
-            and value of colors to contour
-        hsv_upper ((int, int, int)): The upper bound for the hue, saturation,
-            and value of the colors to contour
+    Args:
+        image: (2D numpy array of triples) The image in which to find contours,
+            with pixels represented in the bgr (blue-green-red) format.
+        hsv_lower: ((int, int, int)) The lower bound for the hue, saturation,
+            and value of colors to contour.
+        hsv_upper: ((int, int, int)) The upper bound for the hue, saturation,
+            and value of the colors to contour.
 
-    Note: Each channel in hsv_lower and hsv_upper ranges from 0 to 255
+    Returns:
+        ([contours]) A list of contours around the specified color ranges
+        found in the provided image.
 
-    Output ([contours]): a list of contours around the specified color ranges
-        found in the provided image
+    Note:
+        Each channel in hsv_lower and hsv_upper ranges from 0 to 255.
 
     Example:
-    ```Python
-    # Define the lower and upper hsv ranges for the color blue
-    BLUE_HSV_MIN = (90, 50, 50)
-    BLUE_HSV_MAX = (110, 255, 255)
+        # Define the lower and upper hsv ranges for the color blue
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
 
-    # Extract contours around all blue portions of the current image
-    contours = rc_utils.find_contours(
-        rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
-    )
-    ```
+        # Extract contours around all blue portions of the current image
+        contours = rc_utils.find_contours(
+            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+        )
     """
     assert (
-        len(image.shape) == 3 and image.shape[2] >= 3
-    ), "image must be a 2D numpy array of pixels"
+        len(image.shape) == 3 and image.shape[2] == 3
+    ), "image must be a 2D numpy array of pixels, with each pixel stored as a triple"
+    assert (
+        len(hsv_lower) == 3 and len(filter(hsv_lower, lambda x: 0 <= x <= 255)) == 3
+    ), "hsv_lower must be a triple of numbers ranging from 0 to 255 inclusive"
+    assert (
+        len(hsv_upper) == 3 and len(filter(hsv_upper, lambda x: 0 <= x <= 255)) == 3
+    ), "hsv_upper must be a triple of numbers ranging from 0 to 255 inclusive"
 
     # Convert the image from a blue-green-red pixel representation to a
     # hue-saturation-value representation
@@ -88,27 +124,26 @@ def find_contours(image, hsv_lower, hsv_upper):
 
 def get_largest_contour(contours, min_contour_size=30):
     """
-    Extracts the largest contour from a list of contours with an area
-    greater than MIN_CONTOUR_SIZE
+    Finds the largest contour with size greater than min_contour_size.
 
-    Inputs:
-        contours ([contour]): A list of contours found in an image
+    Args:
+        contours: ([contour]) A list of contours found in an image.
+        min_contour_size: (int) The smallest contour to consider
 
-    Outputs (contour or None): The largest contour from the list, or None if no
-        contour was larger than MIN_CONTOUR_SIZE
+    Returns:
+        (contour or None) The largest contour from the list, or None if no
+        contour was larger than min_contour_size.
 
     Example:
-    ```Python
-    # Extract the blue contours
-    BLUE_HSV_MIN = (90, 50, 50)
-    BLUE_HSV_MAX = (110, 255, 255)
-    contours = rc_utils.find_contours(
-        rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
-    )
+        # Extract the blue contours
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
+        contours = rc_utils.find_contours(
+            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+        )
 
-    # Find the largest contour
-    largest_contour = rc_utils.get_largest_contour(contours)
-    ```
+        # Find the largest contour
+        largest_contour = rc_utils.get_largest_contour(contours)
     """
     # Check that the list contains at least one contour
     if len(contours) == 0:
@@ -124,50 +159,65 @@ def get_largest_contour(contours, min_contour_size=30):
 
 def draw_contour(image, contour, color=(0, 255, 0)):
     """
-    Draws a contour on a copy of the provided image
+    Draws a contour on a copy of the provided image.
 
-    Inputs:
-        image (2D numpy array of triples): The image on which to draw the
-            contour
-        contour (contour): A contour to draw on the image
-        color ((int, int, int)): The color to draw the contour, specified as
-            blue-green-red channels each ranging from 0 to 255
+    Example:
+        image = rc.camera.get_image()
 
-    Output (2D numpy array ): A copy of image with the contour drawn on it
+        # Extract the largest blue contour
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
+        contours = rc_utils.find_contours(image, BLUE_HSV_MIN, BLUE_HSV_MAX)
+        largest_contour = rc_utils.get_largest_contour(contours)
+
+        # Draw this contour onto image
+        if (largest_contour is not None):
+            image_labeled = draw_contour(image, largest_contour)
+
+    Args:
+        image: (2D numpy array of triples) The image on which to draw the contour.
+        contour: (contour) A contour to draw on the image.
+        color: ((int, int, int)) The color to draw the contour, specified as
+            blue-green-red channels each ranging from 0 to 255.
+
+    Returns:
+        (2D numpy array of triples) A copy of image with the contour drawn on it.
     """
     assert (
-        len(image.shape) == 3 and image.shape[2] >= 3
-    ), "image must be a 2D numpy array of pixels"
+        len(image.shape) == 3 and image.shape[2] == 3
+    ), "image must be a 2D numpy array of pixels, with each pixel stored as a triple"
+    assert (
+        len(color) == 3 and len(filter(color, lambda x: 0 <= x <= 255)) == 3
+    ), "color must be a triple of numbers ranging from 0 to 255 inclusive"
 
     return cv.drawContours(np.copy(image), [contour], 0, color, 3)
 
 
 def get_center(contour):
     """
-    Finds the center of a contour from an image
-
-    Inputs:
-        contour (contour): The contour of which to find the center
-
-    Output ((int, int)): The (row, column) of the pixel at the center of the
-        contour
-
-    Note: Returns a None if the contour parameter is None or contains no pixels
+    Finds the center of a contour from an image.
 
     Example:
-    ```Python
-    # Extract the largest blue contour
-    BLUE_HSV_MIN = (90, 50, 50)
-    BLUE_HSV_MAX = (110, 255, 255)
-    contours = rc_utils.find_contours(
-        rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
-    )
-    largest_contour = rc_utils.get_largest_contour(contours)
+        # Extract the largest blue contour
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
+        contours = rc_utils.find_contours(
+            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+        )
+        largest_contour = rc_utils.get_largest_contour(contours)
 
-    # Find the center of this contour if it exists
-    if (largest_contour is not None):
-        center = rc_utils.get_center(largest_contour)
-    ```
+        # Find the center of this contour if it exists
+        if (largest_contour is not None):
+            center = rc_utils.get_center(largest_contour)
+
+    Args:
+        contour: (contour) The contour of which to find the center.
+
+    Returns:
+        ((int, int)) The (row, column) of the pixel at the center of the contour
+
+    Note:
+        Returns a None if the contour parameter is None or contains no pixels.
     """
     # Verify that we were passed a valid contour
     if contour is None:
@@ -186,27 +236,26 @@ def get_center(contour):
 
 def get_area(contour):
     """
-    Finds the area of a contour from an image
+    Finds the area of a contour from an image.
 
-    Inputs:
-        contour (contour): The contour of which to measure the area
+    Args:
+        contour: (contour) The contour of which to measure the area.
 
-    Output (float): The number of pixels contained within the contour, or 0 if
+    Returns:
+        (float) The number of pixels contained within the contour, or 0 if
         an invalid contour is provided
 
     Example:
-    ```Python
-    # Extract the largest blue contour
-    BLUE_HSV_MIN = (90, 50, 50)
-    BLUE_HSV_MAX = (110, 255, 255)
-    contours = rc_utils.find_contours(
-        rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
-    )
-    largest_contour = rc_utils.get_largest_contour(contours)
+        # Extract the largest blue contour
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
+        contours = rc_utils.find_contours(
+            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+        )
+        largest_contour = rc_utils.get_largest_contour(contours)
 
-    # Find the area of this contour (will evaluate to 0 if no contour was found)
-    area = rc_utils.get_contour_area(contour)
-    ```
+        # Find the area of this contour (will evaluate to 0 if no contour was found)
+        area = rc_utils.get_contour_area(contour)
     """
     # Verify that we were passed a valid contour
     if contour is None:
@@ -214,45 +263,100 @@ def get_area(contour):
 
     return cv.contourArea(contour)
 
+
 def get_center_distance(depth_image, kernel_size=7):
     """
-    Finds the distance of the center object in a depth image
+    Finds the distance of the center object in a depth image.
 
-    Inputs:
-        depth_image (2D numpy array of depth values): The depth image to process
-        kernel_size (int): The size of the area to average around the center
+    Args:
+        depth_image: (2D numpy array of depth values) The depth image to process.
+        kernel_size: (int) The size of the area to average around the center.
 
-    Output (float): The distance in centimeters of the object in the center of
-        the image
+    Returns:
+        (float) The distance in millimeters of the object in the center of the image.
 
-    Warning: kernel_size must be an odd integer
+    Warning:
+        kernel_size must be an odd integer.
 
-    Note: The larger the kernel_size, the more that the center is averaged
+    Note:
+        The larger the kernel_size, the more that the center is averaged
         with the depth of the surrounding pixels.  This helps reduce noise but
         also reduces accuracy if the center object is not flat.
 
     Example:
-    ```Python
-    depth_image = rc.camera.get_depth_image()
+        depth_image = rc.camera.get_depth_image()
 
-    # Find the distance of the object in the center of depth_image
-    center_distance = rc_utils.get_center_distance(depth_image)
-    ```
+        # Find the distance of the object (in mm) the center of depth_image
+        center_distance = rc_utils.get_center_distance(depth_image)
     """
+    assert len(depth_image.shape) == 2 and isinstance(
+        depth_image[0][0], numbers.Number
+    ), "depth_image must be a 2D numpy array of depth values (in mm)"
     assert (
-        len(depth_image.shape) == 2
-    ), "depth_image must be a 2D numpy array of pixels, instead it has shape " + str(depth_image.shape)
-    assert kernel_size % 2 == 1, "kernel_size must be odd"
+        isinstance(kernel_size, numbers.Integral) and kernel_size % 2 == 1
+    ), "kernel_size must be an odd integer"
 
-    # Crop out the center kernel of the depth image
-    center = (depth_image.shape[0] // 2, depth_image.shape[1] // 2)
+    # Calculate the center pixel
+    center_row = depth_image.shape[0] // 2
+    center_col = depth_image.shape[1] // 2
+
+    # Use get_average_distance to average the distance around this center pixel
+    return get_average_distance(depth_image, center_row, center_col, kernel_size)
+
+
+def get_average_distance(depth_image, pix_row, pix_col, kernel_size=7):
+    """
+    Finds the distance of a pixel averaged with its neighbors in a depth image.
+
+    Args:
+        depth_image: (2D numpy array of depth values) The depth image to process.
+        pix_row: (int) The row of the pixel to measure.
+        pix_col: (int) The column of the pixel to measure.
+        kernel_size: (int) The size of the area to average around the pixel.
+
+    Returns:
+        (float) The distance in millimeters of the object at the provided pixel.
+
+    Warning:
+        kernel_size must be an odd integer.
+
+    Note:
+        The larger the kernel_size, the more that the requested pixel is averaged
+        with the distances of the surrounding pixels.  This reduces noise at the cost of
+        reduced accuracy.
+
+    Example:
+        depth_image = rc.camera.get_depth_image()
+
+        # Find the distance of the object (in mm) at the pixel (100, 20) of depth_image
+        average_distance = rc_utils.get_average_distance(depth_image, 100, 20)
+    """
+    assert len(depth_image.shape) == 2 and isinstance(
+        depth_image[0][0], numbers.Number
+    ), "depth_image must be a 2D numpy array of depth values (in mm)"
+    assert (
+        isinstance(pix_row, numbers.Integral)
+        and 0 <= pix_row < depth_image.shape[0]
+    ), "pix_row must be a row index within depth_image"
+    assert (
+        isinstance(pix_col, numbers.Integral)
+        and 0 <= pix_col < depth_image.shape[1]
+    ), "pix_col must be a column index within depth_image"
+    assert (
+        isinstance(kernel_size, numbers.Integral)
+        and kernel_size > 0
+        and kernel_size % 2 == 1
+    ), "kernel_size must be a positive odd integer"
+
+    # Crop out out a kernel around the requested pixel
     cropped_center = crop(
         depth_image,
-        (center[0] - kernel_size // 2, center[1] - kernel_size // 2),
-        (center[0] + kernel_size // 2, center[1] + kernel_size // 2),
+        (pix_row - kernel_size // 2, pix_col - kernel_size // 2),
+        (pix_row + kernel_size // 2, pix_col + kernel_size // 2),
     )
 
-    # Apply a Gaussian blur to the cropped depth image to reduce noise
+    # Apply a Gaussian blur to the cropped depth image to average the surrounding
+    # pixel depths
     blurred_center = cv.GaussianBlur(cropped_center, (kernel_size, kernel_size), 0)
 
     # Return the depth of the center pixel
@@ -261,33 +365,38 @@ def get_center_distance(depth_image, kernel_size=7):
 
 def get_closest_pixel(depth_image, kernel_size=5):
     """
-    Finds the closest pixel in a depth image
+    Finds the closest pixel in a depth image.
 
-    Inputs:
-        depth_image (2D numpy array of depth values): The depth image to process
-        kernel_size (int): The size of the area to average around each pixel
+    Args:
+        depth_image: (2D numpy array of depth values) The depth image to process.
+        kernel_size: (int) The size of the area to average around each pixel.
 
-    Output ((int,int)): The (row, column) position of the pixel which is closest
-        to the car
+    Returns:
+        ((int,int)) The (row, column) position of the pixel which is closest
+        to the car.
 
-    Warning: kernel_size must be an odd integer
+    Warning:
+        kernel_size must be an odd integer.
 
-    Note: The larger the kernel_size, the more that the depth of each pixel is
+    Note:
+        The larger the kernel_size, the more that the depth of each pixel is
         averaged with the depth of surrounding pixels.  This helps reduce noise
         but also reduces accuracy.
 
     Example:
-    ```Python
-    depth_image = rc.camera.get_depth_image()
+        depth_image = rc.camera.get_depth_image()
 
-    # Find the closest pixel
-    closest_pixel = rc_utils.get_closest_pixel(depth_image)
-    ```
+        # Find the closest pixel
+        closest_pixel = rc_utils.get_closest_pixel(depth_image)
     """
+    assert len(depth_image.shape) == 2 and isinstance(
+        depth_image[0][0], numbers.Number
+    ), "depth_image must be a 2D numpy array of depth values (in mm)"
     assert (
-        len(depth_image.shape) == 2
-    ), "depth_image must be a 2D numpy array of pixels"
-    assert kernel_size % 2 == 1, "kernel_size must be odd"
+        isinstance(kernel_size, numbers.Integral)
+        and kernel_size > 0
+        and kernel_size % 2 == 1
+    ), "kernel_size must be a positive odd integer"
 
     # Apply a Gaussian blur to the depth portion of the image to reduce noise
     blurred_depth = cv.GaussianBlur(depth_image, (kernel_size, kernel_size), 0)
@@ -304,7 +413,7 @@ def get_closest_point(scan):
     Inputs:
         scan ()
 
-    Output ((int, int)): The (angle, distance) of the location of the point which
+    Output ((float, float)): The (angle, distance) of the location of the point which
         is closest to the car
 
     Warning: 
@@ -322,14 +431,15 @@ def get_closest_point(scan):
     length = rc.lidar.get_length()
     print(length)
     return length
-def distance_ahead(scan):
+
+def distance_forward(scan):
     """
     Finds the average distance to obstacles in front of the car
 
     Inputs:
         scan ()
 
-    Ouput (int): The (ditance) over an average of the points ahead of the car
+    Ouput (float): The (ditance) over an average of the points ahead of the car
 
     Warning:
 
@@ -340,3 +450,68 @@ def distance_ahead(scan):
 
     ```
     """
+
+def distance_cardinal_direction(scan):
+    """
+    Finds the average distance to obstacles in the four cardinal directions
+
+    inputs:
+        scan ()
+
+    Output ((float, float, float, float)): The (N, S, E, W) distances
+
+    Warning:
+
+    Example:
+    ```Python
+
+
+    ```
+    """
+    
+
+def color_depth_image(depth_image, min_depth=1, max_depth=5000):
+    """
+    Converts a depth image into a color image.
+
+    Args:
+        depth_image: (2D numpy array of depth values) The depth image to convert.
+        min_depth: (float) The depth to represent as the reddest color.
+        max_depth: (float) The depth to represent as the bluest color.
+
+    Returns:
+        (2D numpy array of triples) A color image of bgr pixels, in which the depth
+        of each pixel has been mapped to the red-blue color range.
+
+    Example:
+        depth_image = rc.camera.get_depth_image()
+
+        # Colorize and show the depth image
+        colorized_image = rc_utils.color_depth_image(depth_image)
+        rc.display.show_image(colorized_image)
+    """
+    assert len(depth_image.shape) == 2 and isinstance(
+        depth_image[0][0], numbers.Number
+    ), "depth_image must be a 2D numpy array of depth values (in mm)"
+    assert (
+        isinstance(min_depth, numbers.Number) and min_depth >= 0
+    ), "min_depth must be a positive number"
+    assert (
+        isinstance(max_depth, numbers.Number) and max_depth >= 0
+    ), "max_depth must be a positive number"
+
+    # Use map to apply __convert_depth_to_color to each pixel
+    return map(depth_image, lambda row: map(row, __convert_depth_to_color))
+
+
+def __convert_depth_to_color(depth, min_depth, max_depth):
+    """
+    A helper function for show_depth_image which convents a depth into a bgr
+    color on the red-blue range (red is closest, blue is farthest)
+    """
+    # Scale depth to the range (0, 255)
+    scaled = max(0, min(255, (depth - min_depth) / (max_depth - min_depth)))
+
+    # Map depth to a red-blue scale (red is closest, blue is farthest)
+    return (255 - scaled, 0, scaled)
+>>>>>>> 3ebfefad73a48507e45608bc1a11e1cc42e4e629
