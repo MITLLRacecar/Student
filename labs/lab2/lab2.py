@@ -130,7 +130,7 @@ def update():
     # Crop the image to the floor directly in front of the car
     cropped_image = rc_utils.crop(image, CROP_FLOOR[0], CROP_FLOOR[1])
 
-    # Search for contours in the cropped
+    # Search for contours in the cropped image
     update_contour(cropped_image)
 
     # Choose an angle based on contour_center

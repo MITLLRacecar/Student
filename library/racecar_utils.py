@@ -9,10 +9,10 @@ def remap_range(val, old_min, old_max, new_min, new_max, saturate=False):
 
     Args:
         val: (number) A number form the old range to be rescaled.
-        old_min: (number) The 'lower' bound of the old range.
-        old_max: (number) The 'upper' bound of the old range.
-        new_min: (number) The 'lower' bound of the new range.
-        new_max: (number) The 'upper' bound of the new range.
+        old_min: (number) The inclusive 'lower' bound of the old range.
+        old_max: (number) The inclusive 'upper' bound of the old range.
+        new_min: (number) The inclusive 'lower' bound of the new range.
+        new_max: (number) The inclusive 'upper' bound of the new range.
         saturate: (bool) If true, the new_min and new_max limits are enforced.
 
     Note:

@@ -99,8 +99,8 @@ def update():
     # and depth information and should work with cones of varying size.  You may
     # wish to reference lab 2.
 
-    # TODO: When the right bumper (RB) is pressed, slalom through a line of cones
-    # using color and/or depth images.
+    # TODO: When the right bumper (RB) is pressed, orient the car so that it
+    # directly faces toward a wall (without hitting it).
 
 
 def update_slow():
