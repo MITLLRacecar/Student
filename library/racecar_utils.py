@@ -5,7 +5,7 @@ import numbers
 
 def remap_range(val, old_min, old_max, new_min, new_max, saturate=False):
     """
-    Remaps a value from one given range to a new range.
+    Remaps a value from one range to another range.
 
     Args:
         val: (number) A number form the old range to be rescaled.
