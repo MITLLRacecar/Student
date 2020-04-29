@@ -27,19 +27,22 @@ rc = Racecar()
 # Functions
 ################################################################################
 
-#def start():
-#    """
- #   This function is run once every time the start button is pressed
-  #  """
- #   length = rc.lidar.get_length()
-  #  print(length)
+def start():
+    """
+    This function is run once every time the start button is pressed
+    """
+    length = rc.lidar.get_length()
+    print(length)
 
-#def update():
-    #"""
-   # After start() is run, this function is run every frame until the back button
-    #is pressed
-    #"""
- #   pass
+    ranges = rc.lidar.get_ranges()
+    print(ranges)
+
+def update():
+    """
+    After start() is run, this function is run every frame until the back button
+    is pressed
+    """
+    pass
 
 
 ################################################################################
@@ -47,7 +50,9 @@ rc = Racecar()
 ################################################################################
 
 if __name__ == "__main__":
-   # rc.set_start_update(start, update)
-    #rc.go()
-   length = rc.lidar.get_length()
-   print(length)
+   
+   rc.set_start_update(start, update)
+   print rc.lidar.get_length()
+   print rc.lidar.get_ranges()
+   rc.go()
+

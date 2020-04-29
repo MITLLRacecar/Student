@@ -514,4 +514,4 @@ def __convert_depth_to_color(depth, min_depth, max_depth):
 
     # Map depth to a red-blue scale (red is closest, blue is farthest)
     return (255 - scaled, 0, scaled)
->>>>>>> 3ebfefad73a48507e45608bc1a11e1cc42e4e629
+
