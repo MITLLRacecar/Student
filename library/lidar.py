@@ -25,19 +25,18 @@ class Lidar:
     
     def __init__(self):
         self.__scan_sub = rospy.Subscriber(
-                self.__SCAN_TOPIC, LaserScan, self.__scan_callback, queue_size=1
+                self.__SCAN_TOPIC, LaserScan, self.__scan_callback
                 )
         self._event = threading.Event()
-
         self.__length = 0
         self.__ranges = ()
     
     def __scan_callback(self, data):
 
         self.__length = len(data.ranges)
-        self.__ranges = data.ranges
-        #self.__scan_sub.unregister()
+        self.__ranges = list(data.ranges)
         self._event.set()
+
     def get_length(self, timeout=None):
         """
         Returns the length of the ranges array, to check for a valid scan.
@@ -49,12 +48,11 @@ class Lidar:
             total_points = rc.lidar.get_length()
         """
         self._event.wait(timeout)
-        #print(self.__length)
         return self.__length
 
     def get_ranges(self, timeout=None):
         """
-        Returns the array of all the distance value from a single lidar scan
+        Returns the array of all the distance value from a single lidar scan.
 
         Returns:
              (float): The tuple of distance measurments
