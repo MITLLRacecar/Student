@@ -11,7 +11,7 @@ import cv2 as cv
 
 class Display:
     """
-    Allows the user to print text and images to the RACECAR screen
+    Allows the user to print text and images to the RACECAR screen.
     """
 
     def __init__(self):
