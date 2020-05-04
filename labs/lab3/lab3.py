@@ -79,11 +79,11 @@ def update():
     backSpeed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
     speed = forwardSpeed - backSpeed
 
-    # Calculate center distance
+    # Calculate the distance of the object directly in front of the car
     depth_image = rc.camera.get_depth_image()
     center_distance = rc_utils.get_center_distance(depth_image)
 
-    # TODO: Prevent forward movement if the car is about to hit something
+    # TODO (warmup): Prevent forward movement if the car is about to hit something
 
     # Use the left joystick to control the angle of the front wheels
     angle = rc.controller.get_joystick(rc.controller.Joystick.LEFT)[0]
@@ -94,13 +94,13 @@ def update():
     if rc.controller.was_pressed(rc.controller.Button.A):
         print("Speed:", speed, "Angle:", angle)
 
-    # TODO: When the left bumper (LB) is pressed, drive up to the closest cone
-    # and stop six inches in front of it.  Your approach should use both color
+    # TODO (challenge 1): When the left bumper (LB) is pressed, drive up to the closest
+    # cone and stop six inches in front of it.  Your approach should use both color
     # and depth information and should work with cones of varying size.  You may
     # wish to reference lab 2.
 
-    # TODO: When the right bumper (RB) is pressed, orient the car so that it
-    # directly faces toward a wall (without hitting it).
+    # TODO (challenge 2): When the right bumper (RB) is pressed, orient the car so that
+    # it directly faces toward a wall (without hitting it).
 
 
 def update_slow():

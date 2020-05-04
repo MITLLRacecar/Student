@@ -43,7 +43,7 @@ contour_area = 0  # The area of contour
 
 # Colors, stored as a pair (hsv_min, hsv_max)
 BLUE = ((90, 50, 50), (110, 255, 255))  # The HSV range for the color blue
-# TODO: add HSV ranges for other colors
+# TODO (challenge 1): add HSV ranges for other colors
 
 
 ################################################################################
@@ -74,7 +74,7 @@ def update_contour(image):
         contour_center = None
         contour_area = 0
     else:
-        # TODO: Search for multiple tape colors with a priority order
+        # TODO (challenge 1): Search for multiple tape colors with a priority order
         # (currently we only search for blue)
 
         # Find all of the blue contours
@@ -136,7 +136,7 @@ def update():
     # Choose an angle based on contour_center
     # If we could not find a contour, keep the previous angle
     if contour_center is not None:
-        # TODO: Implement a smoother way for the car to follow the line
+        # TODO (warmup): Implement a smoother way to follow the line
         if contour_center[1] < rc.camera.get_width() / 2:
             angle = 1
         else:
@@ -160,8 +160,8 @@ def update():
         else:
             print("Center:", contour_center, "Area:", contour_area)
 
-    # TODO: When the left bumper (LB) is pressed, drive up to the closest cone
-    # and stop six inches in front of it.
+    # TODO (challenge 2): When the left bumper (LB) is pressed, drive up to the closest
+    # cone and stop six inches in front of it.
 
 
 def update_slow():
@@ -170,10 +170,10 @@ def update_slow():
     than update().  By default, update_slow() is run once per second
     """
     # To help debug, update_slow does the following:
-    # 1. Prints a line of ascii text to the console denoting the area of the
-    #    contour and where the car sees the line
-    # 2. Shows the most recent image to the screen with the largest contour
-    #    drawn on top in bright green
+    # 1. Prints a line of ascii text to the console denoting the area of the contour
+    #    and where the car sees the line
+    # 2. Shows the most recent image to the screen with the largest contour drawn
+    #    on top in bright green
 
     if contour_image is None:
         # If no image is found, print all X's and don't display an image

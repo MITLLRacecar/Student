@@ -38,7 +38,7 @@ def start():
     rc.drive.stop()
 
     # Print start message
-    # TODO: add a line explaining what the Y button does
+    # TODO (main challenge): add a line explaining what the Y button does
     print(
         ">> Lab 1 - Driving in Shapes\n"
         "\n"
@@ -57,18 +57,19 @@ def update():
     After start() is run, this function is run every frame until the back button
     is pressed
     """
-    # TODO: Implement acceleration and steering
+    # TODO (warmup): Implement acceleration and steering
     rc.drive.set_speed_angle(0, 0)
 
     if rc.controller.was_pressed(rc.controller.Button.A):
         print("Driving in a circle...")
-        # TODO: Drive in a circle
+        # TODO (main challenge): Drive in a circle
 
-    # TODO: Drive in a square when the B button is pressed
+    # TODO (main challenge): Drive in a square when the B button is pressed
 
-    # TODO: Drive in a figure eight when the X button is pressed
+    # TODO (main challenge): Drive in a figure eight when the X button is pressed
 
-    # TODO: Drive in a shape of your choice when the Y button is pressed
+    # TODO (main challenge): Drive in a shape of your choice when the Y button
+    # is pressed
 
 
 ################################################################################
