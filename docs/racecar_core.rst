@@ -11,8 +11,9 @@ racecar_core library
    controller
    display
    drive
+   lidar
+   physics
 
 .. doxygenclass:: racecar_core::Racecar
    :project: racecar_core
    :members:
-   
