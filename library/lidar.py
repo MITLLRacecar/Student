@@ -2,6 +2,7 @@
 Copyright Harvey Mudd College
 MIT License
 Spring 2020
+
 Contains the Lidar module of the racecar_core library
 """
 
@@ -15,22 +16,23 @@ from sensor_msgs.msg import LaserScan
 from cv_bridge import CvBridge, CvBridgeError
 import threading
 
+
 class Lidar:
     """
-    Returns robot position and scan data
+    Returns the scan data captured by the Lidar.
     """
 
-    # The ROS topic from which we get lidar data
+    # The ROS topic from which we get Lidar data
     __SCAN_TOPIC = "/scan"
-    
+
     def __init__(self):
         self.__scan_sub = rospy.Subscriber(
-                self.__SCAN_TOPIC, LaserScan, self.__scan_callback
-                )
+            self.__SCAN_TOPIC, LaserScan, self.__scan_callback
+        )
         self._event = threading.Event()
         self.__length = 0
         self.__ranges = ()
-    
+
     def __scan_callback(self, data):
 
         self.__length = len(data.ranges)
@@ -42,7 +44,7 @@ class Lidar:
         Returns the length of the ranges array, to check for a valid scan.
 
         Returns:
-            (Int): The number of points collected in each scan.
+            (Int) The number of points collected in each scan.
 
         Example:
             total_points = rc.lidar.get_length()
@@ -55,13 +57,10 @@ class Lidar:
         Returns the array of all the distance value from a single lidar scan.
 
         Returns:
-             (float): The tuple of distance measurments
+             (float) The tuple of distance measurements
 
         Example:
             lidar_ranges = rc.lidar.get_ranges()
-
         """
         self._event.wait(timeout)
         return self.__ranges
-
-

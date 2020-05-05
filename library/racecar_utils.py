@@ -421,117 +421,129 @@ def get_closest_pixel(depth_image, kernel_size=5):
 
     return minLoc
 
+
 def get_closest_point(scan):
     """
-    Finds the closest point from the lidar scan
+    Finds the closest point from a lidar scan.
 
     Args:
         scan: (tuple of float distance values) The current lidar scan.
 
-    Output ((float, float)): The (angle, distance) of the location of the point which
-        is closest to the car
+    Returns:
+        ((float, float)) The (angle, distance) of the location of the point which
+        is closest to the car.
 
-    Warning: Not counting 0.0 as a valid closest point.
+    Warning:
+        Not counting 0.0 as a valid closest point.
 
-    Note: In areas with glass, mirrors, or large open spaces, there is a high 
-        liklihood of distance error.
+    Note:
+        In areas with glass, mirrors, or large open spaces, there is a high
+        likelihood of distance error.
 
     Example:
         scan = rc.lidar.get_ranges()
 
-        # Find the closest point
-        closest_point = rc_utils.get_closest_point(scan)
+        # Find the angle and distance of the closest point
+        (angle, distance) = rc_utils.get_closest_point(scan)
     """
 
     # Remove 0.0 values from scan
     clean_scan = [elem for elem in scan if elem > 0.0]
     closest_point = min(clean_scan)
-    
+
     position = scan.index(closest_point)
-    
-    # Convert the index of the list to degree    
+
+    # Convert the index of the list to degree
     degree = position // 2
 
     return (degree, closest_point)
 
+
 def distance_forward(scan):
     """
-    Finds the average distance to obstacles in front of the car
+    Finds the average distance to obstacles in front of the car.
 
     Args:
         scan: (tuple of float distance values) The current lidar scan.
 
-    Ouput (float): The  average (distance) of the points ahead of the car
+    Returns:
+        (float) The average (distance) of the points ahead of the car
 
-    Warning: Not counting points that are 0.0
+    Warning:
+        Not counting points that are 0.0.
 
     Example:
         scan = rc.lidar.get_ranges()
-        
+
         #Find forward distance
         forward_distance = rc_utils.distance_forward()
     """
-    
+
     forward_scan = scan[:20]
     forward_scan += scan[710:719]
 
     forward_clean_scan = [elem for elem in forward_scan if elem > 0.0]
-    
+
     # If the forward distance is blocked
     if len(forward_clean_scan) == 0:
         return 0.0
 
     else:
-        average_distance = sum(forward_clean_scan)/len(forward_clean_scan)
+        average_distance = sum(forward_clean_scan) / len(forward_clean_scan)
         return average_distance
+
 
 def distance_cardinal_directions(scan):
     """
-    Finds the average distance to obstacles in the four cardinal directions
+    Finds the average distance to obstacles in the four cardinal directions.
 
-    inputs:
+    Args:
         scan: (tuple of float distance values) The current lidar scan.
 
-    Output ((float, float, float, float)): The (N, S, E, W) distances where N is 
-        forward
+    Returns:
+        ((float, float, float, float)): The (front, back, left, right) distances.
 
-    Warning: Not counting points that are 0.0
+    Warning:
+        Not counting points that are 0.0.
 
     Example:
         scan = rc.lidar.get_ranges()
 
+        # Find cardinal direction distances
         (front, back, right, left) = rc_utils.distance_cardinal_direction()
     """
     average_front = distance_forward(scan)
 
     back_scan = scan[350:370]
     back_clean_scan = [elem for elem in back_scan if elem > 0.0]
-    
+
     if len(back_clean_scan) == 0:
         average_back = 0.0
 
     else:
-        average_back = sum(back_clean_scan)/len(back_clean_scan)
+        average_back = sum(back_clean_scan) / len(back_clean_scan)
 
     left_scan = scan[170:190]
     left_clean_scan = [elem for elem in left_scan if elem > 0.0]
-    
+
     if len(left_clean_scan) == 0:
         average_left = 0.0
 
     else:
-        average_left = sum(left_clean_scan)/len(left_clean_scan)
+        average_left = sum(left_clean_scan) / len(left_clean_scan)
 
     right_scan = scan[530:550]
     right_clean_scan = [elem for elem in right_scan if elem > 0.0]
-    
+
     if len(right_clean_scan) == 0:
         average_right = 0.0
 
     else:
-        average_right = sum(right_clean_scan)/len(right_clean_scan)
+        average_right = sum(right_clean_scan) / len(right_clean_scan)
 
     return (average_front, average_back, average_right, average_left)
+
+
 def color_depth_image(depth_image, min_depth=1, max_depth=5000):
     """
     Converts a depth image into a color image.
@@ -576,4 +588,3 @@ def __convert_depth_to_color(depth, min_depth, max_depth):
 
     # Map depth to a red-blue scale (red is closest, blue is farthest)
     return (255 - scaled, 0, scaled)
-
