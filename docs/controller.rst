@@ -1,3 +1,5 @@
+.. _controller:
+
 controller module
 =========================================
 

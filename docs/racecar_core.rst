@@ -1,3 +1,5 @@
+.. _racecar_core:
+
 racecar_core library
 =========================================
 

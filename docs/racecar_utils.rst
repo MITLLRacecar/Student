@@ -1,3 +1,5 @@
+.. _racecar_utils:
+
 racecar_utils library
 =========================================
 
