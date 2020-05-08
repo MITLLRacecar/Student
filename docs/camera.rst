@@ -1,6 +1,6 @@
 .. _camera:
 
-camera module
+Camera Module
 =========================================
 
 .. doxygenclass:: camera::Camera

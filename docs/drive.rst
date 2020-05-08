@@ -1,6 +1,6 @@
 .. _drive:
 
-drive module
+Drive Module
 =========================================
 
 .. doxygenclass:: drive::Drive

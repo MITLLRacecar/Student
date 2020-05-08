@@ -1,6 +1,6 @@
 .. _controller:
 
-controller module
+Controller Module
 =========================================
 
 .. doxygenclass:: controller::Controller

@@ -1,6 +1,6 @@
 .. _display:
 
-display module
+Display Module
 =========================================
 
 .. doxygenclass:: display::Display

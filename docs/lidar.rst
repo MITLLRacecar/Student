@@ -1,6 +1,6 @@
 .. _lidar:
 
-lidar module
+LIDAR Module
 =========================================
 
 .. doxygenclass:: lidar::Lidar
