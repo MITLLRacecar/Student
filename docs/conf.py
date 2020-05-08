@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = u'MITLL RACECAR'
+project = u'MITLL RACECAR-MN Libraries'
 copyright = u'2020, Harvey Mudd College, MIT'
 author = u'Harvey Mudd College, MIT'
 
