@@ -1,0 +1,6 @@
+*.vscode
+*.pyc
+/scripts/.config
+/documentation
+docs/_build
+*.ipynb_checkpoints/

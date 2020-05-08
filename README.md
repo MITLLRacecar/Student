@@ -1,2 +1,2 @@
-# MITLLRacecar2019-2020
-The 2019-2020 Harvey Mudd Clinic for designing an educational course centered around the MIT Lincoln Lab Racecar
+# RACECAR-MN Student Repository
+This repository is designed for individuals using the MITLL RACECAR-MN, an educational robotics platform.  You can learn more about the RACECAR-MN [here](https://mitll-racecar-mn.readthedocs.io/en/latest/index.html).
