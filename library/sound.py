@@ -30,18 +30,19 @@ class Sound:
         """
         Updates the speaker to be the given device.
 
-        Args: 
-            device (str or int): A substring of the device name or an 
-            identifying ID number
+        Args:
+            device (string or int): A substring of the device name or an
+                identifying ID number.
+
         Note:
-            If you choose to input a substring of the device name, it 
-            must be unique to all other devices. If the substring is 
+            If you choose to input a substring of the device name, it
+            must be unique to all other devices. If the substring is
             found in multiple device names, the update will fail. You can
             find information about available devices using list_devices.
-            
-            Updating the speaker does not update the output stream. The 
+
+            Updating the speaker does not update the output stream. The
             stream must be updated separately.
-        
+
         Example:
             sound = Sound()
             sound.set_speaker('USB2.0 Device')
@@ -64,18 +65,18 @@ class Sound:
         """
         Updates the mic to be the given device.
 
-        Args: 
-            device (str or int): A unique substring of the device name or an 
-            identifying ID number
+        Args:
+            device (string or int): A unique substring of the device name or an
+                identifying ID number.
         Note:
-            If you choose to input a substring of the device name, it 
-            must be unique to all other devices. If the substring is 
+            If you choose to input a substring of the device name, it
+            must be unique to all other devices. If the substring is
             found in multiple device names, the update will fail. You can
             find information about available devices using list_devices.
-            
-            Updating the mic does not update the input stream. The 
+
+            Updating the mic does not update the input stream. The
             stream must be updated separately.
-        
+
         Example:
             sound = Sound()
             sound.set_mic('USB PnP')
@@ -98,8 +99,8 @@ class Sound:
 
         Note:
             The output stream retrieves the speaker device from self.__speaker,
-            which can be set using set_speaker
-        
+            which can be set using set_speaker.
+
         Example:
             sound = Sound()
             sound.set_speaker('USB2.0 Device')
@@ -124,8 +125,8 @@ class Sound:
 
         Note:
             The output stream retrieves the mic device from self.__mic,
-            which can be set using set_mic
-        
+            which can be set using set_mic.
+
         Example:
             sound = Sound()
             sound.set_mic('USB PnP')
@@ -149,15 +150,16 @@ class Sound:
         """
         Hangs the running process to play audio from specified file.
 
-        Args: 
-            filename (str): The full filename of the audio file you
+        Args:
+            filename (string): The full filename of the audio file you
             want to play
+
         Note:
             Processes that call this function must wait until the full audio
-            file is done playing and the function returns. Additionally, 
+            file is done playing and the function returns. Additionally,
             the given file must be in the SAME folder as the script calling
             the function.
-        
+
         Example:
             sound = Sound()
             sound.play_audio('guitar.wav')
@@ -177,17 +179,18 @@ class Sound:
         """
         Hangs the running process to a record an audio file to the specified file.
 
-        Args: 
-            filename (str): The full filename of the audio file you
-            want to record to
+        Args:
+            filename (string): The full filename of the audio file you
+                want to record to
             seconds (int): The number of seconds you would like to record audio
+
         Note:
             Processes that call this function must wait until the full audio
-            file is done recording and the function returns. Additionally, 
+            file is done recording and the function returns. Additionally,
             the given file will appear in the SAME folder as the script calling
             the function. If a file of the same name already exists, it will
             be overwritten.
-        
+
         Example:
             sound = Sound()
             sound.record_audio('guitar.wav')
@@ -219,13 +222,12 @@ class Sound:
         Acts as a signal for sound thread to play audio.
 
         Args:
-            filename (str): The full filename of the audio file you
-            want to play
-       
+            filename (string): The full filename of the audio file you
+                want to play
+
         Note:
-            Play is meant to act as a thread signal if any threading is 
-            implemented. It updates the self.__file variable and 
-            self.__play
+            Play is meant to act as a thread signal if any threading is
+            implemented. It updates the self.__file variable and self.__play.
         """
         try:
             assert isinstance(
@@ -241,14 +243,13 @@ class Sound:
         Acts as a signal for sound thread to record audio.
 
         Args:
-            filename (str): The full filename of the audio file you
-            want to play
+            filename (string): The full filename of the audio file you.
+                want to play
             seconds (int): The number of seconds you would like to record audio
-       
+
         Note:
-            Rec is meant to act as a thread signal if any threading is 
-            implemented. It updates the self.__file variable and 
-            self.__rec
+            Rec is meant to act as a thread signal if any threading is
+            implemented. It updates the self.__file variable and self.__rec.
         """
         try:
             assert isinstance(
@@ -266,10 +267,10 @@ class Sound:
 
         Note:
             When called directly, a process must hang until the audio finishes
-            playing. If called by a thread, the function avoids hanging by 
+            playing. If called by a thread, the function avoids hanging by
             breaking up the file into smaller chunks. When self.__play or
-            self__rec change, the stream stops. 
-        
+            self__rec change, the stream stops.
+
         Example:
             if self.__play:
                 self.__play = False
@@ -289,18 +290,16 @@ class Sound:
 
     def __rec_file(self):
         """
-        Thread function
-        Breaks up the reading into chunks to allow interrupt and avoid wait
-        """
-        """
         Hangs the running process to record audio to a specified file.
 
         Note:
             When called directly, the process must hang until the audio finishes
-            recording. If called by a thread, the function avoids hanging by 
+            recording. If called by a thread, the function avoids hanging by
             breaking up the recording into smaller chunks. When self.__play or
-            self__rec change, the stream stops. 
-        
+            self__rec change, the stream stops.
+
+            Breaks up the reading into chunks to allow interrupt and avoid wait.
+
         Example:
             if self.__rec:
                 self.__rec = False
@@ -323,15 +322,15 @@ class Sound:
         """
         Updates the file to be the given filename.
 
-        Args: 
-            filename (str]): The full filename of the audio file you
-            want to record to
+        Args:
+            filename (str): The full filename of the audio file you
+                want to record to.
+
         Note:
             This function allows the user to manually set the file that is
             played from or recorded to. It is intended for functions which
-            do not have a filename argument, such as __play_file and 
-            __rec_file.
-        
+            do not have a filename argument, such as __play_file and __rec_file.
+
         Example:
             sound = Sound()
             sound.set_file('guitar.wav')
@@ -353,12 +352,11 @@ class Sound:
         Note:
             The resulting list of devices feature identifying integer IDs
             and device names. You can use one of these to update the speaker
-            and mic to non default options. 
-        
+            and mic to non default options.
+
         Example:
             sound = Sound()
             sound.list_devices()
-
             sound.set_mic('USB PnP')
         """
         devices = sd.query_devices()
