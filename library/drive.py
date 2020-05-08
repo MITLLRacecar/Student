@@ -42,12 +42,6 @@ class Drive:
         """
         Sets the speed at which the wheels turn and the angle of the front wheels.
 
-        Args:
-            speed: (float) The speed from -1.0 to 1.0, with positive for
-                forward and negative for reverse.
-            angle: (float) The angle of the front wheels from -1.0 to 1.0,
-                    with positive for right negative for left.
-
         Example:
             if counter < 1:
                 # Drive forward at full speed
@@ -58,6 +52,12 @@ class Drive:
             else:
                 # Drive 70% to the right at half speed
                 rc.drive.set_speed_angle(0.5, 0.7)
+
+        Args:
+            speed: (float) The speed from -1.0 to 1.0, with positive for
+                forward and negative for reverse.
+            angle: (float) The angle of the front wheels from -1.0 to 1.0,
+                    with positive for right negative for left.
         """
         assert (
             isinstance(speed, numbers.Number) and -1.0 <= speed <= 1.0

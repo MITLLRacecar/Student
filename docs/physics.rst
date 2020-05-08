@@ -1,8 +1,8 @@
-.. _gpio:
+.. _physics:
 
-GPIO Module
+Physics Module
 =========================================
 
-.. doxygennamespace:: GPIO
+.. doxygenclass:: physics::Physics
    :project: racecar_core
    :members:

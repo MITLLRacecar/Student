@@ -31,7 +31,7 @@ class Sound:
         Updates the speaker to be the given device.
 
         Args:
-            device (string or int): A substring of the device name or an
+            device: (string or int) A substring of the device name or an
                 identifying ID number.
 
         Note:
@@ -66,7 +66,7 @@ class Sound:
         Updates the mic to be the given device.
 
         Args:
-            device (string or int): A unique substring of the device name or an
+            device: (string or int) A unique substring of the device name or an
                 identifying ID number.
         Note:
             If you choose to input a substring of the device name, it
@@ -151,8 +151,8 @@ class Sound:
         Hangs the running process to play audio from specified file.
 
         Args:
-            filename (string): The full filename of the audio file you
-            want to play
+            filename: (string) The full filename of the audio file you
+                want to play
 
         Note:
             Processes that call this function must wait until the full audio
@@ -180,9 +180,9 @@ class Sound:
         Hangs the running process to a record an audio file to the specified file.
 
         Args:
-            filename (string): The full filename of the audio file you
+            filename: (string) The full filename of the audio file you
                 want to record to
-            seconds (int): The number of seconds you would like to record audio
+            seconds: (int) The number of seconds you would like to record audio
 
         Note:
             Processes that call this function must wait until the full audio
@@ -222,7 +222,7 @@ class Sound:
         Acts as a signal for sound thread to play audio.
 
         Args:
-            filename (string): The full filename of the audio file you
+            filename: (string) The full filename of the audio file you
                 want to play
 
         Note:
@@ -243,9 +243,9 @@ class Sound:
         Acts as a signal for sound thread to record audio.
 
         Args:
-            filename (string): The full filename of the audio file you.
+            filename: (string) The full filename of the audio file you.
                 want to play
-            seconds (int): The number of seconds you would like to record audio
+            seconds: (int) The number of seconds you would like to record audio
 
         Note:
             Rec is meant to act as a thread signal if any threading is
@@ -323,7 +323,7 @@ class Sound:
         Updates the file to be the given filename.
 
         Args:
-            filename (str): The full filename of the audio file you
+            filename: (str) The full filename of the audio file you
                 want to record to.
 
         Note:
