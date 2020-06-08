@@ -1,40 +1,21 @@
 """
-Copyright Harvey Mudd College
+Copyright MIT and Harvey Mudd College
 MIT License
-Spring 2020
+Summer 2020
 
 Contains the Controller module of the racecar_core library
 """
 
-# General
-import copy
-from enum import Enum
-
-# ROS
-import rospy
-from sensor_msgs.msg import Joy
-
+from enum import IntEnum
 
 class Controller:
     """
-    Handles input from the controller and exposes constant input state
-    per frame
+    Handles input from the controller and exposes constant input state per frame.
     """
 
-    # The ROS topic from which we read joystick information
-    __TOPIC = "/joy"
-
-    # The minimum amount that the trigger must be pressed to register a
-    # non-zero value
-    __TRIGGER_DEAD_ZONE = 0.05
-
-    # The minimum amount that the joystick must be moved along an axis to
-    # register a non-zero value along that axis
-    __JOYSTICK_DEAD_ZONE = 0.2
-
-    class Button(Enum):
+    class Button(IntEnum):
         """
-        The buttons on the controller
+        The buttons on the controller.
         """
 
         A = 0  # A button
@@ -46,51 +27,21 @@ class Controller:
         LJOY = 6  # Left joystick button
         RJOY = 7  # Right joystick button
 
-    class Trigger(Enum):
+    class Trigger(IntEnum):
         """
-        The triggers on the controller
-        """
-
-        LEFT = 0
-        RIGHT = 1
-
-    class Joystick(Enum):
-        """
-        The joysticks on the controller
+        The triggers on the controller.
         """
 
         LEFT = 0
         RIGHT = 1
 
-    def __init__(self, racecar):
-        self.__racecar = racecar
+    class Joystick(IntEnum):
+        """
+        The joysticks on the controller.
+        """
 
-        # Button state at the start of last frame
-        self.__was_down = [False] * len(self.Button)
-        # Button state at the start of this frame
-        self.__is_down = [False] * len(self.Button)
-        # Button state received since the start of this frame
-        self.__cur_down = [False] * len(self.Button)
-
-        # Trigger state at the start of this frame
-        self.__last_trigger = [0, 0]
-        # Trigger state received since the start of this frame
-        self.__cur_trigger = [0, 0]
-
-        # Joystick state at the start of this frame
-        self.__last_joystick = [[0, 0], [0, 0]]
-        # Joystick state received since the start of this frame
-        self.__cur_joystick = [[0, 0], [0, 0]]
-
-        # Current start and back button state
-        self.__cur_start = 0
-        self.__cur_back = 0
-
-        # subscribe to the controller topic, which will call
-        # __controller_callback every time the controller state changes
-        self.__subscriber = rospy.Subscriber(
-            self.__TOPIC, Joy, self.__controller_callback
-        )
+        LEFT = 0
+        RIGHT = 1
 
     def is_down(self, button):
         """
@@ -114,11 +65,7 @@ class Controller:
             The parameter must be an associated value of the Button enum,
             which is defined in the Controller module.
         """
-        assert isinstance(
-            button, self.Button
-        ), "button must be member of the rc.controller.Button enum"
-
-        return self.__is_down[button.value]
+        pass
 
     def was_pressed(self, button):
         """
@@ -141,11 +88,7 @@ class Controller:
             The parameter must be an associated value of the Button enum,
             which is defined in the Controller module.
         """
-        assert isinstance(
-            button, self.Button
-        ), "button must be member of the rc.controller.Button enum"
-
-        return self.__is_down[button.value] and not self.__was_down[button.value]
+        pass
 
     def was_released(self, button):
         """
@@ -168,11 +111,7 @@ class Controller:
             The parameter must be an associated value of the Button enum,
             which is defined in the Controller module.
         """
-        assert isinstance(
-            button, self.Button
-        ), "button must be member of the rc.controller.Button enum"
-
-        return not self.__is_down[button.value] and self.__was_down[button.value]
+        pass
 
     def get_trigger(self, trigger):
         """
@@ -193,11 +132,7 @@ class Controller:
             # trigger is pressed
             speed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
         """
-        assert isinstance(
-            trigger, self.Trigger
-        ), "trigger must be member of the rc.controller.Trigger enum"
-
-        return self.__last_trigger[trigger.value]
+        pass
 
     def get_joystick(self, joystick):
         """
@@ -219,84 +154,4 @@ class Controller:
             # the left joystick
             x, y = rc.controller.get_joystick(rc.controller.Joystick.LEFT)
         """
-        assert isinstance(
-            joystick, self.Joystick
-        ), "joystick must be member of the rc.controller.Joystick enum"
-
-        return self.__last_joystick[joystick.value]
-
-    def __controller_callback(self, message):
-        """
-        Updates the state of Controller in response to a change in controller state.
-
-        Args:
-            message: (ROS controller message object) An object encoding the
-                physical state of the controller.
-        """
-        self.__cur_down = [bool(b) for b in message.buttons[:6] + message.buttons[9:10]]
-
-        self.__cur_trigger = [
-            self.__convert_trigger_value(message.axes[2]),
-            self.__convert_trigger_value(message.axes[5]),
-        ]
-
-        self.__cur_joystick = [
-            (
-                self.__convert_joystick_value(message.axes[0]),
-                self.__convert_joystick_value(message.axes[1]),
-            ),
-            (
-                self.__convert_joystick_value(message.axes[3]),
-                self.__convert_joystick_value(message.axes[4]),
-            ),
-        ]
-
-        start = message.buttons[7]
-        if start != self.__cur_start:
-            self.__cur_start = start
-            if start:
-                if self.__cur_back:
-                    self.__racecar._Racecar__handle_exit()
-                else:
-                    self.__racecar._Racecar__handle_start()
-
-        back = message.buttons[6]
-        if back != self.__cur_back:
-            self.__cur_back = back
-            if back:
-                if self.__cur_start:
-                    self.__racecar._Racecar__handle_exit()
-                else:
-                    self.__racecar._Racecar__handle_back()
-
-    def __update(self):
-        """
-        Updates the input registers when the current frame ends.
-        """
-        self.__was_down = copy.deepcopy(self.__is_down)
-        self.__is_down = copy.deepcopy(self.__cur_down)
-        self.__last_trigger = copy.deepcopy(self.__cur_trigger)
-        self.__last_joystick = copy.deepcopy(self.__cur_joystick)
-
-    def __convert_trigger_value(self, value):
-        """
-        Converts a received trigger value into the desired range.
-
-        Args:
-            value: (float) The value of the controller provided in the ROS message.
-        """
-        value = (1.0 - value) / 2
-        if value < self.__TRIGGER_DEAD_ZONE:
-            return 0
-        return value
-
-    def __convert_joystick_value(self, value):
-        """
-        Converts a received joystick axis value into the desired range.
-
-        Args:
-            value: (float) The value of the joystick axis provided in the ROS message.
-        """
-        if abs(value) < self.__JOYSTICK_DEAD_ZONE:
-            return 0
-        return value
+        pass
