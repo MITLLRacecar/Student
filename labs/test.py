@@ -106,7 +106,7 @@ def update():
         depth_image = rc.camera.get_depth_image()
         rc.display.show_depth_image(depth_image)
         print(
-            "Depth center distance: {0:0.2f} cm".format(
+            "Depth center distance: {:.2f} cm".format(
                 rc_utils.get_center_distance(depth_image)
             )
         )
@@ -119,10 +119,11 @@ def update():
 
     # Show IMU data when the Y button is pressed
     if rc.controller.is_down(rc.controller.Button.Y):
+        a = rc.physics.get_linear_acceleration()
+        w = rc.physics.get_angular_velocity()
         print(
-            "Linear acceleration: {}; Angular velocity: {}".format(
-                rc.physics.get_linear_acceleration(), rc.physics.get_angular_velocity()
-            )
+            "Linear acceleration: ({:5.2f},{:5.2f},{:5.2f}); ".format(a[0], a[1], a[2])
+            + "Angular velocity: ({:5.2f},{:5.2f},{:5.2f})".format(w[0], w[1], w[2])
         )
 
 
