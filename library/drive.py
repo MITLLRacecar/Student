@@ -9,7 +9,7 @@ Contains the Drive module of the racecar_core library
 import abc
 
 
-class DriveBase(abc.ABC):
+class Drive(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def set_speed_angle(self, speed, angle):
@@ -50,7 +50,7 @@ class DriveBase(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def set_max_speed_scale_factor(self, scale_factor):
+    def set_max_speed(self, max_speed):
         """
         Sets the maximum speed in the forward and backward direction.
 

@@ -16,7 +16,7 @@ class Camera(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def get_image(self):
+    def get_color_image(self):
         """
         Returns the previous color image captured by the camera.
 

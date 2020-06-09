@@ -49,12 +49,10 @@ class RacecarSim(Racecar):
         drive_set_speed_angle = 20
         drive_stop = 21
         drive_set_max_speed = 22
-        gpio_pin_mode = 23
-        gpio_pin_write = 24
-        lidar_get_num_samples = 25
-        lidar_get_samples = 26
-        physics_get_linear_acceleration = 27
-        physics_get_angular_velocity = 28
+        lidar_get_num_samples = 23
+        lidar_get_samples = 24
+        physics_get_linear_acceleration = 25
+        physics_get_angular_velocity = 26
 
     def __send_header(self, function_code):
         self.__send_data(struct.pack("B", function_code.value))
