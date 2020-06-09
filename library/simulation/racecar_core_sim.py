@@ -36,7 +36,7 @@ class RacecarSim(Racecar):
         racecar_set_start_update = 7
         racecar_get_delta_time = 8
         racecar_set_update_slow_time = 9
-        camera_get_image = 10
+        camera_get_color_image = 10
         camera_get_depth_image = 11
         camera_get_width = 12
         camera_get_height = 13
@@ -48,11 +48,11 @@ class RacecarSim(Racecar):
         display_show_image = 19
         drive_set_speed_angle = 20
         drive_stop = 21
-        drive_set_max_speed_scale_factor = 22
+        drive_set_max_speed = 22
         gpio_pin_mode = 23
         gpio_pin_write = 24
-        lidar_get_length = 25
-        lidar_get_ranges = 26
+        lidar_get_num_samples = 25
+        lidar_get_samples = 26
         physics_get_linear_acceleration = 27
         physics_get_angular_velocity = 28
 
@@ -60,19 +60,19 @@ class RacecarSim(Racecar):
         self.__send_data(struct.pack("B", function_code.value))
 
     def __send_data(self, data):
-        Racecar.__SOCKET.sendto(data, (Racecar.__IP, Racecar.__UNITY_PORT))
+        self.__SOCKET.sendto(data, (self.__IP, self.__UNITY_PORT))
 
     def __receive_data(self, buffer_size=8):
-        data, _ = Racecar.__SOCKET.recvfrom(buffer_size)
+        data, _ = self.__SOCKET.recvfrom(buffer_size)
         return data
 
     def __init__(self):
-        self.camera = camera_sim.Camera(self)
-        self.controller = controller_sim.Controller(self)
-        self.display = display_sim.Display()
-        self.drive = drive_sim.Drive(self)
-        self.physics = physics_sim.Physics(self)
-        self.lidar = lidar_sim.Lidar(self)
+        self.camera = camera_sim.CameraSim(self)
+        self.controller = controller_sim.ControllerSim(self)
+        self.display = display_sim.DisplaySim()
+        self.drive = drive_sim.DriveSim(self)
+        self.physics = physics_sim.PhysicsSim(self)
+        self.lidar = lidar_sim.LidarSim(self)
 
         self.__start = None
         self.__update = None
@@ -127,5 +127,5 @@ class RacecarSim(Racecar):
             self.__update_slow()
             self.__update_slow_counter = self.__update_slow_time
 
-        self.camera._Camera__update()
-        self.lidar._Lidar__update()
+        self.camera._CameraSim__update()
+        self.lidar._LidarSim__update()

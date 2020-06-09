@@ -2,8 +2,10 @@ import sys
 import numpy as np
 import cv2 as cv
 
+from camera import Camera
 
-class Camera:
+
+class CameraSim(Camera):
     __WIDTH = 640
     __HEIGHT = 480
     __DEPTH_WIDTH = __WIDTH // 8
@@ -16,7 +18,7 @@ class Camera:
         self.__depth_image = None
         self.__is_depth_image_current = False
 
-    def get_image(self):
+    def get_color_image(self):
         if not self.__is_color_image_current:
             self.__update_color_image()
             self.__is_color_image_current = True
@@ -42,15 +44,17 @@ class Camera:
 
     def __update_color_image(self):
         # Ask for a the current color image
-        self.__racecar._Racecar__send_header(self.__racecar.Header.camera_get_image)
+        self.__racecar._RacecarSim__send_header(
+            self.__racecar.Header.camera_get_color_image
+        )
 
         # Read the color image as 32 packets
         raw_bytes = bytes()
         for i in range(0, 32):
-            raw_bytes += self.__racecar._Racecar__receive_data(
+            raw_bytes += self.__racecar._RacecarSim__receive_data(
                 self.__WIDTH * self.__HEIGHT * 4 // 32
             )
-            self.__racecar._Racecar__send_header(self.__racecar.Header.python_send_next)
+            self.__racecar._RacecarSim__send_header(self.__racecar.Header.python_send_next)
 
         self.__color_image = np.frombuffer(raw_bytes, dtype=np.uint8)
         self.__color_image = np.reshape(
@@ -60,10 +64,10 @@ class Camera:
         self.__color_image = cv.cvtColor(self.__color_image, cv.COLOR_RGB2BGR)
 
     def __update_depth_image(self):
-        self.__racecar._Racecar__send_header(
+        self.__racecar._RacecarSim__send_header(
             self.__racecar.Header.camera_get_depth_image
         )
-        raw_bytes = self.__racecar._Racecar__receive_data(
+        raw_bytes = self.__racecar._RacecarSim__receive_data(
             self.__DEPTH_WIDTH * self.__DEPTH_HEIGHT * 4
         )
         self.__depth_image = np.frombuffer(raw_bytes, dtype=np.float32)
