@@ -8,7 +8,12 @@ Contains the Racecar class, the top level of the racecar_core library
 
 import abc
 
+
 class Racecar(abc.ABC):
+    """
+    The top level racecar module containing several submodules which interface
+    with and control the different pieces of the RACECAR hardware
+    """
 
     def __init__(self):
         self.camera = None

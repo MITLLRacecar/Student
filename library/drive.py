@@ -8,6 +8,7 @@ Contains the Drive module of the racecar_core library
 
 import abc
 
+
 class DriveBase(abc.ABC):
     @classmethod
     @abc.abstractmethod

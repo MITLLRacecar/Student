@@ -6,9 +6,11 @@ Summer 2020
 Contains the Controller module of the racecar_core library
 """
 
+import abc
 from enum import IntEnum
 
-class Controller:
+
+class Controller(abc.ABC):
     """
     Handles input from the controller and exposes constant input state per frame.
     """
@@ -43,6 +45,8 @@ class Controller:
         LEFT = 0
         RIGHT = 1
 
+    @classmethod
+    @abc.abstractmethod
     def is_down(self, button):
         """
         Returns whether a certain button is currently pressed.
@@ -67,6 +71,8 @@ class Controller:
         """
         pass
 
+    @classmethod
+    @abc.abstractmethod
     def was_pressed(self, button):
         """
         Returns whether a certain button was pressed this frame.
@@ -90,6 +96,8 @@ class Controller:
         """
         pass
 
+    @classmethod
+    @abc.abstractmethod
     def was_released(self, button):
         """
         Returns whether a certain button was released this frame.
@@ -113,6 +121,8 @@ class Controller:
         """
         pass
 
+    @classmethod
+    @abc.abstractmethod
     def get_trigger(self, trigger):
         """
         Returns the position of a certain trigger as a value from 0.0 to 1.0.
@@ -134,6 +144,8 @@ class Controller:
         """
         pass
 
+    @classmethod
+    @abc.abstractmethod
     def get_joystick(self, joystick):
         """
         Returns the position of a certain joystick as an (x, y) tuple.
