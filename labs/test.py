@@ -98,16 +98,24 @@ def update():
         rc.drive.set_max_speed(max_speed)
 
     # Capture and display color images when the A button is down
-    # Capture and display depth images when the B button is down
-    # Capture and display Lidar data when the X button is down
     if rc.controller.is_down(rc.controller.Button.A):
         rc.display.show_color_image(rc.camera.get_color_image())
+
+    # Capture and display depth images when the B button is down
     elif rc.controller.is_down(rc.controller.Button.B):
         depth_image = rc.camera.get_depth_image()
         rc.display.show_depth_image(depth_image)
-        print("Depth center distance: {}".format(rc_utils.get_center_distance(depth_image)))
-    elif rc.controller.was_pressed(rc.controller.Button.X):
+        print(
+            "Depth center distance: {0:0.2f} cm".format(
+                rc_utils.get_center_distance(depth_image)
+            )
+        )
+
+    # Capture and display Lidar data when the X button is down
+    elif rc.controller.is_down(rc.controller.Button.X):
         lidar = rc.lidar.get_samples()
+        rc.display.show_lidar(lidar)
+        # print("Lidar distances: {}".format(rc_utils.distance_cardinal_directions(lidar)))
 
     # Show IMU data when the Y button is pressed
     if rc.controller.is_down(rc.controller.Button.Y):
