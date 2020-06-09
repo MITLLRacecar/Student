@@ -566,7 +566,7 @@ def color_depth_image(depth_image, min_depth=1, max_depth=5000):
     """
     assert len(depth_image.shape) == 2 and isinstance(
         depth_image[0][0], numbers.Number
-    ), "depth_image must be a 2D numpy array of depth values (in mm)"
+    ), "depth_image must be a 2D numpy array of depth values (in cm)"
     assert (
         isinstance(min_depth, numbers.Number) and min_depth >= 0
     ), "min_depth must be a positive number"
@@ -574,17 +574,18 @@ def color_depth_image(depth_image, min_depth=1, max_depth=5000):
         isinstance(max_depth, numbers.Number) and max_depth >= 0
     ), "max_depth must be a positive number"
 
-    # Use map to apply __convert_depth_to_color to each pixel
-    return map(depth_image, lambda row: map(row, __convert_depth_to_color))
+    height = depth_image.shape[0]
+    width = depth_image.shape[1]
+    colored = np.zeros((height, width, 3), dtype=np.uint8, order="C")
 
-
-def __convert_depth_to_color(depth, min_depth, max_depth):
-    """
-    A helper function for show_depth_image which convents a depth into a bgr
-    color on the red-blue range (red is closest, blue is farthest)
-    """
-    # Scale depth to the range (0, 255)
-    scaled = max(0, min(255, (depth - min_depth) / (max_depth - min_depth)))
-
-    # Map depth to a red-blue scale (red is closest, blue is farthest)
-    return (255 - scaled, 0, scaled)
+    for r in range(height):
+        for c in range(width):
+            if min_depth <= depth_image[r][c] <= max_depth:
+                scaled = (depth_image[r][c] - min_depth) / (max_depth - min_depth)
+                colored[r][c][0] = 255 - scaled
+                colored[r][c][2] = scaled
+            else:
+                colored[r][c][0] = 51
+                colored[r][c][1] = 51
+                colored[r][c][2] = 51
+    return colored

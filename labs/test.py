@@ -15,7 +15,7 @@ import sys
 sys.path.insert(0, "../library")
 sys.path.insert(0, "../library/simulation")
 from racecar_core_sim import RacecarSim
-
+import racecar_utils as rc_utils
 
 ################################################################################
 # Global variables
@@ -101,9 +101,11 @@ def update():
     # Capture and display depth images when the B button is down
     # Capture and display Lidar data when the X button is down
     if rc.controller.is_down(rc.controller.Button.A):
-        rc.display.show_image(rc.camera.get_color_image())
-    elif rc.controller.was_pressed(rc.controller.Button.B):
+        rc.display.show_color_image(rc.camera.get_color_image())
+    elif rc.controller.is_down(rc.controller.Button.B):
         depth_image = rc.camera.get_depth_image()
+        rc.display.show_depth_image(depth_image)
+        print("Depth center distance: {}".format(rc_utils.get_center_distance(depth_image)))
     elif rc.controller.was_pressed(rc.controller.Button.X):
         lidar = rc.lidar.get_samples()
 

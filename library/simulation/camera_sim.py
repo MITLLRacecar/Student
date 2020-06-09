@@ -78,5 +78,5 @@ class CameraSim(Camera):
         self.__depth_image = cv.resize(
             self.__depth_image,
             (self.__WIDTH, self.__HEIGHT),
-            interpolation=cv.INTER_CUBIC,
+            interpolation=cv.INTER_AREA
         )
