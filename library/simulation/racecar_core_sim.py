@@ -4,6 +4,7 @@ import socket
 import time
 import sys
 from enum import IntEnum
+from typing import Callable, Optional
 
 import camera_sim
 import controller_sim
@@ -72,9 +73,9 @@ class RacecarSim(Racecar):
         self.physics = physics_sim.PhysicsSim(self)
         self.lidar = lidar_sim.LidarSim(self)
 
-        self.__start = None
-        self.__update = None
-        self.__update_slow = None
+        self.__start: Callable[[], None]
+        self.__update: Callable[[], None]
+        self.__update_slow: Optional[Callable[[], None]]
         self.__update_slow_time: float = 1
         self.__update_slow_counter: float = 0
         self.__delta_time: float = -1
@@ -102,7 +103,12 @@ class RacecarSim(Racecar):
 
             self.__send_header(response)
 
-    def set_start_update(self, start, update, update_slow=None) -> None:
+    def set_start_update(
+        self,
+        start: Callable[[], None],
+        update: Callable[[], None],
+        update_slow: Optional[Callable[[], None]] = None,
+    ) -> None:
         self.__start = start
         self.__update = update
         self.__update_slow = update_slow
@@ -114,17 +120,18 @@ class RacecarSim(Racecar):
             self.__delta_time = value
         return self.__delta_time
 
-    def set_update_slow_time(self, update_slow_time):
+    def set_update_slow_time(self, update_slow_time: float) -> None:
         self.__update_slow_time = update_slow_time
 
     def __handle_update(self) -> None:
         self.__update()
 
         self.__delta_time = -1
-        self.__update_slow_counter -= self.get_delta_time()
-        if self.__update_slow_counter < 0:
-            self.__update_slow()
-            self.__update_slow_counter = self.__update_slow_time
+        if self.__update_slow is not None:
+            self.__update_slow_counter -= self.get_delta_time()
+            if self.__update_slow_counter < 0:
+                self.__update_slow()
+                self.__update_slow_counter = self.__update_slow_time
 
         self.camera._CameraSim__update()
         self.lidar._LidarSim__update()

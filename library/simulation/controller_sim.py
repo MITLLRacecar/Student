@@ -16,8 +16,8 @@ class ControllerSim(Controller):
                 "BB", self.__racecar.Header.controller_is_down.value, button.value
             )
         )
-        return bool.from_bytes(
-            self.__racecar._RacecarSim__receive_data(), sys.byteorder
+        return bool(
+            int.from_bytes(self.__racecar._RacecarSim__receive_data(), sys.byteorder)
         )
 
     def was_pressed(self, button: Controller.Button) -> bool:
@@ -26,8 +26,8 @@ class ControllerSim(Controller):
                 "BB", self.__racecar.Header.controller_was_pressed.value, button.value,
             )
         )
-        return bool.from_bytes(
-            self.__racecar._RacecarSim__receive_data(), sys.byteorder
+        return bool(
+            int.from_bytes(self.__racecar._RacecarSim__receive_data(), sys.byteorder)
         )
 
     def was_released(self, button: Controller.Button) -> bool:
@@ -36,8 +36,8 @@ class ControllerSim(Controller):
                 "BB", self.__racecar.Header.controller_was_pressed.value, button.value,
             )
         )
-        return bool.from_bytes(
-            self.__racecar._RacecarSim__receive_data(), sys.byteorder
+        return bool(
+            int.from_bytes(self.__racecar._RacecarSim__receive_data(), sys.byteorder)
         )
 
     def get_trigger(self, trigger: Controller.Trigger) -> float:

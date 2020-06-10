@@ -7,6 +7,7 @@ Contains the Racecar class, the top level of the racecar_core library
 """
 
 import abc
+from typing import Callable, Optional
 
 import camera
 import controller
@@ -42,7 +43,12 @@ class Racecar(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def set_start_update(self, start, update, update_slow=None) -> None:
+    def set_start_update(
+        self,
+        start: Callable[[], None],
+        update: Callable[[], None],
+        update_slow: Optional[Callable[[], None]] = None,
+    ) -> None:
         """
         Sets the start and update functions used in user program mode.
 
