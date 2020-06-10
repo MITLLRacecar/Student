@@ -1,19 +1,27 @@
 import cv2 as cv
 import numpy as np
-import numbers
+from typing import *
+from nptyping import NDArray
 
 
-def remap_range(val, old_min, old_max, new_min, new_max, saturate=False):
+def remap_range(
+    val: float,
+    old_min: float,
+    old_max: float,
+    new_min: float,
+    new_max: float,
+    saturate: bool = False,
+):
     """
     Remaps a value from one range to another range.
 
     Args:
-        val: (number) A number form the old range to be rescaled.
-        old_min: (number) The inclusive 'lower' bound of the old range.
-        old_max: (number) The inclusive 'upper' bound of the old range.
-        new_min: (number) The inclusive 'lower' bound of the new range.
-        new_max: (number) The inclusive 'upper' bound of the new range.
-        saturate: (bool) If true, the new_min and new_max limits are enforced.
+        val: A number form the old range to be rescaled.
+        old_min: The inclusive 'lower' bound of the old range.
+        old_max: The inclusive 'upper' bound of the old range.
+        new_min: The inclusive 'lower' bound of the new range.
+        new_max: The inclusive 'upper' bound of the new range.
+        saturate: If true, the new_min and new_max limits are enforced.
 
     Note:
         min need not be less than max; flipping the direction will cause the sign of
@@ -32,32 +40,30 @@ def remap_range(val, old_min, old_max, new_min, new_max, saturate=False):
         # d will be set to 20
         d = remap_range(2, 0, 1, -10, 10, True)
     """
-    assert isinstance(val, numbers.Number), "val must be a number"
-    assert isinstance(old_min, numbers.Number), "old_min must be a number"
-    assert isinstance(old_max, numbers.Number), "old_max must be a number"
-    assert isinstance(new_min, numbers.Number), "new_min must be a number"
-    assert isinstance(new_max, numbers.Number), "new_max must be a number"
-
-    old_span = old_max - old_min
-    new_span = new_max - new_min
-    new_val = new_min + new_span * (float(val - old_min) / float(old_span))
+    old_span: float = old_max - old_min
+    new_span: float = new_max - new_min
+    new_val: float = new_min + new_span * (float(val - old_min) / float(old_span))
 
     # If saturate is true, enforce the new_min and new_max limits
     if saturate:
-        new_val = max(new_min, min(new_max, new_val))
+        return max(new_min, min(new_max, new_val))
 
     return new_val
 
 
-def crop(image, top_left_inclusive, bottom_right_exclusive):
+def crop(
+    image: NDArray[(Any, Any,), Any],
+    top_left_inclusive: Tuple[float, float],
+    bottom_right_exclusive: Tuple[float, float],
+):
     """
     Crops an image to a rectangle based on the specified pixel points.
 
     Args:
-        image: (depth image or color image) The image to crop.
-        top_left_inclusive: ((int, int)) The (row, column) of the top left pixel
+        image: The color or depth image to crop.
+        top_left_inclusive: The (row, column) of the top left pixel
             of the crop rectangle.
-        bottom_right_exclusive: ((int, int)) The (row, column) of the pixel one
+        bottom_right_exclusive: The (row, column) of the pixel one
             past the bottom right corner of the crop rectangle.
 
     Returns:
@@ -66,20 +72,16 @@ def crop(image, top_left_inclusive, bottom_right_exclusive):
     Note:
         The top_left_inclusive pixel is included in the crop rectangle, but
         the bottom_right_exclusive pixel is not.  This is similar to how the how
-        range(1, 4) returns [1, 2, 3] in Python.
+        range(1, 4) returns [1, 2, 3].
 
     Example:
         image = rc.camera.get_image()
 
         # Crop the image to only keep the top half
         cropped_image = rc_utils.crop(
-            image, (0, 0), (rc.camera.get_height() / 2, rc.camera.get_width())
+            image, (0, 0), (rc.camera.get_height() // 2, rc.camera.get_width())
         )
     """
-    assert (len(image.shape) == 3 and image.shape[2] == 3) or (
-        len(image.shape) == 2 and isinstance(image[0][0], numbers.Number)
-    ), "image must be a color (2D array of pixels) or depth (2D array of depths) image"
-
     # Extract the minimum and maximum pixel rows and columns from the parameters
     r_min, c_min = top_left_inclusive
     r_max, c_max = bottom_right_exclusive
@@ -88,21 +90,24 @@ def crop(image, top_left_inclusive, bottom_right_exclusive):
     return image[r_min:r_max, c_min:c_max]
 
 
-def find_contours(image, hsv_lower, hsv_upper):
+def find_contours(
+    color_image: NDArray[(Any, Any, 3), np.uint8],
+    hsv_lower: Tuple[int, int, int],
+    hsv_upper: Tuple[int, int, int],
+) -> List[NDArray]:
     """
     Finds all contours of the specified color range in the provided image.
 
     Args:
-        image: (2D numpy array of triples) The image in which to find contours,
+        color_image: The color image in which to find contours,
             with pixels represented in the bgr (blue-green-red) format.
-        hsv_lower: ((int, int, int)) The lower bound for the hue, saturation,
-            and value of colors to contour.
-        hsv_upper: ((int, int, int)) The upper bound for the hue, saturation,
-            and value of the colors to contour.
+        hsv_lower: The lower bound for the hue, saturation, and value of colors
+            to contour.
+        hsv_upper: The upper bound for the hue, saturation, and value of the colors
+            to contour.
 
     Returns:
-        ([contours]) A list of contours around the specified color ranges
-        found in the provided image.
+        A list of contours around the specified color ranges found in color_image.
 
     Note:
         Each channel in hsv_lower and hsv_upper ranges from 0 to 255.
@@ -118,18 +123,15 @@ def find_contours(image, hsv_lower, hsv_upper):
         )
     """
     assert (
-        len(image.shape) == 3 and image.shape[2] == 3
-    ), "image must be a 2D numpy array of pixels, with each pixel stored as a triple"
+        len(filter(hsv_lower, lambda x: 0 <= x <= 255)) == 3
+    ), "Each channel in hsv_lower must be in the range 0 to 255 inclusive"
     assert (
-        len(hsv_lower) == 3 and len(filter(hsv_lower, lambda x: 0 <= x <= 255)) == 3
-    ), "hsv_lower must be a triple of numbers ranging from 0 to 255 inclusive"
-    assert (
-        len(hsv_upper) == 3 and len(filter(hsv_upper, lambda x: 0 <= x <= 255)) == 3
-    ), "hsv_upper must be a triple of numbers ranging from 0 to 255 inclusive"
+        len(filter(hsv_upper, lambda x: 0 <= x <= 255)) == 3
+    ), "Each channel in hsv_upper must be in the range 0 to 255 inclusive"
 
     # Convert the image from a blue-green-red pixel representation to a
     # hue-saturation-value representation
-    hsv_image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
+    hsv_image = cv.cvtColor(color_image, cv.COLOR_BGR2HSV)
 
     # Create a mask based on the pixels in the image with hsv values that
     # fall between HSV_lower and HSV_upper
@@ -139,16 +141,18 @@ def find_contours(image, hsv_lower, hsv_upper):
     return cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)[0]
 
 
-def get_largest_contour(contours, min_contour_size=30):
+def get_largest_contour(
+    contours: List[NDArray], min_contour_size: int = 30
+) -> Optional[NDArray]:
     """
     Finds the largest contour with size greater than min_contour_size.
 
     Args:
-        contours: ([contour]) A list of contours found in an image.
-        min_contour_size: (int) The smallest contour to consider
+        contours: A list of contours found in an image.
+        min_contour_size: The smallest contour to consider (in number of pixels)
 
     Returns:
-        (contour or None) The largest contour from the list, or None if no
+        The largest contour from the list, or None if no
         contour was larger than min_contour_size.
 
     Example:
@@ -174,7 +178,11 @@ def get_largest_contour(contours, min_contour_size=30):
     return greatest_contour
 
 
-def draw_contour(image, contour, color=(0, 255, 0)):
+def draw_contour(
+    color_image: NDArray[(Any, Any, 3), np.uint8],
+    contour: NDArray,
+    color: Tuple[int, int, int] = (0, 255, 0),
+) -> NDArray[(Any, Any, 3), np.uint8]:
     """
     Draws a contour on a copy of the provided image.
 
@@ -192,25 +200,22 @@ def draw_contour(image, contour, color=(0, 255, 0)):
             image_labeled = draw_contour(image, largest_contour)
 
     Args:
-        image: (2D numpy array of triples) The image on which to draw the contour.
-        contour: (contour) A contour to draw on the image.
-        color: ((int, int, int)) The color to draw the contour, specified as
-            blue-green-red channels each ranging from 0 to 255.
+        color_image: The color image on which to draw the contour.
+        contour: The contour to draw on the image.
+        color: The color to draw the contour, specified as
+            blue-green-red channels each ranging from 0 to 255 inclusive.
 
     Returns:
-        (2D numpy array of triples) A copy of image with the contour drawn on it.
+        A copy of image with the contour drawn on it.
     """
     assert (
-        len(image.shape) == 3 and image.shape[2] == 3
-    ), "image must be a 2D numpy array of pixels, with each pixel stored as a triple"
-    assert (
-        len(color) == 3 and len(filter(color, lambda x: 0 <= x <= 255)) == 3
-    ), "color must be a triple of numbers ranging from 0 to 255 inclusive"
+        len(filter(color, lambda x: 0 <= x <= 255)) == 3
+    ), "Each channel in color must be in the range 0 to 255 inclusive"
 
-    return cv.drawContours(np.copy(image), [contour], 0, color, 3)
+    return cv.drawContours(np.copy(color_image), [contour], 0, color, 3)
 
 
-def get_center(contour):
+def get_contour_center(contour: Optional[NDArray]) -> Optional[Tuple[int, int]]:
     """
     Finds the center of a contour from an image.
 
@@ -228,13 +233,13 @@ def get_center(contour):
             center = rc_utils.get_center(largest_contour)
 
     Args:
-        contour: (contour) The contour of which to find the center.
+        contour: The contour of which to find the center.
 
     Returns:
-        ((int, int)) The (row, column) of the pixel at the center of the contour
+        The (row, column) of the pixel at the center of the contour.
 
     Note:
-        Returns a None if the contour parameter is None or contains no pixels.
+        Returns None if the contour parameter is None or contains no pixels.
     """
     # Verify that we were passed a valid contour
     if contour is None:
@@ -251,15 +256,15 @@ def get_center(contour):
     return (M["m01"] / M["m00"], M["m10"] / M["m00"])
 
 
-def get_area(contour):
+def get_contour_area(contour: Optional[NDArray]) -> float:
     """
     Finds the area of a contour from an image.
 
     Args:
-        contour: (contour) The contour of which to measure the area.
+        contour: The contour of which to measure the area.
 
     Returns:
-        (float) The number of pixels contained within the contour, or 0 if
+        The number of pixels contained within the contour, or 0 if
         an invalid contour is provided
 
     Example:
@@ -281,87 +286,82 @@ def get_area(contour):
     return cv.contourArea(contour)
 
 
-def get_center_distance(depth_image, kernel_size=7):
+def get_depth_image_center_distance(
+    depth_image: NDArray[(Any, Any), np.float32], kernel_size: int = 7
+) -> float:
     """
     Finds the distance of the center object in a depth image.
 
     Args:
-        depth_image: (2D numpy array of depth values) The depth image to process.
-        kernel_size: (int) The size of the area to average around the center.
+        depth_image: The depth image to process.
+        kernel_size: The size of the area to average around the center.
 
     Returns:
-        (float) The distance in millimeters of the object in the center of the image.
+        The distance in cm of the object in the center of the image.
 
     Warning:
-        kernel_size must be an odd integer.
+        kernel_size must be positive and odd.
 
     Note:
         The larger the kernel_size, the more that the center is averaged
-        with the depth of the surrounding pixels.  This helps reduce noise but
-        also reduces accuracy if the center object is not flat.
+        with the depth of the surrounding pixels.  This helps reduce noise at the cost
+        of reduced accuracy.
 
     Example:
         depth_image = rc.camera.get_depth_image()
 
-        # Find the distance of the object (in mm) the center of depth_image
+        # Find the distance of the object (in cm) the center of depth_image
         center_distance = rc_utils.get_center_distance(depth_image)
     """
-    assert len(depth_image.shape) == 2 and isinstance(
-        depth_image[0][0], numbers.Number
-    ), "depth_image must be a 2D numpy array of depth values (in mm)"
-    assert (
-        isinstance(kernel_size, numbers.Integral) and kernel_size % 2 == 1
-    ), "kernel_size must be an odd integer"
+    assert kernel_size > 0 and kernel_size % 2 == 1, "kernel_size must positive and odd"
 
     # Calculate the center pixel
     center_row = depth_image.shape[0] // 2
     center_col = depth_image.shape[1] // 2
 
     # Use get_average_distance to average the distance around this center pixel
-    return get_average_distance(depth_image, center_row, center_col, kernel_size)
+    return get_pixel_average_distance(depth_image, center_row, center_col, kernel_size)
 
 
-def get_average_distance(depth_image, pix_row, pix_col, kernel_size=7):
+def get_pixel_average_distance(
+    depth_image: NDArray[(Any, Any), np.float32],
+    pix_row: int,
+    pix_col: int,
+    kernel_size: int = 7,
+) -> float:
     """
     Finds the distance of a pixel averaged with its neighbors in a depth image.
 
     Args:
-        depth_image: (2D numpy array of depth values) The depth image to process.
-        pix_row: (int) The row of the pixel to measure.
-        pix_col: (int) The column of the pixel to measure.
-        kernel_size: (int) The size of the area to average around the pixel.
+        depth_image: The depth image to process.
+        pix_row: The row of the pixel to measure.
+        pix_col: The column of the pixel to measure.
+        kernel_size: The size of the area to average around the pixel.
 
     Returns:
-        (float) The distance in millimeters of the object at the provided pixel.
+        The distance in cm of the object at the provided pixel.
 
     Warning:
-        kernel_size must be an odd integer.
+        kernel_size must be positive and odd.
 
     Note:
         The larger the kernel_size, the more that the requested pixel is averaged
-        with the distances of the surrounding pixels.  This reduces noise at the cost of
-        reduced accuracy.
+        with the distances of the surrounding pixels.  This helps reduce noise at the
+        cost of reduced accuracy.
 
     Example:
         depth_image = rc.camera.get_depth_image()
 
-        # Find the distance of the object (in mm) at the pixel (100, 20) of depth_image
+        # Find the distance of the object (in cm) at the pixel (100, 20) of depth_image
         average_distance = rc_utils.get_average_distance(depth_image, 100, 20)
     """
-    assert len(depth_image.shape) == 2 and isinstance(
-        depth_image[0][0], numbers.Number
-    ), "depth_image must be a 2D numpy array of depth values (in mm)"
     assert (
-        isinstance(pix_row, numbers.Integral) and 0 <= pix_row < depth_image.shape[0]
+        0 <= pix_row < depth_image.shape[0]
     ), "pix_row must be a row index within depth_image"
     assert (
-        isinstance(pix_col, numbers.Integral) and 0 <= pix_col < depth_image.shape[1]
+        0 <= pix_col < depth_image.shape[1]
     ), "pix_col must be a column index within depth_image"
-    assert (
-        isinstance(kernel_size, numbers.Integral)
-        and kernel_size > 0
-        and kernel_size % 2 == 1
-    ), "kernel_size must be a positive odd integer"
+    assert kernel_size > 0 and kernel_size % 2 == 1, "kernel_size must positive and odd"
 
     # Crop out out a kernel around the requested pixel
     cropped_center = crop(
@@ -378,42 +378,43 @@ def get_average_distance(depth_image, pix_row, pix_col, kernel_size=7):
     return blurred_center[kernel_size // 2, kernel_size // 2]
 
 
-def get_closest_pixel(depth_image, kernel_size=5):
+def get_closest_pixel(
+    depth_image: NDArray[(Any, Any), np.float32], kernel_size: int = 5
+) -> Tuple[int, int]:
     """
     Finds the closest pixel in a depth image.
 
     Args:
-        depth_image: (2D numpy array of depth values) The depth image to process.
-        kernel_size: (int) The size of the area to average around each pixel.
+        depth_image: The depth image to process.
+        kernel_size: The size of the area to average around each pixel.
 
     Returns:
-        ((int,int)) The (row, column) position of the pixel which is closest
-        to the car.
+        The (row, column) of the pixel which is closest to the car.
 
     Warning:
-        kernel_size must be an odd integer.
+        kernel_size be positive and odd.
+        It is highly recommended that you crop off the bottom of the image, or else
+        this function will likely return the ground directly in front of the car.
 
     Note:
-        The larger the kernel_size, the more that the depth of each pixel is
-        averaged with the depth of surrounding pixels.  This helps reduce noise
-        but also reduces accuracy.
+        The larger the kernel_size, the more that the depth of each pixel is averaged
+        with the distances of the surrounding pixels.  This helps reduce noise at the
+        cost of reduced accuracy.
 
     Example:
         depth_image = rc.camera.get_depth_image()
 
+        # Crop off the ground directly in front of the car
+        cropped_image = rc_utils.crop(
+            image, (0, 0), (int(rc.camera.get_height() * 0.66), rc.camera.get_width())
+        )
+
         # Find the closest pixel
         closest_pixel = rc_utils.get_closest_pixel(depth_image)
     """
-    assert len(depth_image.shape) == 2 and isinstance(
-        depth_image[0][0], numbers.Number
-    ), "depth_image must be a 2D numpy array of depth values (in mm)"
-    assert (
-        isinstance(kernel_size, numbers.Integral)
-        and kernel_size > 0
-        and kernel_size % 2 == 1
-    ), "kernel_size must be a positive odd integer"
+    assert kernel_size > 0 and kernel_size % 2 == 1, "kernel_size must positive and odd"
 
-    # Apply a Gaussian blur to the depth portion of the image to reduce noise
+    # Apply a Gaussian blur to to reduce noise
     blurred_depth = cv.GaussianBlur(depth_image, (kernel_size, kernel_size), 0)
 
     # Find the pixel location of the minimum depth
@@ -422,123 +423,93 @@ def get_closest_pixel(depth_image, kernel_size=5):
     return minLoc
 
 
-def get_closest_point(scan):
+def get_lidar_closest_point(scan: NDArray[Any, np.float32]) -> Tuple[float, float]:
     """
-    Finds the closest point from a lidar scan.
+    Finds the closest point from a LIDAR scan.
 
     Args:
-        scan: (tuple of float distance values) The current lidar scan.
+        scan: The samples from a LIDAR scan.
 
     Returns:
-        ((float, float)) The (angle, distance) of the location of the point which
-        is closest to the car.
+        The (angle, distance) of the point closest to the car. Angle is in degrees,
+        starting at 0 directly in front of the car and increasing clockwise.
+        Distance is in cm.
 
     Warning:
-        Not counting 0.0 as a valid closest point.
-
-    Note:
         In areas with glass, mirrors, or large open spaces, there is a high
         likelihood of distance error.
 
+    Note:
+        Ignores any samples with a value of 0.0 (no data).
+
     Example:
-        scan = rc.lidar.get_ranges()
+        scan = rc.lidar.get_samples()
 
         # Find the angle and distance of the closest point
-        (angle, distance) = rc_utils.get_closest_point(scan)
+        angle, distance = rc_utils.get_lidar_closest_point(scan)
     """
-
     # Remove 0.0 values from scan
     clean_scan = [elem for elem in scan if elem > 0.0]
+
     closest_point = min(clean_scan)
+    index = scan.index(closest_point)
 
-    position = scan.index(closest_point)
-
-    # Convert the index of the list to degree
-    degree = position // 2
+    # Convert sample index to degree
+    degree = index * 360 / (scan.shape[0])
 
     return (degree, closest_point)
 
 
-def distance_forward(scan):
+def get_lidar_average_distance(
+    scan: NDArray[Any, np.float32], angle: float, window_angle: float = 4
+) -> float:
     """
     Finds the average distance to obstacles in front of the car.
 
     Args:
-        scan: (tuple of float distance values) The current lidar scan.
+        scan: The samples from a LIDAR scan
+        angle: The angle (in degrees) at which to measure distance, starting at 0
+            directly in front of the car and increasing clockwise.
+        window_angle: The number of degrees to consider around angle.
 
     Returns:
-        (float) The average (distance) of the points ahead of the car
+        The average distance of the points at angle in cm.
 
-    Warning:
-        Not counting points that are 0.0.
+    Note:
+        Ignores any samples with a value of 0.0 (no data).
+        Increasing window_angle reduces noise at the cost of reduced accuracy.
 
     Example:
-        scan = rc.lidar.get_ranges()
+        scan = rc.lidar.get_samples()
 
-        #Find forward distance
-        forward_distance = rc_utils.distance_forward()
+        # Find the distance directly behind the car (6:00 position)
+        back_distance = rc_utils.get_lidar_average_distance(scan, 180)
+
+        # Find the distance to the forward and right of the car (1:30 position)
+        forward_right_distance = rc_utils.get_lidar_average_distance(scan, 45)
     """
+    assert (
+        window_angle < 360
+    ), "window_angle cannot exceed 360, and reasonably should not exceed 20."
 
-    forward_scan = scan[:20]
-    forward_scan += scan[710:719]
+    # Calculate the indices at the edges of the requested window
+    center_index: int = int(angle * scan.shape[0] / 360)
+    num_side_samples: int = int(window_angle / 2 * scan.shape[0] / 360)
+    left_index: int = (center_index - num_side_samples) % len(scan)
+    right_index: int = (center_index + num_side_samples) % len(scan)
 
-    forward_clean_scan = [elem for elem in forward_scan if elem > 0.0]
+    # Select samples in the window, handling if we cross the edge of the array
+    samples: List[float]
+    if right_index < left_index:
+        samples = scan[left_index:].tolist() + scan[0:right_index + 1].tolist()
+    else:
+        samples = scan[left_index:right_index + 1].tolist()
 
-    # If the forward distance is blocked
-    if len(forward_clean_scan) == 0:
+    # Remove samples with no data (0.0)
+    samples = [elem for elem in samples if elem > 0]
+
+    # If no valid samples remain, return 0.0
+    if len(samples) == 0:
         return 0.0
 
-    else:
-        average_distance = sum(forward_clean_scan) / len(forward_clean_scan)
-        return average_distance
-
-
-def distance_cardinal_directions(scan):
-    """
-    Finds the average distance to obstacles in the four cardinal directions.
-
-    Args:
-        scan: (tuple of float distance values) The current lidar scan.
-
-    Returns:
-        ((float, float, float, float)): The (front, back, left, right) distances.
-
-    Warning:
-        Not counting points that are 0.0.
-
-    Example:
-        scan = rc.lidar.get_ranges()
-
-        # Find cardinal direction distances
-        (front, back, right, left) = rc_utils.distance_cardinal_direction()
-    """
-    average_front = distance_forward(scan)
-
-    back_scan = scan[350:370]
-    back_clean_scan = [elem for elem in back_scan if elem > 0.0]
-
-    if len(back_clean_scan) == 0:
-        average_back = 0.0
-
-    else:
-        average_back = sum(back_clean_scan) / len(back_clean_scan)
-
-    left_scan = scan[170:190]
-    left_clean_scan = [elem for elem in left_scan if elem > 0.0]
-
-    if len(left_clean_scan) == 0:
-        average_left = 0.0
-
-    else:
-        average_left = sum(left_clean_scan) / len(left_clean_scan)
-
-    right_scan = scan[530:550]
-    right_clean_scan = [elem for elem in right_scan if elem > 0.0]
-
-    if len(right_clean_scan) == 0:
-        average_right = 0.0
-
-    else:
-        average_right = sum(right_clean_scan) / len(right_clean_scan)
-
-    return (average_front, average_back, average_right, average_left)
+    return sum(samples) / len(samples)

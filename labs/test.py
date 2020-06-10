@@ -109,7 +109,7 @@ def update():
         rc.display.show_depth_image(depth_image)
         print(
             "Depth center distance: {:.2f} cm".format(
-                rc_utils.get_center_distance(depth_image)
+                rc_utils.get_depth_image_center_distance(depth_image)
             )
         )
 
@@ -117,7 +117,11 @@ def update():
     elif rc.controller.is_down(rc.controller.Button.X):
         lidar = rc.lidar.get_samples()
         rc.display.show_lidar(lidar)
-        # print("Lidar distances: {}".format(rc_utils.distance_cardinal_directions(lidar)))
+        print(
+            "Lidar forward distance: {:.2f} cm".format(
+                rc_utils.get_lidar_average_distance(lidar, 0)
+            )
+        )
 
     # Show IMU data when the Y button is pressed
     if rc.controller.is_down(rc.controller.Button.Y):

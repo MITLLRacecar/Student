@@ -9,6 +9,7 @@ Contains the Display module of the racecar_core library
 import abc
 import numpy as np
 import math
+from typing import Any
 from nptyping import NDArray
 
 
@@ -18,7 +19,7 @@ class Display(abc.ABC):
     """
 
     @abc.abstractmethod
-    def show_color_image(self, image: NDArray[(640, 480, 3), np.uint8]) -> None:
+    def show_color_image(self, image: NDArray) -> None:
         """
         Displays an image on a window of the RACECAR desktop.
 
@@ -36,7 +37,7 @@ class Display(abc.ABC):
         pass
 
     def show_depth_image(
-        self, image: NDArray[(640, 480), np.float32], max_depth: int = 1000
+        self, image: NDArray[(Any, Any), np.float32], max_depth: int = 1000
     ) -> None:
         """
         Displays an image on a window of the RACECAR desktop.
@@ -66,21 +67,21 @@ class Display(abc.ABC):
 
     def show_lidar(
         self,
-        samples: NDArray[720, np.float32],
+        samples: NDArray[Any, np.float32],
         radius: int = 128,
         max_range: int = 1000,
     ) -> None:
         # Create a square black image with the requested radius
         image = np.zeros((2 * radius, 2 * radius, 3), np.uint8, "C")
-        num_samples = len(samples)
+        num_samples: int = len(samples)
 
         # Draw a red dot for each lidar sample less than max_range
         for i in range(num_samples):
             if samples[i] < max_range:
-                angle = 2 * math.pi * i / num_samples
-                length = radius * samples[i] / max_range
-                r = int(radius - length * math.cos(angle))
-                c = int(radius + length * math.sin(angle))
+                angle: float = 2 * math.pi * i / num_samples
+                length: float = radius * samples[i] / max_range
+                r: int = int(radius - length * math.cos(angle))
+                c: int = int(radius + length * math.sin(angle))
                 image[r][c][2] = 255
 
         # Draw a green dot to denote the car
