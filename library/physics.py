@@ -7,6 +7,7 @@ Contains the Physics module of the racecar_core library
 """
 
 import abc
+from typing import Tuple
 
 
 class Physics(abc.ABC):
@@ -14,9 +15,8 @@ class Physics(abc.ABC):
     Returns IMU data on linear acceleration and angular velocity.
     """
 
-    @classmethod
     @abc.abstractmethod
-    def get_linear_acceleration(self):
+    def get_linear_acceleration(self) -> Tuple[float, float, float]:
         """
         Returns a three element array representing the car's linear acceleration.
 
@@ -30,9 +30,8 @@ class Physics(abc.ABC):
         """
         pass
 
-    @classmethod
     @abc.abstractmethod
-    def get_angular_velocity(self):
+    def get_angular_velocity(self) -> Tuple[float, float, float]:
         """
         Returns a three element array representing the car's angular velocity.
 

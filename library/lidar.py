@@ -13,10 +13,10 @@ class Lidar(abc.ABC):
     """
     Returns the scan data captured by the Lidar.
     """
-    _NUM_SAMPLES = 720
 
-    @classmethod
-    def get_num_samples(self):
+    _NUM_SAMPLES: int = 720
+
+    def get_num_samples(self) -> int:
         """
         Returns the length of the ranges array, to check for a valid scan.
 
@@ -28,7 +28,6 @@ class Lidar(abc.ABC):
         """
         return self._NUM_SAMPLES
 
-    @classmethod
     @abc.abstractmethod
     def get_samples(self):
         """

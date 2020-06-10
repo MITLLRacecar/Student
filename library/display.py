@@ -10,15 +10,13 @@ import abc
 import numpy as np
 import math
 
-
 class Display:
     """
     Allows the user to print text and images to the RACECAR screen.
     """
 
-    @classmethod
     @abc.abstractmethod
-    def show_color_image(self, image):
+    def show_color_image(self, image) -> None:
         """
         Displays an image on a window of the RACECAR desktop.
 
@@ -35,8 +33,7 @@ class Display:
         """
         pass
 
-    @classmethod
-    def show_depth_image(self, image, max_depth = 1000):
+    def show_depth_image(self, image, max_depth: int = 1000) -> None:
         """
         Displays an image on a window of the RACECAR desktop.
 
@@ -61,10 +58,9 @@ class Display:
         # becomes 0 (black).
         image = 1 - (image / max_depth)
 
-        self.show_color_image(self, image)
+        self.show_color_image(image)
 
-    @classmethod
-    def show_lidar(self, samples, radius = 128, max_range = 1000):
+    def show_lidar(self, samples, radius : int = 128, max_range : int = 1000) -> None:
         # Create a square black image with the requested radius
         image = np.zeros((2 * radius, 2 * radius, 3), np.uint8, "C")
         num_samples = len(samples)
@@ -80,7 +76,7 @@ class Display:
 
         # Draw a green dot to denote the car
         for r in range(radius - 1, radius + 1):
-            for c in range (radius - 1, radius + 1):
+            for c in range(radius - 1, radius + 1):
                 image[r][c][1] = 255
 
-        self.show_color_image(self, image)
+        self.show_color_image(image)

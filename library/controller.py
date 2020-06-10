@@ -8,6 +8,7 @@ Contains the Controller module of the racecar_core library
 
 import abc
 from enum import IntEnum
+from typing import Tuple
 
 
 class Controller(abc.ABC):
@@ -45,9 +46,8 @@ class Controller(abc.ABC):
         LEFT = 0
         RIGHT = 1
 
-    @classmethod
     @abc.abstractmethod
-    def is_down(self, button):
+    def is_down(self, button: Button) -> bool:
         """
         Returns whether a certain button is currently pressed.
 
@@ -71,9 +71,8 @@ class Controller(abc.ABC):
         """
         pass
 
-    @classmethod
     @abc.abstractmethod
-    def was_pressed(self, button):
+    def was_pressed(self, button: Button) -> bool:
         """
         Returns whether a certain button was pressed this frame.
 
@@ -96,9 +95,8 @@ class Controller(abc.ABC):
         """
         pass
 
-    @classmethod
     @abc.abstractmethod
-    def was_released(self, button):
+    def was_released(self, button: Button) -> bool:
         """
         Returns whether a certain button was released this frame.
 
@@ -121,9 +119,8 @@ class Controller(abc.ABC):
         """
         pass
 
-    @classmethod
     @abc.abstractmethod
-    def get_trigger(self, trigger):
+    def get_trigger(self, trigger: Trigger) -> float:
         """
         Returns the position of a certain trigger as a value from 0.0 to 1.0.
 
@@ -144,9 +141,8 @@ class Controller(abc.ABC):
         """
         pass
 
-    @classmethod
     @abc.abstractmethod
-    def get_joystick(self, joystick):
+    def get_joystick(self, joystick: Joystick) -> Tuple[float, float]:
         """
         Returns the position of a certain joystick as an (x, y) tuple.
 

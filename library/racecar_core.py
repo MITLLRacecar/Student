@@ -23,9 +23,8 @@ class Racecar(abc.ABC):
         self.lidar = None
         self.physics = None
 
-    @classmethod
     @abc.abstractmethod
-    def go(self):
+    def go(self) -> None:
         """
         Starts the RACECAR, beginning in default drive mode.
 
@@ -35,9 +34,8 @@ class Racecar(abc.ABC):
         """
         pass
 
-    @classmethod
     @abc.abstractmethod
-    def set_start_update(self, start, update, update_slow=None):
+    def set_start_update(self, start, update, update_slow=None) -> None:
         """
         Sets the start and update functions used in user program mode.
 
@@ -65,9 +63,8 @@ class Racecar(abc.ABC):
         """
         pass
 
-    @classmethod
     @abc.abstractmethod
-    def get_delta_time(self):
+    def get_delta_time(self) -> float:
         """
         Returns the number of seconds elapsed in the previous frame.
 
@@ -81,9 +78,8 @@ class Racecar(abc.ABC):
         """
         pass
 
-    @classmethod
     @abc.abstractmethod
-    def set_update_slow_time(self, time):
+    def set_update_slow_time(self, time: float) -> None:
         """
         Changes the time between calls to update_slow.
 

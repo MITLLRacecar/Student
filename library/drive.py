@@ -10,9 +10,8 @@ import abc
 
 
 class Drive(abc.ABC):
-    @classmethod
     @abc.abstractmethod
-    def set_speed_angle(self, speed, angle):
+    def set_speed_angle(self, speed: float, angle: float) -> None:
         """
         Sets the speed at which the wheels turn and the angle of the front wheels.
 
@@ -35,8 +34,7 @@ class Drive(abc.ABC):
         """
         pass
 
-    @classmethod
-    def stop(self):
+    def stop(self) -> None:
         """
         Brings the car to a stop and points the front wheels forward.
 
@@ -45,11 +43,10 @@ class Drive(abc.ABC):
             if counter > 5:
                 rc.drive.stop()
         """
-        self.set_speed_angle(self, 0, 0)
+        self.set_speed_angle(0, 0)
 
-    @classmethod
     @abc.abstractmethod
-    def set_max_speed(self, max_speed):
+    def set_max_speed(self, max_speed: float) -> None:
         """
         Sets the maximum speed in the forward and backward direction.
 

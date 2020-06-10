@@ -1,5 +1,6 @@
 import sys
 import struct
+import numpy as np
 
 from physics import Physics
 
@@ -12,11 +13,11 @@ class PhysicsSim(Physics):
             self.__racecar.Header.physics_get_linear_acceleration
         )
         values = struct.unpack("fff", self.__racecar._RacecarSim__receive_data(12))
-        return values
+        return np.array(values)
 
     def get_angular_velocity(self):
         self.__racecar._RacecarSim__send_header(
             self.__racecar.Header.physics_get_angular_velocity
         )
         values = struct.unpack("fff", self.__racecar._RacecarSim__receive_data(12))
-        return values
+        return np.array(values)

@@ -13,11 +13,11 @@ class Camera(abc.ABC):
     """
     Returns the color images and depth images captured by the camera.
     """
-    # The dimensions of the image in pixels
-    _WIDTH = 640
-    _HEIGHT = 480
 
-    @classmethod
+    # The dimensions of the image in pixels
+    _WIDTH: int = 640
+    _HEIGHT: int = 480
+
     @abc.abstractmethod
     def get_color_image(self):
         """
@@ -41,7 +41,6 @@ class Camera(abc.ABC):
         """
         pass
 
-    @classmethod
     @abc.abstractmethod
     def get_depth_image(self):
         """
@@ -60,8 +59,7 @@ class Camera(abc.ABC):
         """
         pass
 
-    @classmethod
-    def get_width(self):
+    def get_width(self) -> int:
         """
         Returns the width of the captured images.
 
@@ -76,8 +74,7 @@ class Camera(abc.ABC):
         """
         return self._WIDTH
 
-    @classmethod
-    def get_height(self):
+    def get_height(self) -> int:
         """
         Returns the height of the captured images.
 
