@@ -3,34 +3,49 @@ Copyright MIT and Harvey Mudd College
 MIT License
 Summer 2020
 
-Test RACECAR functionality
+A simple program which can be used to manually test racecar_core functionality.
 """
 
-################################################################################
+########################################################################################
 # Imports
-################################################################################
+########################################################################################
 
 import sys
 
 sys.path.insert(0, "../library")
-sys.path.insert(0, "../library/simulation")
-from racecar_core_sim import RacecarSim
+from racecar_core import Racecar
 import racecar_utils as rc_utils
 
-################################################################################
+########################################################################################
+# DO NOT MODIFY: Create Racecar Instance
+########################################################################################
+
+rc: Racecar
+
+# Create a RaceacarSim (used to interface with the Unity simulation) if the user ran
+# the program with the -s flag
+if len(sys.argv) > 1 and sys.argv[1] == "-s":
+    sys.path.insert(0, "../library/simulation")
+    from racecar_core_sim import RacecarSim
+    rc = RacecarSim()
+
+# Otherwise, create a RacecarReal (used to run on the physical car)
+else:
+    sys.path.insert(0, "../library/real")
+    from racecar_core_real import RacecarReal
+    rc = RacecarReal()
+
+########################################################################################
 # Global variables
-################################################################################
+########################################################################################
 
-rc = RacecarSim()
-
-# Declare any global variables here
 max_speed = 0
 show_triggers = False
 show_joysticks = False
 
-################################################################################
+########################################################################################
 # Functions
-################################################################################
+########################################################################################
 
 
 def start():
@@ -144,9 +159,9 @@ def update_slow():
             print("Button {} is down".format(button.name))
 
 
-################################################################################
-# Do not modify any code beyond this point
-################################################################################
+########################################################################################
+# DO NOT MODIFY: Register start and update and begin execution
+########################################################################################
 
 if __name__ == "__main__":
     rc.set_start_update(start, update, update_slow)
