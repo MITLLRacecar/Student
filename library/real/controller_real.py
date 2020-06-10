@@ -6,6 +6,8 @@ Spring 2020
 Contains the Controller module of the racecar_core library
 """
 
+from controller import Controller
+
 # General
 import copy
 from enum import Enum
@@ -15,12 +17,7 @@ import rospy
 from sensor_msgs.msg import Joy
 
 
-class Controller:
-    """
-    Handles input from the controller and exposes constant input state
-    per frame
-    """
-
+class ControllerReal(Controller):
     # The ROS topic from which we read joystick information
     __TOPIC = "/joy"
 
@@ -31,36 +28,6 @@ class Controller:
     # The minimum amount that the joystick must be moved along an axis to
     # register a non-zero value along that axis
     __JOYSTICK_DEAD_ZONE = 0.2
-
-    class Button(Enum):
-        """
-        The buttons on the controller
-        """
-
-        A = 0  # A button
-        B = 1  # B button
-        X = 2  # X button
-        Y = 3  # Y button
-        LB = 4  # Left bumper
-        RB = 5  # Right bumper
-        LJOY = 6  # Left joystick button
-        RJOY = 7  # Right joystick button
-
-    class Trigger(Enum):
-        """
-        The triggers on the controller
-        """
-
-        LEFT = 0
-        RIGHT = 1
-
-    class Joystick(Enum):
-        """
-        The joysticks on the controller
-        """
-
-        LEFT = 0
-        RIGHT = 1
 
     def __init__(self, racecar):
         self.__racecar = racecar
@@ -93,27 +60,6 @@ class Controller:
         )
 
     def is_down(self, button):
-        """
-        Returns whether a certain button is currently pressed.
-
-        Example:
-            # This update function will print a message for every frame in which
-            # the A button is held down, so multiple messages will be printed
-            # if we press and hold the A button.
-            def update():
-                if rc.controller.is_down(rc.controller.Button.A):
-                    print("The A button is currently pressed")
-
-        Args:
-            button: (Button enum) Which button to check.
-
-        Returns:
-            (bool) True if button is currently pressed.
-
-        Note:
-            The parameter must be an associated value of the Button enum,
-            which is defined in the Controller module.
-        """
         assert isinstance(
             button, self.Button
         ), "button must be member of the rc.controller.Button enum"
@@ -121,26 +67,6 @@ class Controller:
         return self.__is_down[button.value]
 
     def was_pressed(self, button):
-        """
-        Returns whether a certain button was pressed this frame.
-
-        Example:
-            # This update function will print a single message each time the A
-            # button is pressed on the controller
-            def update():
-                if rc.controller.was_pressed(rc.controller.Button.A):
-                    print("The A button was pressed")
-
-        Args:
-            button: (Button enum) Which button to check.
-
-        Returns:
-            (bool) True if button is currently pressed and was not pressed last frame.
-
-        Note:
-            The parameter must be an associated value of the Button enum,
-            which is defined in the Controller module.
-        """
         assert isinstance(
             button, self.Button
         ), "button must be member of the rc.controller.Button enum"
@@ -148,26 +74,6 @@ class Controller:
         return self.__is_down[button.value] and not self.__was_down[button.value]
 
     def was_released(self, button):
-        """
-        Returns whether a certain button was released this frame.
-
-        Example:
-            # This update function will print a single message each time the A
-            # button is released on the controller
-            def update():
-                if rc.controller.was_pressed(rc.controller.Button.A):
-                    print("The A button was released")
-
-        Args:
-            button: (Button enum) Which button to check.
-
-        Returns:
-            (bool) True if button is currently released and was pressed last frame.
-
-        Note:
-            The parameter must be an associated value of the Button enum,
-            which is defined in the Controller module.
-        """
         assert isinstance(
             button, self.Button
         ), "button must be member of the rc.controller.Button enum"
@@ -175,24 +81,6 @@ class Controller:
         return not self.__is_down[button.value] and self.__was_down[button.value]
 
     def get_trigger(self, trigger):
-        """
-        Returns the position of a certain trigger as a value from 0.0 to 1.0.
-
-        Args:
-            trigger: (Trigger enum) Which trigger to check.
-
-        Returns:
-            (float) A value from 0.0 (not pressed) to 1.0 (fully pressed).
-
-        Note:
-            The parameter must be an associated value of the Trigger enum,
-            which is defined in the Controller module.
-
-        Example:
-            # Speed will receive a value from 0.0 to 1.0 based on how much the left
-            # trigger is pressed
-            speed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
-        """
         assert isinstance(
             trigger, self.Trigger
         ), "trigger must be member of the rc.controller.Trigger enum"
@@ -200,25 +88,6 @@ class Controller:
         return self.__last_trigger[trigger.value]
 
     def get_joystick(self, joystick):
-        """
-        Returns the position of a certain joystick as an (x, y) tuple.
-
-        Args:
-            joystick: (Joystick enum) Which joystick to check.
-
-        Returns:
-            (float, float) The x and y coordinate of the joystick, with
-            each axis ranging from -1.0 (left or down) to 1.0 (right or up).
-
-        Note:
-            The parameter must be an associated value of the Joystick enum,
-            which is defined in the Controller module.
-
-        Example:
-            # x and y will be given values from -1.0 to 1.0 based on the position of
-            # the left joystick
-            x, y = rc.controller.get_joystick(rc.controller.Joystick.LEFT)
-        """
         assert isinstance(
             joystick, self.Joystick
         ), "joystick must be member of the rc.controller.Joystick enum"

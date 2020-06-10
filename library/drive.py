@@ -36,7 +36,6 @@ class Drive(abc.ABC):
         pass
 
     @classmethod
-    @abc.abstractmethod
     def stop(self):
         """
         Brings the car to a stop and points the front wheels forward.
@@ -46,7 +45,7 @@ class Drive(abc.ABC):
             if counter > 5:
                 rc.drive.stop()
         """
-        pass
+        self.set_speed_angle(self, 0, 0)
 
     @classmethod
     @abc.abstractmethod

@@ -43,6 +43,8 @@ def start():
 
     print("Start function called")
     rc.set_update_slow_time(0.5)
+    rc.drive.stop()
+
     max_speed = 0.25
     show_triggers = False
     show_joysticks = False

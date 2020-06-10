@@ -6,6 +6,8 @@ Spring 2020
 Contains the Physics module of the racecar_core library
 """
 
+from physics import Physics
+
 # General
 from collections import deque
 import numpy as np
@@ -16,11 +18,7 @@ from sensor_msgs.msg import Imu
 from geometry_msgs.msg import Vector3, Quaternion
 
 
-class Physics:
-    """
-    Returns IMU data on linear acceleration and angular velocity.
-    """
-
+class PhysicsReal(Physics):
     # The ROS topic from which we read imu data
     __ACCEL_TOPIC = "/camera/accel/sample"
     __GYRO_TOPIC = "/camera/gyro/sample"
@@ -79,29 +77,7 @@ class Physics:
             self.__angular_velocity_buffer.clear()
 
     def get_linear_acceleration(self):
-        """
-        Returns a three element array representing the car's linear acceleration.
-
-        Returns:
-            (1D numpy array of 3 floats): The average linear acceleration of the car
-            along the (x, y, z) axes during the last frame in m/s^2.
-
-        Example:
-            # Initialize accel with the average acceleration over the frame
-            accel = rc.physics.get_linear_acceleration()
-        """
         return np.array(self.__acceleration)
 
     def get_angular_velocity(self):
-        """
-        Returns a three element array representing the car's angular velocity.
-
-        Returns:
-            (1D numpy array of 3 floats): The average angular velocity of the car
-            along the (x, y, z) axes during the last frame in rad/s.
-
-        Example:
-            # Initialize ang_vel with the average angular velocity over the frame
-            ang_vel = rc.physics.get_angular_velocity()
-        """
         return np.array(self.__angular_velocity)

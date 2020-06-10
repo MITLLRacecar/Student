@@ -6,17 +6,15 @@ from camera import Camera
 
 
 class CameraSim(Camera):
-    __WIDTH = 640
-    __HEIGHT = 480
-    __DEPTH_WIDTH = __WIDTH // 8
-    __DEPTH_HEIGHT = __HEIGHT // 8
-
     def __init__(self, racecar):
         self.__racecar = racecar
         self.__color_image = None
         self.__is_color_image_current = False
         self.__depth_image = None
         self.__is_depth_image_current = False
+
+        self._DEPTH_WIDTH = self._WIDTH // 8
+        self._DEPTH_HEIGHT = self._HEIGHT // 8
 
     def get_color_image(self):
         if not self.__is_color_image_current:
@@ -32,12 +30,6 @@ class CameraSim(Camera):
 
         return self.__depth_image
 
-    def get_width(self):
-        return self.__WIDTH
-
-    def get_height(self):
-        return self.__HEIGHT
-
     def __update(self):
         self.__is_color_image_current = False
         self.__is_depth_image_current = False
@@ -52,13 +44,13 @@ class CameraSim(Camera):
         raw_bytes = bytes()
         for i in range(0, 32):
             raw_bytes += self.__racecar._RacecarSim__receive_data(
-                self.__WIDTH * self.__HEIGHT * 4 // 32
+                self._WIDTH * self._HEIGHT * 4 // 32
             )
             self.__racecar._RacecarSim__send_header(self.__racecar.Header.python_send_next)
 
         self.__color_image = np.frombuffer(raw_bytes, dtype=np.uint8)
         self.__color_image = np.reshape(
-            self.__color_image, (self.__HEIGHT, self.__WIDTH, 4), "C"
+            self.__color_image, (self._HEIGHT, self._WIDTH, 4), "C"
         )
 
         self.__color_image = cv.cvtColor(self.__color_image, cv.COLOR_RGB2BGR)
@@ -68,15 +60,15 @@ class CameraSim(Camera):
             self.__racecar.Header.camera_get_depth_image
         )
         raw_bytes = self.__racecar._RacecarSim__receive_data(
-            self.__DEPTH_WIDTH * self.__DEPTH_HEIGHT * 4
+            self._DEPTH_WIDTH * self._DEPTH_HEIGHT * 4
         )
         self.__depth_image = np.frombuffer(raw_bytes, dtype=np.float32)
         self.__depth_image = np.reshape(
-            self.__depth_image, (self.__DEPTH_HEIGHT, self.__DEPTH_WIDTH), "C"
+            self.__depth_image, (self._DEPTH_HEIGHT, self._DEPTH_WIDTH), "C"
         )
 
         self.__depth_image = cv.resize(
             self.__depth_image,
-            (self.__WIDTH, self.__HEIGHT),
+            (self._WIDTH, self._HEIGHT),
             interpolation=cv.INTER_AREA
         )

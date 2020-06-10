@@ -16,9 +16,6 @@ class DriveSim(Drive):
             )
         )
 
-    def stop(self):
-        self.__racecar._RacecarSim__send_header(self.__racecar.Header.drive_stop)
-
     def set_max_speed(self, max_speed):
         self.__racecar._RacecarSim__send_data(
             struct.pack(

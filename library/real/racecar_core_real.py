@@ -22,13 +22,10 @@ import drive
 import lidar
 import physics
 
+from racecar_core import Racecar
 
-class Racecar:
-    """
-    The top level racecar module containing several submodules which interface
-    with and control the different pieces of the RACECAR hardware
-    """
 
+class RacecarReal(Racecar):
     # Default number of seconds to wait between calls to update_slow
     __DEFAULT_UPDATE_SLOW_TIME = 1
 
