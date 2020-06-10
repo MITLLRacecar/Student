@@ -3,10 +3,10 @@ import struct
 from drive import Drive
 
 class DriveSim(Drive):
-    def __init__(self, racecar):
+    def __init__(self, racecar) -> None:
         self.__racecar = racecar
 
-    def set_speed_angle(self, speed, angle):
+    def set_speed_angle(self, speed: float, angle: float) -> None:
         self.__racecar._RacecarSim__send_data(
             struct.pack(
                 "Bff",
@@ -16,7 +16,7 @@ class DriveSim(Drive):
             )
         )
 
-    def set_max_speed(self, max_speed):
+    def set_max_speed(self, max_speed: float) -> None:
         self.__racecar._RacecarSim__send_data(
             struct.pack(
                 "Bf",

@@ -54,17 +54,17 @@ class RacecarSim(Racecar):
         physics_get_linear_acceleration = 25
         physics_get_angular_velocity = 26
 
-    def __send_header(self, function_code):
+    def __send_header(self, function_code: Header) -> None:
         self.__send_data(struct.pack("B", function_code.value))
 
-    def __send_data(self, data):
+    def __send_data(self, data: bytes) -> None:
         self.__SOCKET.sendto(data, (self.__IP, self.__UNITY_PORT))
 
-    def __receive_data(self, buffer_size=8):
+    def __receive_data(self, buffer_size: int = 8) -> bytes:
         data, _ = self.__SOCKET.recvfrom(buffer_size)
         return data
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.camera = camera_sim.CameraSim(self)
         self.controller = controller_sim.ControllerSim(self)
         self.display = display_sim.DisplaySim()
@@ -75,13 +75,13 @@ class RacecarSim(Racecar):
         self.__start = None
         self.__update = None
         self.__update_slow = None
-        self.__update_slow_time = 1
-        self.__update_slow_counter = 0
-        self.__delta_time = -1
+        self.__update_slow_time: float = 1
+        self.__update_slow_counter: float = 0
+        self.__delta_time: float = -1
 
         self.__SOCKET.bind((self.__IP, self.__PYTHON_PORT))
 
-    def go(self):
+    def go(self) -> None:
         print(">> Python script loaded, please enter user program mode in Unity")
         while True:
             data, _ = self.__SOCKET.recvfrom(8)
@@ -102,12 +102,12 @@ class RacecarSim(Racecar):
 
             self.__send_header(response)
 
-    def set_start_update(self, start, update, update_slow=None):
+    def set_start_update(self, start, update, update_slow=None) -> None:
         self.__start = start
         self.__update = update
         self.__update_slow = update_slow
 
-    def get_delta_time(self):
+    def get_delta_time(self) -> float:
         if self.__delta_time < 0:
             self.__send_header(self.Header.racecar_get_delta_time)
             [value] = struct.unpack("f", self.__receive_data())
@@ -117,9 +117,10 @@ class RacecarSim(Racecar):
     def set_update_slow_time(self, update_slow_time):
         self.__update_slow_time = update_slow_time
 
-    def __handle_update(self):
+    def __handle_update(self) -> None:
         self.__update()
 
+        self.__delta_time = -1
         self.__update_slow_counter -= self.get_delta_time()
         if self.__update_slow_counter < 0:
             self.__update_slow()

@@ -1,24 +1,23 @@
 import sys
 import struct
 import numpy as np
-import binascii
+from nptyping import NDArray
 
 from lidar import Lidar
 
 class LidarSim(Lidar):
-    def __init__(self, racecar):
+    def __init__(self, racecar) -> None:
         self.__racecar = racecar
-        self.__ranges = None
-        self.__is_current = False
+        self.__ranges: NDArray[720, np.float32]
+        self.__is_current: bool = False
 
-    def get_samples(self):
-        # TODO: don't make a new array every time
+    def get_samples(self) -> NDArray[720, np.float32]:
         if not self.__is_current:
             self.__racecar._RacecarSim__send_header(self.__racecar.Header.lidar_get_samples)
-            raw_bytes = self.__racecar._RacecarSim__receive_data(self._NUM_SAMPLES * 4)
+            raw_bytes: bytes = self.__racecar._RacecarSim__receive_data(self._NUM_SAMPLES * 4)
             self.__ranges = np.frombuffer(raw_bytes, dtype=np.float32)
             self.__is_current = True
         return self.__ranges
 
-    def __update(self):
+    def __update(self) -> None:
         self.__is_current = False

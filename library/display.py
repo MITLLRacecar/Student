@@ -9,7 +9,7 @@ Contains the Display module of the racecar_core library
 import abc
 import numpy as np
 import math
-from nptyping import NDarray
+from nptyping import NDArray
 
 
 class Display(abc.ABC):
@@ -18,7 +18,7 @@ class Display(abc.ABC):
     """
 
     @abc.abstractmethod
-    def show_color_image(self, image: NDarray[(640, 480, 3), np.uint8]) -> None:
+    def show_color_image(self, image: NDArray[(640, 480, 3), np.uint8]) -> None:
         """
         Displays an image on a window of the RACECAR desktop.
 
@@ -36,7 +36,7 @@ class Display(abc.ABC):
         pass
 
     def show_depth_image(
-        self, image: NDarray[(640, 480), np.float32], max_depth: int = 1000
+        self, image: NDArray[(640, 480), np.float32], max_depth: int = 1000
     ) -> None:
         """
         Displays an image on a window of the RACECAR desktop.
@@ -66,7 +66,7 @@ class Display(abc.ABC):
 
     def show_lidar(
         self,
-        samples: NDarray[720, np.float32],
+        samples: NDArray[720, np.float32],
         radius: int = 128,
         max_range: int = 1000,
     ) -> None:

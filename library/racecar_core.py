@@ -22,13 +22,13 @@ class Racecar(abc.ABC):
     with and control the different pieces of the RACECAR hardware
     """
 
-    def __init__(self):
-        self.camera = camera.Camera
-        self.controller = controller.Controller
-        self.display = display.Display
-        self.drive = drive.Drive
-        self.lidar = lidar.Lidar
-        self.physics = physics.Physics
+    def __init__(self) -> None:
+        self.camera: camera.Camera
+        self.controller: controller.Controller
+        self.display: display.Display
+        self.drive: drive.Drive
+        self.lidar: lidar.Lidar
+        self.physics: physics.Physics
 
     @abc.abstractmethod
     def go(self) -> None:
