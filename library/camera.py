@@ -7,6 +7,8 @@ Contains the Camera module of the racecar_core library
 """
 
 import abc
+import numpy as np
+from nptyping import NDArray
 
 
 class Camera(abc.ABC):
@@ -19,7 +21,7 @@ class Camera(abc.ABC):
     _HEIGHT: int = 480
 
     @abc.abstractmethod
-    def get_color_image(self):
+    def get_color_image(self) -> NDArray[(480, 640, 3), np.uint8]:
         """
         Returns the previous color image captured by the camera.
 
@@ -42,7 +44,7 @@ class Camera(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_depth_image(self):
+    def get_depth_image(self) -> NDArray[(480, 640), np.float32]:
         """
         Returns the previous depth image captured by the camera.
 

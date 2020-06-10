@@ -8,6 +8,13 @@ Contains the Racecar class, the top level of the racecar_core library
 
 import abc
 
+import camera
+import controller
+import display
+import drive
+import lidar
+import physics
+
 
 class Racecar(abc.ABC):
     """
@@ -16,12 +23,12 @@ class Racecar(abc.ABC):
     """
 
     def __init__(self):
-        self.camera = None
-        self.controller = None
-        self.display = None
-        self.drive = None
-        self.lidar = None
-        self.physics = None
+        self.camera = camera.Camera
+        self.controller = controller.Controller
+        self.display = display.Display
+        self.drive = drive.Drive
+        self.lidar = lidar.Lidar
+        self.physics = physics.Physics
 
     @abc.abstractmethod
     def go(self) -> None:

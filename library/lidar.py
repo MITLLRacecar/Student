@@ -7,6 +7,8 @@ Contains the Lidar module of the racecar_core library
 """
 
 import abc
+import numpy as np
+from nptyping import NDarray
 
 
 class Lidar(abc.ABC):
@@ -29,7 +31,7 @@ class Lidar(abc.ABC):
         return self._NUM_SAMPLES
 
     @abc.abstractmethod
-    def get_samples(self):
+    def get_samples(self) -> NDarray[720, np.float32]:
         """
         Returns the array of all the distance value from a single lidar scan.
 

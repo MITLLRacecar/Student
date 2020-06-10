@@ -7,7 +7,8 @@ Contains the Physics module of the racecar_core library
 """
 
 import abc
-from typing import Tuple
+import numpy as np
+from nptyping import NDArray
 
 
 class Physics(abc.ABC):
@@ -16,7 +17,7 @@ class Physics(abc.ABC):
     """
 
     @abc.abstractmethod
-    def get_linear_acceleration(self) -> Tuple[float, float, float]:
+    def get_linear_acceleration(self) -> NDArray[3, np.float32]:
         """
         Returns a three element array representing the car's linear acceleration.
 
@@ -31,7 +32,7 @@ class Physics(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_angular_velocity(self) -> Tuple[float, float, float]:
+    def get_angular_velocity(self) -> NDArray[3, np.float32]:
         """
         Returns a three element array representing the car's angular velocity.
 
