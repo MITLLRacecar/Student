@@ -27,12 +27,14 @@ rc: Racecar
 if len(sys.argv) > 1 and sys.argv[1] == "-s":
     sys.path.insert(0, "../library/simulation")
     from racecar_core_sim import RacecarSim
+
     rc = RacecarSim()
 
 # Otherwise, create a RacecarReal (used to run on the physical car)
 else:
     sys.path.insert(0, "../library/real")
     from racecar_core_real import RacecarReal
+
     rc = RacecarReal()
 
 ########################################################################################
