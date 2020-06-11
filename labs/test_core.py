@@ -135,7 +135,7 @@ def update():
         lidar = rc.lidar.get_samples()
         rc.display.show_lidar(lidar)
         print(
-            "Lidar forward distance: {:.2f} cm".format(
+            "LIDAR forward distance: {:.2f} cm".format(
                 rc_utils.get_lidar_average_distance(lidar, 0)
             )
         )
