@@ -134,4 +134,5 @@ class RacecarSim(Racecar):
                 self.__update_slow_counter = self.__update_slow_time
 
         self.camera._CameraSim__update()
+        self.controller._ControllerSim__update()
         self.lidar._LidarSim__update()
