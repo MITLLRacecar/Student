@@ -3,7 +3,7 @@ Copyright MIT and Harvey Mudd College
 MIT License
 Summer 2020
 
-Contains the Drive module of the racecar_core library
+Defines the interface of the Drive module of the racecar_core library.
 """
 
 import abc
@@ -11,26 +11,29 @@ import abc
 
 class Drive(abc.ABC):
     @abc.abstractmethod
-    def set_speed_angle(self, speed: float, angle: float) -> None:
+    def set_speed_angle(self, speed: float, angle:float) -> None:
         """
-        Sets the speed at which the wheels turn and the angle of the front wheels.
+        Sets the throttle applied to the back wheels and the angle of the front wheels.
 
         Example:
             if counter < 1:
-                # Drive forward at full speed
+                # Drive straight forward at full speed
                 rc.drive.set_speed_angle(1, 0)
             elif counter < 2:
-                # Drive fully to the left at full speed
-                rc.drive.set_speed_angle(1, -1)
+                # Drive reverse at full speed with the wheels pointing fully to the left
+                rc.drive.set_speed_angle(-1, -1)
             else:
-                # Drive 70% to the right at half speed
+                # Drive 70% to the right at half speed forward
                 rc.drive.set_speed_angle(0.5, 0.7)
 
         Args:
-            speed: (float) The speed from -1.0 to 1.0, with positive for
-                forward and negative for reverse.
-            angle: (float) The angle of the front wheels from -1.0 to 1.0,
-                    with positive for right negative for left.
+            speed: The amount of throttle (torque) applied to the back wheels from -1.0
+                (full backward) to 1.0 (full forward).
+            angle: The amount to turn the front wheels from -1.0 (full left) to 1.0
+                (full right).
+
+        Note:
+            The speed and angle arguments are unitless ratios.
         """
         pass
 
@@ -42,25 +45,28 @@ class Drive(abc.ABC):
             # Stops the car if the counter is greater than 5
             if counter > 5:
                 rc.drive.stop()
+
+        Note:
+            stop is equivalent to rc.drive.set_speed_angle(0, 0)
         """
         self.set_speed_angle(0, 0)
 
     @abc.abstractmethod
-    def set_max_speed(self, max_speed: float) -> None:
+    def set_max_speed(self, max_speed: float = 0.25) -> None:
         """
-        Sets the maximum speed in the forward and backward direction.
+        Sets the maximum throttle in the forward and backward direction.
 
         Args:
-            scale_factor: (float, float) The maximum speed scale factor for
-                forward and backward, each ranging from 0.0 to 1.0.
+            max_speed: The scale factor applied to speed inputs, ranging from
+                0.0 to 1.0.
 
-        Note:
-            The RACECAR motor is naturally faster forward than backward, so we
-            recommended using a larger scale factor in the backward direction
-            to compensate.
+        Warning:
+            The RACECAR contains expensive and fragile equipment.  Please only increase
+            The max speed if you are in a safe environment without the potential for
+            hard collisions.
 
         Example:
-            # Update the max speed scale factor to 0.5 forward, 0.7 backward
-            rc.set_max_speed_scale_factor((0.5, 0.7))
+            # Update the max speed to 0.5
+            rc.set_max_speed(0.5)
         """
         pass

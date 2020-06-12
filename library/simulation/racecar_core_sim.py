@@ -90,6 +90,7 @@ class RacecarSim(Racecar):
 
             response = self.Header.error
             if header == self.Header.unity_start.value:
+                self.set_update_slow_time()
                 self.__start()
                 response = self.Header.python_finished
             elif header == self.Header.unity_update.value:
@@ -120,7 +121,7 @@ class RacecarSim(Racecar):
             self.__delta_time = value
         return self.__delta_time
 
-    def set_update_slow_time(self, update_slow_time: float) -> None:
+    def set_update_slow_time(self, update_slow_time: float = 1.0) -> None:
         self.__update_slow_time = update_slow_time
 
     def __handle_update(self) -> None:

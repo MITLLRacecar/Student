@@ -20,7 +20,7 @@ import physics
 class Racecar(abc.ABC):
     """
     The top level racecar module containing several submodules which interface
-    with and control the different pieces of the RACECAR hardware
+    with and control the different pieces of the RACECAR hardware.
     """
 
     def __init__(self) -> None:
@@ -37,8 +37,8 @@ class Racecar(abc.ABC):
         Starts the RACECAR, beginning in default drive mode.
 
         Note:
-            go idles in the main thread until the car program is exited
-            (START + END pressed simultaneously).
+            go idles blocks execution until the program is exited when START + END are
+            pressed simultaneously.
         """
         pass
 
@@ -67,12 +67,14 @@ class Racecar(abc.ABC):
             rc.go()
 
         Args:
-            start: (function) The function called once every time we enter user
-                program mode.
-            update: (function) The function called every frame in user program modes.
+            start: A function called once when the car enters user program mode.
+            update: A function called every frame in user program mode. Approximately
+                60 frames occur per second.
+            update_slow: A function called once per fixed time interval in user
+                program mode (by default once per second).
 
         Note:
-            The provided start and update functions should not take any parameters.
+            The provided functions should not take any parameters.
         """
         pass
 
@@ -82,7 +84,7 @@ class Racecar(abc.ABC):
         Returns the number of seconds elapsed in the previous frame.
 
         Returns:
-            (float) The number of seconds between the start of the previous frame and
+            The number of seconds between the start of the previous frame and
             the start of the current frame.
 
         Example:
@@ -92,18 +94,15 @@ class Racecar(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def set_update_slow_time(self, time: float) -> None:
+    def set_update_slow_time(self, time: float = 1.0) -> None:
         """
         Changes the time between calls to update_slow.
 
         Args:
-            time (float): The time in seconds between calls to update_slow.
-
-        Note:
-            The default value is 1 second.
+            time: The time in seconds between calls to update_slow.
 
         Example:
             # Sets the time between calls to update_slow to 2 seconds
-            rc.set_update_slow_ratio(2)
+            rc.set_update_slow_time(2)
         """
         pass

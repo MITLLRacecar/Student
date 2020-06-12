@@ -17,7 +17,7 @@ class DriveSim(Drive):
             )
         )
 
-    def set_max_speed(self, max_speed: float) -> None:
+    def set_max_speed(self, max_speed: float = 0.25) -> None:
         assert (
             0.0 <= max_speed <= 1.0
         ), "max_speed must be between 0.0 and 1.0 inclusive"
