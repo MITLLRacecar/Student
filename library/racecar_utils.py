@@ -76,7 +76,7 @@ def remap_range(
 
 
 def crop(
-    image: NDArray[(Any, Any,), Any],
+    image: NDArray[(Any, ...), Any],
     top_left_inclusive: Tuple[float, float],
     bottom_right_exclusive: Tuple[float, float],
 ):
@@ -94,9 +94,10 @@ def crop(
         (depth image or color image) A cropped version of the image.
 
     Note:
-        The top_left_inclusive pixel is included in the crop rectangle, but
-        the bottom_right_exclusive pixel is not.  This is similar to how the how
-        range(1, 4) returns [1, 2, 3].
+        The top_left_inclusive pixel is included in the crop rectangle, but the
+        bottom_right_exclusive pixel is not.
+        If bottom_right_exclusive exceeds the bottom or right edge of the image, the
+        full image is included along that axis.
 
     Example:
         image = rc.camera.get_color_image()
@@ -107,24 +108,19 @@ def crop(
         )
     """
     assert (
-        0 <= top_left_inclusive[0] < NDArray.shape[0]
+        0 <= top_left_inclusive[0] < image.shape[0]
     ), "top_left_inclusive[0] ({}) must be a pixel row index in color_image.".format(
         top_left_inclusive[0]
     )
     assert (
-        0 <= top_left_inclusive[1] < NDArray.shape[1]
+        0 <= top_left_inclusive[1] < image.shape[1]
     ), "top_left_inclusive[1] ({}) must be a pixel column index in color_image.".format(
         top_left_inclusive[1]
     )
     assert (
-        0 <= top_left_inclusive[0] <= NDArray.shape[0]
-    ), "bottom_right_exclusive[0] ({}) must be a pixel row index in or one past color_image.".format(
-        bottom_right_exclusive[0]
-    )
-    assert (
-        0 <= top_left_inclusive[1] <= NDArray.shape[1]
-    ), "bottom_right_exclusive[1] ({}) must be a pixel column index in or one past color_image.".format(
-        bottom_right_exclusive[1]
+        bottom_right_exclusive[0] > 0 and bottom_right_exclusive[1] > 0
+    ), "The row and column in bottom_right_exclusive ({}) must be positive.".format(
+        bottom_right_exclusive
     )
 
     # Extract the minimum and maximum pixel rows and columns from the parameters
@@ -351,7 +347,7 @@ def get_contour_center(contour: NDArray) -> Optional[Tuple[int, int]]:
 
         # Find the center of this contour if it exists
         if (largest_contour is not None):
-            center = rc_utils.get_center(largest_contour)
+            center = rc_utils.get_contour_center(largest_contour)
 
     Args:
         contour: The contour of which to find the center.
@@ -401,7 +397,7 @@ def get_contour_area(contour: NDArray) -> float:
 
 
 def get_depth_image_center_distance(
-    depth_image: NDArray[(Any, Any), np.float32], kernel_size: int = 7
+    depth_image: NDArray[(Any, Any), np.float32], kernel_size: int = 5
 ) -> float:
     """
     Finds the distance of the center object in a depth image.
@@ -419,13 +415,13 @@ def get_depth_image_center_distance(
     Note:
         The larger the kernel_size, the more that the center is averaged
         with the depth of the surrounding pixels.  This helps reduce noise at the cost
-        of reduced accuracy.
+        of reduced accuracy.  If kernel_size = 1, no averaging is done.
 
     Example:
         depth_image = rc.camera.get_depth_image()
 
         # Find the distance of the object (in cm) the center of depth_image
-        center_distance = rc_utils.get_center_distance(depth_image)
+        center_distance = rc_utils.get_depth_image_center_distance(depth_image)
     """
     assert (
         kernel_size > 0 and kernel_size % 2 == 1
@@ -441,7 +437,7 @@ def get_depth_image_center_distance(
 def get_pixel_average_distance(
     depth_image: NDArray[(Any, Any), np.float32],
     pix_coord: Tuple[int, int],
-    kernel_size: int = 7,
+    kernel_size: int = 5,
 ) -> float:
     """
     Finds the distance of a pixel averaged with its neighbors in a depth image.
@@ -536,13 +532,18 @@ def get_closest_pixel(
         kernel_size > 0 and kernel_size % 2 == 1
     ), "kernel_size ({}) must positive and odd.".format(kernel_size)
 
+    # Shift 0.0 values to 10,000 so they are not considered for the closest pixel
+    depth_image = (depth_image - 1) % 10000
+
     # Apply a Gaussian blur to to reduce noise
-    blurred_depth = cv.GaussianBlur(depth_image, (kernel_size, kernel_size), 0)
+    if kernel_size > 1:
+        blurred_depth = cv.GaussianBlur(depth_image, (kernel_size, kernel_size), 0)
 
     # Find the pixel location of the minimum depth
     (_, _, minLoc, _) = cv.minMaxLoc(blurred_depth)
 
-    return minLoc
+    # minLoc is formatted as (column, row), so we flip the order
+    return (minLoc[1], minLoc[0])
 
 
 def get_lidar_closest_point(scan: NDArray[Any, np.float32]) -> Tuple[float, float]:
@@ -570,16 +571,15 @@ def get_lidar_closest_point(scan: NDArray[Any, np.float32]) -> Tuple[float, floa
         # Find the angle and distance of the closest point
         angle, distance = rc_utils.get_lidar_closest_point(scan)
     """
-    # Remove 0.0 values from scan
+    # Find the minimum value in scan which is not 0.0 (no data)
     clean_scan = [elem for elem in scan if elem > 0.0]
+    closest_distance = min(clean_scan)
 
-    closest_point = min(clean_scan)
-    index = scan.index(closest_point)
-
-    # Convert sample index to degree
+    # Use the index of this value to find its angle
+    index = np.where(scan == closest_distance)[0][0]
     degree = index * 360 / (scan.shape[0])
 
-    return (degree, closest_point)
+    return (degree, closest_distance)
 
 
 def get_lidar_average_distance(
