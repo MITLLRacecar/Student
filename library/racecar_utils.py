@@ -2,6 +2,30 @@ import cv2 as cv
 import numpy as np
 from typing import *
 from nptyping import NDArray
+from enum import Enum
+
+
+class ColorBGR(Enum):
+    """
+    Common colors defined in the blue-green-red (BGR) format, with each channel
+    ranging from 0 to 255 inclusive.
+    """
+
+    blue = (255, 0, 0)
+    light_blue = (255, 255, 0)
+    green = (0, 255, 0)
+    dark_green = (0, 127, 0)
+    yellow = (0, 255, 255)
+    orange = (0, 127, 255)
+    red = (0, 0, 255)
+    pink = (255, 0, 255)
+    purple = (255, 0, 127)
+    black = (0, 0, 0)
+    dark_gray = (63, 63, 63)
+    gray = (127, 127, 127)
+    light_gray = (191, 191, 191)
+    white = (255, 255, 255)
+    brown = (0, 63, 127)
 
 
 def remap_range(
@@ -11,7 +35,7 @@ def remap_range(
     new_min: float,
     new_max: float,
     saturate: bool = False,
-):
+) -> float:
     """
     Remaps a value from one range to another range.
 
@@ -29,16 +53,16 @@ def remap_range(
 
     Example:
         # a will be set to 25
-        a = remap_range(5, 0, 10, 0, 50)
+        a = rc_utils.remap_range(5, 0, 10, 0, 50)
 
         # b will be set to 975
-        b = remap_range(5, 0, 20, 1000, 900)
+        b = rc_utils.remap_range(5, 0, 20, 1000, 900)
 
         # c will be set to 30
-        c = remap_range(2, 0, 1, -10, 10)
+        c = rc_utils.remap_range(2, 0, 1, -10, 10)
 
-        # d will be set to 20
-        d = remap_range(2, 0, 1, -10, 10, True)
+        # d will be set to 10
+        d = rc_utils.remap_range(2, 0, 1, -10, 10, True)
     """
     old_span: float = old_max - old_min
     new_span: float = new_max - new_min
@@ -75,13 +99,34 @@ def crop(
         range(1, 4) returns [1, 2, 3].
 
     Example:
-        image = rc.camera.get_image()
+        image = rc.camera.get_color_image()
 
         # Crop the image to only keep the top half
         cropped_image = rc_utils.crop(
             image, (0, 0), (rc.camera.get_height() // 2, rc.camera.get_width())
         )
     """
+    assert (
+        0 <= top_left_inclusive[0] < NDArray.shape[0]
+    ), "top_left_inclusive[0] ({}) must be a pixel row index in color_image.".format(
+        top_left_inclusive[0]
+    )
+    assert (
+        0 <= top_left_inclusive[1] < NDArray.shape[1]
+    ), "top_left_inclusive[1] ({}) must be a pixel column index in color_image.".format(
+        top_left_inclusive[1]
+    )
+    assert (
+        0 <= top_left_inclusive[0] <= NDArray.shape[0]
+    ), "bottom_right_exclusive[0] ({}) must be a pixel row index in or one past color_image.".format(
+        bottom_right_exclusive[0]
+    )
+    assert (
+        0 <= top_left_inclusive[1] <= NDArray.shape[1]
+    ), "bottom_right_exclusive[1] ({}) must be a pixel column index in or one past color_image.".format(
+        bottom_right_exclusive[1]
+    )
+
     # Extract the minimum and maximum pixel rows and columns from the parameters
     r_min, c_min = top_left_inclusive
     r_max, c_max = bottom_right_exclusive
@@ -119,23 +164,51 @@ def find_contours(
 
         # Extract contours around all blue portions of the current image
         contours = rc_utils.find_contours(
-            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+            rc.camera.get_color_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
         )
     """
     assert (
-        len(filter(hsv_lower, lambda x: 0 <= x <= 255)) == 3
-    ), "Each channel in hsv_lower must be in the range 0 to 255 inclusive"
+        0 <= hsv_lower[0] <= 179 and 0 <= hsv_upper[0] <= 179
+    ), "The hue of hsv_lower ({}) and hsv_upper ({}) must be in the range 0 to 179 inclusive.".format(
+        hsv_lower, hsv_upper
+    )
     assert (
-        len(filter(hsv_upper, lambda x: 0 <= x <= 255)) == 3
-    ), "Each channel in hsv_upper must be in the range 0 to 255 inclusive"
+        0 <= hsv_lower[1] <= 255 and 0 <= hsv_upper[1] <= 255
+    ), "The saturation of hsv_lower ({}) and hsv_upper ({}) must be in the range 0 to 255 inclusive.".format(
+        hsv_lower, hsv_upper
+    )
+    assert (
+        0 <= hsv_lower[0] <= 255 and 0 <= hsv_upper[0] <= 255
+    ), "The value of hsv_lower ({}) and hsv_upper ({}) must be in the range 0 to 255 inclusive.".format(
+        hsv_lower, hsv_upper
+    )
+    assert (
+        hsv_lower[1] <= hsv_upper[1]
+    ), "The saturation channel of hsv_lower ({}) must be less than that of hsv_upper ({}).".format(
+        hsv_lower, hsv_upper
+    )
+    assert (
+        hsv_lower[2] <= hsv_upper[2]
+    ), "The value channel of hsv_lower ({}) must be less than that of of hsv_upper ({}).".format(
+        hsv_lower, hsv_upper
+    )
 
     # Convert the image from a blue-green-red pixel representation to a
     # hue-saturation-value representation
     hsv_image = cv.cvtColor(color_image, cv.COLOR_BGR2HSV)
 
-    # Create a mask based on the pixels in the image with hsv values that
-    # fall between HSV_lower and HSV_upper
-    mask = cv.inRange(hsv_image, hsv_lower, hsv_upper)
+    # Create a mask containing the pixels in the image with hsv values between
+    # hsv_lower and hsv_upper.
+    mask: NDArray
+    if hsv_lower[0] <= hsv_upper[0]:
+        mask = cv.inRange(hsv_image, hsv_lower, hsv_upper)
+
+    # If the color range passes the 255-0 boundary, we must create two masks
+    # and merge them
+    else:
+        mask1 = cv.inRange(hsv_image, hsv_lower, (255, hsv_upper[1], hsv_upper[2]))
+        mask2 = cv.inRange(hsv_image, (0, hsv_lower[1], hsv_lower[2]), hsv_upper)
+        mask = cv.bitwise_or(mask1, mask2)
 
     # Find and return a list of all contours of this mask
     return cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)[0]
@@ -160,7 +233,7 @@ def get_largest_contour(
         BLUE_HSV_MIN = (90, 50, 50)
         BLUE_HSV_MAX = (110, 255, 255)
         contours = rc_utils.find_contours(
-            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+            rc.camera.get_color_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
         )
 
         # Find the largest contour
@@ -181,13 +254,13 @@ def get_largest_contour(
 def draw_contour(
     color_image: NDArray[(Any, Any, 3), np.uint8],
     contour: NDArray,
-    color: Tuple[int, int, int] = (0, 255, 0),
-) -> NDArray[(Any, Any, 3), np.uint8]:
+    color: Tuple[int, int, int] = ColorBGR.green.value,
+):
     """
-    Draws a contour on a copy of the provided image.
+    Draws a contour on the provided image.
 
     Example:
-        image = rc.camera.get_image()
+        image = rc.camera.get_color_image()
 
         # Extract the largest blue contour
         BLUE_HSV_MIN = (90, 50, 50)
@@ -197,25 +270,73 @@ def draw_contour(
 
         # Draw this contour onto image
         if (largest_contour is not None):
-            image_labeled = draw_contour(image, largest_contour)
+            draw_contour(image, largest_contour)
 
     Args:
         color_image: The color image on which to draw the contour.
         contour: The contour to draw on the image.
         color: The color to draw the contour, specified as
             blue-green-red channels each ranging from 0 to 255 inclusive.
-
-    Returns:
-        A copy of image with the contour drawn on it.
     """
+    for channel in color:
+        assert (
+            0 <= channel <= 255
+        ), "Each channel in color ({}) must be in the range 0 to 255 inclusive.".format(
+            color
+        )
+
+    cv.drawContours(color_image, [contour], 0, color, 3)
+
+
+def draw_circle(
+    color_image: NDArray[(Any, Any, 3), np.uint8],
+    center: Tuple[int, int],
+    color: Tuple[int, int, int] = ColorBGR.yellow,
+    radius: int = 6,
+):
+    """
+    Draws a circle on the provided image.
+
+    Example:
+        image = rc.camera.get_color_image()
+
+        # Extract the largest blue contour
+        BLUE_HSV_MIN = (90, 50, 50)
+        BLUE_HSV_MAX = (110, 255, 255)
+        contours = rc_utils.find_contours(image, BLUE_HSV_MIN, BLUE_HSV_MAX)
+        largest_contour = rc_utils.get_largest_contour(contours)
+
+        # Draw a dot at the center of this contour in red
+        if (largest_contour is not None):
+            center = get_contour_center(contour)
+            draw_circle(image, center, rc_utils.ColorBGR.red.value)
+
+    Args:
+        color_image: The color image on which to draw the contour.
+        center: The pixel (row, column) of the center of the image.
+        color: The color to draw the circle, specified as
+            blue-green-red channels each ranging from 0 to 255 inclusive.
+        radius: The radius of the circle in pixels
+    """
+    for channel in color:
+        assert (
+            0 <= channel <= 255
+        ), "Each channel in color ({}) must be in the range 0 to 255 inclusive.".format(
+            color
+        )
     assert (
-        len(filter(color, lambda x: 0 <= x <= 255)) == 3
-    ), "Each channel in color must be in the range 0 to 255 inclusive"
+        0 <= center[0] < color_image.shape[0]
+    ), "center[0] ({}) must be a pixel row index in color_image.".format(center[0])
+    assert (
+        0 <= center[1] < color_image.shape[1]
+    ), "center[1] ({}) must be a pixel column index in color_image.".format(center[1])
+    assert radius > 0, "radius ({}) must be a positive integer.".format(radius)
 
-    return cv.drawContours(np.copy(color_image), [contour], 0, color, 3)
+    # cv.circle expects the center in (column, row) format
+    cv.circle(color_image, (center[1], center[0]), radius, color, -1)
 
 
-def get_contour_center(contour: Optional[NDArray]) -> Optional[Tuple[int, int]]:
+def get_contour_center(contour: NDArray) -> Optional[Tuple[int, int]]:
     """
     Finds the center of a contour from an image.
 
@@ -224,7 +345,7 @@ def get_contour_center(contour: Optional[NDArray]) -> Optional[Tuple[int, int]]:
         BLUE_HSV_MIN = (90, 50, 50)
         BLUE_HSV_MAX = (110, 255, 255)
         contours = rc_utils.find_contours(
-            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+            rc.camera.get_color_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
         )
         largest_contour = rc_utils.get_largest_contour(contours)
 
@@ -239,12 +360,8 @@ def get_contour_center(contour: Optional[NDArray]) -> Optional[Tuple[int, int]]:
         The (row, column) of the pixel at the center of the contour.
 
     Note:
-        Returns None if the contour parameter is None or contains no pixels.
+        Returns None if the contour contains no pixels.
     """
-    # Verify that we were passed a valid contour
-    if contour is None:
-        return None
-
     M = cv.moments(contour)
 
     # Check that the contour is not empty
@@ -253,10 +370,12 @@ def get_contour_center(contour: Optional[NDArray]) -> Optional[Tuple[int, int]]:
         return None
 
     # Compute and return the center of mass of the contour
-    return (M["m01"] / M["m00"], M["m10"] / M["m00"])
+    center_row = round(M["m01"] / M["m00"])
+    center_column = round(M["m10"] / M["m00"])
+    return (center_row, center_column)
 
 
-def get_contour_area(contour: Optional[NDArray]) -> float:
+def get_contour_area(contour: NDArray) -> float:
     """
     Finds the area of a contour from an image.
 
@@ -264,25 +383,20 @@ def get_contour_area(contour: Optional[NDArray]) -> float:
         contour: The contour of which to measure the area.
 
     Returns:
-        The number of pixels contained within the contour, or 0 if
-        an invalid contour is provided
+        The number of pixels contained within the contour
 
     Example:
         # Extract the largest blue contour
         BLUE_HSV_MIN = (90, 50, 50)
         BLUE_HSV_MAX = (110, 255, 255)
         contours = rc_utils.find_contours(
-            rc.camera.get_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
+            rc.camera.get_color_image(), BLUE_HSV_MIN, BLUE_HSV_MAX
         )
         largest_contour = rc_utils.get_largest_contour(contours)
 
         # Find the area of this contour (will evaluate to 0 if no contour was found)
         area = rc_utils.get_contour_area(contour)
     """
-    # Verify that we were passed a valid contour
-    if contour is None:
-        return 0
-
     return cv.contourArea(contour)
 
 
@@ -313,20 +427,20 @@ def get_depth_image_center_distance(
         # Find the distance of the object (in cm) the center of depth_image
         center_distance = rc_utils.get_center_distance(depth_image)
     """
-    assert kernel_size > 0 and kernel_size % 2 == 1, "kernel_size must positive and odd"
+    assert (
+        kernel_size > 0 and kernel_size % 2 == 1
+    ), "kernel_size ({}) must positive and odd.".format(kernel_size)
 
     # Calculate the center pixel
-    center_row = depth_image.shape[0] // 2
-    center_col = depth_image.shape[1] // 2
+    center_coords = (depth_image.shape[0] // 2, depth_image.shape[1] // 2)
 
     # Use get_average_distance to average the distance around this center pixel
-    return get_pixel_average_distance(depth_image, center_row, center_col, kernel_size)
+    return get_pixel_average_distance(depth_image, center_coords, kernel_size)
 
 
 def get_pixel_average_distance(
     depth_image: NDArray[(Any, Any), np.float32],
-    pix_row: int,
-    pix_col: int,
+    pix_coord: Tuple[int, int],
     kernel_size: int = 7,
 ) -> float:
     """
@@ -334,8 +448,7 @@ def get_pixel_average_distance(
 
     Args:
         depth_image: The depth image to process.
-        pix_row: The row of the pixel to measure.
-        pix_col: The column of the pixel to measure.
+        pix_coord: The (row, column) of the pixel to measure.
         kernel_size: The size of the area to average around the pixel.
 
     Returns:
@@ -355,19 +468,26 @@ def get_pixel_average_distance(
         # Find the distance of the object (in cm) at the pixel (100, 20) of depth_image
         average_distance = rc_utils.get_average_distance(depth_image, 100, 20)
     """
+    (pix_row, pix_col) = pix_coord
     assert (
         0 <= pix_row < depth_image.shape[0]
-    ), "pix_row must be a row index within depth_image"
+    ), "pix_coord[0] ({}) must be a pixel row index within depth_image.".format(
+        pix_coord[0]
+    )
     assert (
         0 <= pix_col < depth_image.shape[1]
-    ), "pix_col must be a column index within depth_image"
-    assert kernel_size > 0 and kernel_size % 2 == 1, "kernel_size must positive and odd"
+    ), "pix_coord[1] ({}) must be a pixel column index within depth_image.".format(
+        pix_coord[1]
+    )
+    assert (
+        kernel_size > 0 and kernel_size % 2 == 1
+    ), "kernel_size ({}) must positive and odd.".format(kernel_size)
 
     # Crop out out a kernel around the requested pixel
     cropped_center = crop(
         depth_image,
         (pix_row - kernel_size // 2, pix_col - kernel_size // 2),
-        (pix_row + kernel_size // 2, pix_col + kernel_size // 2),
+        (pix_row + kernel_size // 2 + 1, pix_col + kernel_size // 2 + 1),
     )
 
     # Apply a Gaussian blur to the cropped depth image to average the surrounding
@@ -412,7 +532,9 @@ def get_closest_pixel(
         # Find the closest pixel
         closest_pixel = rc_utils.get_closest_pixel(depth_image)
     """
-    assert kernel_size > 0 and kernel_size % 2 == 1, "kernel_size must positive and odd"
+    assert (
+        kernel_size > 0 and kernel_size % 2 == 1
+    ), "kernel_size ({}) must positive and odd.".format(kernel_size)
 
     # Apply a Gaussian blur to to reduce noise
     blurred_depth = cv.GaussianBlur(depth_image, (kernel_size, kernel_size), 0)
@@ -488,9 +610,12 @@ def get_lidar_average_distance(
         # Find the distance to the forward and right of the car (1:30 position)
         forward_right_distance = rc_utils.get_lidar_average_distance(scan, 45)
     """
+    assert 0 <= angle < 360, "angle ({}) must be in the range 0 to 360.".format(angle)
     assert (
-        window_angle < 360
-    ), "window_angle cannot exceed 360, and reasonably should not exceed 20."
+        0 <= window_angle < 360
+    ), "window_angle ({}) must be in the range 0 to 360, and reasonably should not exceed 20.".format(
+        window_angle
+    )
 
     # Calculate the indices at the edges of the requested window
     center_index: int = int(angle * scan.shape[0] / 360)
@@ -501,9 +626,9 @@ def get_lidar_average_distance(
     # Select samples in the window, handling if we cross the edge of the array
     samples: List[float]
     if right_index < left_index:
-        samples = scan[left_index:].tolist() + scan[0:right_index + 1].tolist()
+        samples = scan[left_index:].tolist() + scan[0 : right_index + 1].tolist()
     else:
-        samples = scan[left_index:right_index + 1].tolist()
+        samples = scan[left_index : right_index + 1].tolist()
 
     # Remove samples with no data (0.0)
     samples = [elem for elem in samples if elem > 0]
