@@ -42,6 +42,7 @@ else:
 ########################################################################################
 
 max_speed = 0
+update_slow_time = 0
 show_triggers = False
 show_joysticks = False
 
@@ -55,16 +56,19 @@ def start():
     This function is run once every time the start button is pressed
     """
     global max_speed
+    global update_slow_time
     global show_triggers
     global show_joysticks
 
     print("Start function called")
-    rc.set_update_slow_time(0.5)
-    rc.drive.stop()
-
     max_speed = 0.25
+    update_slow_time = 0.5
     show_triggers = False
     show_joysticks = False
+
+    rc.set_update_slow_time(update_slow_time)
+    rc.drive.set_max_speed(max_speed)
+    rc.drive.stop()
 
 
 def update():
@@ -73,6 +77,7 @@ def update():
     is pressed
     """
     global max_speed
+    global update_slow_time
     global show_triggers
     global show_joysticks
 
@@ -108,13 +113,21 @@ def update():
     # Use triggers and left joystick to control car (like default drive)
     rc.drive.set_speed_angle(right_trigger - left_trigger, left_joystick[0])
 
-    # Change max speed when the bumper is pressed
+    # Change max speed and update_slow time when the bumper is pressed
     if rc.controller.was_pressed(rc.controller.Button.LB):
         max_speed = max(1 / 16, max_speed / 2)
         rc.drive.set_max_speed(max_speed)
+        update_slow_time *= 2
+        rc.set_update_slow_time(update_slow_time)
+        print("max_speed set to {}".format(max_speed))
+        print("update_slow_time set to {} seconds".format(update_slow_time))
     if rc.controller.was_pressed(rc.controller.Button.RB):
         max_speed = min(1, max_speed * 2)
         rc.drive.set_max_speed(max_speed)
+        update_slow_time /= 2
+        rc.set_update_slow_time(update_slow_time)
+        print("max_speed set to {}".format(max_speed))
+        print("update_slow_time set to {} seconds".format(update_slow_time))
 
     # Capture and display color images when the A button is down
     if rc.controller.is_down(rc.controller.Button.A):
