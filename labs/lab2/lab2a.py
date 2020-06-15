@@ -126,7 +126,7 @@ def update():
     global speed
     global angle
 
-    # Search for contours in the cropped image
+    # Search for contours in the current color image
     update_contour()
 
     # Choose an angle based on contour_center
@@ -162,9 +162,7 @@ def update_slow():
     After start() is run, this function is run at a constant rate that is slower
     than update().  By default, update_slow() is run once per second
     """
-    # Print a line of ascii text to the console denoting the area of the contour
-    # and where the car sees the line
-
+    # Print a line of ascii text denoting the contour area and x-position
     if rc.camera.get_color_image() is None:
         # If no image is found, print all X's and don't display an image
         print("X" * 10 + " (No image) " + "X" * 10)
@@ -173,7 +171,7 @@ def update_slow():
         if contour_center is None:
             print("-" * 32 + " : area = " + str(contour_area))
 
-        # Otherwise, print a line of dashes with a | where the line is seen
+        # Otherwise, print a line of dashes with a | indicating the contour x-position
         else:
             s = ["-"] * 32
             s[int(contour_center[1] / 20)] = "|"
