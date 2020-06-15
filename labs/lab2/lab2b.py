@@ -1,9 +1,9 @@
 """
-Copyright Harvey Mudd College
+Copyright MIT and Harvey Mudd College
 MIT License
-Fall 2019
+Summer 2020
 
-Lab 2 - Image Processing
+Lab 2B - Color Images Cone Parking
 """
 
 ########################################################################################
