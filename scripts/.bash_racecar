@@ -37,6 +37,8 @@ racecar() {
     elif [ $# -eq 1 ] && [ "$1" == "remove" ]; then
       echo "Removing your team directory from your RACECAR..."
       ssh racecar@"$RACECAR_IP" "cd ~/Documents/ && rm -rf "$RACECAR_TEAM""
+    elif [ $# -eq 2 ] && [ "$1" = "sim" ]; then
+      python3 "$2" -s
     elif [ $# -eq 1 ] && [ "$1" == "test" ]; then
       echo "racecar tool set up successfully!"
       echo "  RACECAR_ABSOLUTE_PATH: "$RACECAR_ABSOLUTE_PATH
@@ -62,3 +64,5 @@ racecar() {
     fi
   fi
 }
+
+export DISPLAY=localhost:42.0
