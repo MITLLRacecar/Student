@@ -7,6 +7,7 @@ Contains the Racecar class, the top level of the racecar_core library
 """
 
 import abc
+import sys
 from typing import Callable, Optional
 
 import camera
@@ -106,3 +107,22 @@ class Racecar(abc.ABC):
             rc.set_update_slow_time(2)
         """
         pass
+
+# Create global Racecar instance
+rc: Racecar
+library_path = __file__.replace("racecar_core.py", "")
+
+# Create a RaceacarSim (used to interface with the Unity simulation) if the user ran
+# the program with the -s flag
+if len(sys.argv) > 1 and sys.argv[1] == "-s":
+    sys.path.insert(1, library_path + "simulation")
+    from racecar_core_sim import RacecarSim
+
+    rc = RacecarSim()
+
+# Otherwise, create a RacecarReal (used to run on the physical car)
+else:
+    sys.path.insert(1, library_path + "real")
+    from racecar_core_real import RacecarReal
+
+    rc = RacecarReal()
