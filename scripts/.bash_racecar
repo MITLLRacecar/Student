@@ -7,7 +7,9 @@ racecar() {
     echo "Go to \"https://matthewcalligaro.github.io/RacecarWebsite/scripts/tool_setup.html\" for setup instructions."
   else
     local RACECAR_DESTINATION_PATH="~/Documents/""$RACECAR_TEAM"
-    if [ $# -eq 2 ] && [ "$1" = "sync" ]; then
+    if [ $# -eq 1 ] && [ "$1" == "cd" ]; then
+      cd "$RACECAR_ABSOLUTE_PATH"/labs
+    elif [ $# -eq 2 ] && [ "$1" = "sync" ]; then
       local valid_command=false
       if [ "$2" == "library" ] || [ "$2" == "all" ]; then
         echo "Copying your local copy of the RACECAR library to your car ("$RACECAR_IP")..."
@@ -48,16 +50,15 @@ racecar() {
       fi
       echo ""
       echo "Supported commands:"
-      echo "  racecar connect: connects to your car with ssh"
-      echo "  racecar help: prints this help message"
-      echo "  racecar remove: removes your team directory from your car"
-      echo "  racecar setup: sets up your team directory on your car"
-      echo "  racecar sync library: copies your local RACECAR library folder to your car with scp"
-      echo "  racecar sync labs: copies your local RACECAR labs folder to your car with scp"
-      echo "  racecar sync all: copies all local RACECAR files to you car with scp"
-      echo "  racecar test: prints a message to check if the RACECAR tool was set up successfully"
+      echo "  racecar cd: move to the racecar directory on your computer."
+      echo "  racecar connect: connects to your car with ssh."
+      echo "  racecar help: prints this help message."
+      echo "  racecar remove: removes your team directory from your car."
+      echo "  racecar setup: sets up your team directory on your car."
+      echo "  racecar sync library: copies your local RACECAR library folder to your car with scp."
+      echo "  racecar sync labs: copies your local RACECAR labs folder to your car with scp."
+      echo "  racecar sync all: copies all local RACECAR files to you car with scp."
+      echo "  racecar test: prints a message to check if the RACECAR tool was set up successfully."
     fi
   fi
 }
-
-alias cd_racecar="cd "$RACECAR_ABSOLUTE_PATH"/labs"
