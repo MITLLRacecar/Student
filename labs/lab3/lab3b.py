@@ -37,16 +37,7 @@ def start():
     rc.drive.stop()
 
     # Print start message
-    print(
-        ">> Lab 3 - Depth Camera\n"
-        "\n"
-        "Controlls:\n"
-        "   Right trigger = accelerate forward\n"
-        "   Left trigger = accelerate backward\n"
-        "   Left joystick = turn front wheels\n"
-        "   A button = print current speed and angle\n"
-        "   B button = print contour center and area"
-    )
+    print(">> Lab 3B - Depth Camera Cone Parking")
 
 
 def update():
@@ -57,6 +48,7 @@ def update():
     # TODO: Park the car 20 cm away from the closest orange cone.
     # Use both color and depth information to handle cones of multiple sizes.
     # You may wish to copy some of your code from lab2b.py
+
 
 ########################################################################################
 # DO NOT MODIFY: Register start and update and begin execution

@@ -3,7 +3,7 @@ Copyright MIT and Harvey Mudd College
 MIT License
 Summer 2020
 
-Lab 2B - Color Images Cone Parking
+Lab 2B - Color Image Cone Parking
 """
 
 ########################################################################################
@@ -97,15 +97,7 @@ def start():
     rc.set_update_slow_time(0.5)
 
     # Print start message
-    print(
-        ">> Lab 2 - Image processing\n"
-        "\n"
-        "Controlls:\n"
-        "   Right trigger = accelerate forward\n"
-        "   Left trigger = accelerate backward\n"
-        "   A button = print current speed and angle\n"
-        "   B button = print contour center and area"
-    )
+    print(">> Lab 2B - Color Image Cone Parking")
 
 
 def update():

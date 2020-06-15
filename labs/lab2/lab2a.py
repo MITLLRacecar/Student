@@ -3,7 +3,7 @@ Copyright MIT and Harvey Mudd College
 MIT License
 Summer 2020
 
-Lab 2A - Color Images Line Following
+Lab 2A - Color Image Line Following
 """
 
 ########################################################################################
@@ -108,7 +108,7 @@ def start():
 
     # Print start message
     print(
-        ">> Lab 2 - Image processing\n"
+        ">> Lab 2A - Color Image Line Following\n"
         "\n"
         "Controlls:\n"
         "   Right trigger = accelerate forward\n"

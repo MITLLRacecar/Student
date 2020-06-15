@@ -37,16 +37,7 @@ def start():
     rc.drive.stop()
 
     # Print start message
-    print(
-        ">> Lab 3 - Depth Camera\n"
-        "\n"
-        "Controlls:\n"
-        "   Right trigger = accelerate forward\n"
-        "   Left trigger = accelerate backward\n"
-        "   Left joystick = turn front wheels\n"
-        "   A button = print current speed and angle\n"
-        "   B button = print contour center and area"
-    )
+    print(">> Lab 3C - Depth Camera Wall Parking")
 
 
 def update():

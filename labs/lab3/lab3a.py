@@ -38,14 +38,14 @@ def start():
 
     # Print start message
     print(
-        ">> Lab 3 - Depth Camera\n"
+        ">> Lab 3A - Depth Camera Safety Stop\n"
         "\n"
         "Controlls:\n"
         "   Right trigger = accelerate forward\n"
         "   Left trigger = accelerate backward\n"
         "   Left joystick = turn front wheels\n"
         "   A button = print current speed and angle\n"
-        "   B button = print contour center and area"
+        "   B button = print the distance at the center of the depth image"
     )
 
 
@@ -74,6 +74,7 @@ def update():
     if rc.controller.is_down(rc.controller.Button.A):
         print("Speed:", speed, "Angle:", angle)
 
+    # Print the depth image center distance when the B button is held down
     if rc.controller.is_down(rc.controller.Button.B):
         print("Center distance:", center_distance)
 
