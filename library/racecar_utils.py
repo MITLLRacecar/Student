@@ -251,7 +251,7 @@ def draw_contour(
     color_image: NDArray[(Any, Any, 3), np.uint8],
     contour: NDArray,
     color: Tuple[int, int, int] = ColorBGR.green.value,
-):
+) -> None:
     """
     Draws a contour on the provided image.
 
@@ -289,7 +289,7 @@ def draw_circle(
     center: Tuple[int, int],
     color: Tuple[int, int, int] = ColorBGR.yellow,
     radius: int = 6,
-):
+) -> None:
     """
     Draws a circle on the provided image.
 
