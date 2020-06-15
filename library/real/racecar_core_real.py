@@ -9,6 +9,7 @@ Contains the Racecar class, the top level of the racecar_core library
 # General
 from datetime import datetime
 import threading
+from typing import Callable, Optional
 
 # ROS
 import rospy
@@ -75,76 +76,25 @@ class RacecarReal(Racecar):
             "     CTRL + Z on keyboard = force quit the program"
         )
 
-    def go(self):
-        """
-        Starts the RACECAR, beginning in default drive mode.
-
-        Note:
-            go idles in the main thread until the car program is exited
-            (START + END pressed simultaneously).
-        """
+    def go(self) -> None:
         self.__running = True
         while self.__running:
             pass
 
-    def set_start_update(self, start, update, update_slow=None):
-        """
-        Sets the start and update functions used in user program mode.
-
-        Example:
-            # Create a racecar object
-            rc = Racecar()
-            # Define a start function
-            def start():
-                print("This function is called once")
-            # Define an update function
-            def update():
-                print("This function is called every frame")
-            # Provide the racecar with the start and update functions
-            rc.set_start_update(start, update)
-            # Tell the racecar to run until the program is exited
-            rc.go()
-
-        Args:
-            start: (function) The function called once every time we enter user
-                program mode.
-            update: (function) The function called every frame in user program modes.
-
-        Note:
-            The provided start and update functions should not take any parameters.
-        """
+    def set_start_update(
+        self,
+        start: Callable[[], None],
+        update: Callable[[], None],
+        update_slow: Optional[Callable[[], None]] = None,
+    ) -> None:
         self.__user_start = start
         self.__user_update = update
         self.__user_update_slow = update_slow
 
-    def get_delta_time(self):
-        """
-        Returns the number of seconds elapsed in the previous frame.
-
-        Returns:
-            (float) The number of seconds between the start of the previous frame and
-            the start of the current frame.
-
-        Example:
-            # Increases counter by the number of seconds elapsed in the previous frame
-            counter += rc.get_delta_time()
-        """
+    def get_delta_time(self) -> float:
         return (self.__cur_frame_time - self.__last_frame_time).total_seconds()
 
-    def set_update_slow_time(self, time):
-        """
-        Changes the time between calls to update_slow.
-
-        Args:
-            time (float): The time in seconds between calls to update_slow.
-
-        Note:
-            The default value is 1 second.
-
-        Example:
-            # Sets the time between calls to update_slow to 2 seconds
-            rc.set_update_slow_ratio(2)
-        """
+    def set_update_slow_time(self, time: float = 1.0) -> None:
         self.__max_update_counter = max(1, round(time * self.__FRAME_RATE))
 
     def __handle_start(self):

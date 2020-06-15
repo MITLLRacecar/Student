@@ -11,6 +11,7 @@ from physics import Physics
 # General
 from collections import deque
 import numpy as np
+from nptyping import NDArray
 
 # ROS
 import rospy
@@ -76,8 +77,8 @@ class PhysicsReal(Physics):
             self.__angular_velocity = np.mean(self.__angular_velocity_buffer, axis=0)
             self.__angular_velocity_buffer.clear()
 
-    def get_linear_acceleration(self):
+    def get_linear_acceleration(self) -> NDArray[3, np.float32]:
         return np.array(self.__acceleration)
 
-    def get_angular_velocity(self):
+    def get_angular_velocity(self) -> NDArray[3, np.float32]:
         return np.array(self.__angular_velocity)

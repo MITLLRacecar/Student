@@ -10,7 +10,7 @@ from controller import Controller
 
 # General
 import copy
-from enum import Enum
+from typing import Tuple
 
 # ROS
 import rospy
@@ -59,39 +59,19 @@ class ControllerReal(Controller):
             self.__TOPIC, Joy, self.__controller_callback
         )
 
-    def is_down(self, button):
-        assert isinstance(
-            button, self.Button
-        ), "button must be member of the rc.controller.Button enum"
-
+    def is_down(self, button: Controller.Button) -> bool:
         return self.__is_down[button.value]
 
-    def was_pressed(self, button):
-        assert isinstance(
-            button, self.Button
-        ), "button must be member of the rc.controller.Button enum"
-
+    def was_pressed(self, button: Controller.Button) -> bool:
         return self.__is_down[button.value] and not self.__was_down[button.value]
 
-    def was_released(self, button):
-        assert isinstance(
-            button, self.Button
-        ), "button must be member of the rc.controller.Button enum"
-
+    def was_released(self, button: Controller.Button) -> bool:
         return not self.__is_down[button.value] and self.__was_down[button.value]
 
-    def get_trigger(self, trigger):
-        assert isinstance(
-            trigger, self.Trigger
-        ), "trigger must be member of the rc.controller.Trigger enum"
-
+    def get_trigger(self, trigger: Controller.Trigger) -> float:
         return self.__last_trigger[trigger.value]
 
-    def get_joystick(self, joystick):
-        assert isinstance(
-            joystick, self.Joystick
-        ), "joystick must be member of the rc.controller.Joystick enum"
-
+    def get_joystick(self, joystick: Controller.Joystick) -> Tuple[float, float]:
         return self.__last_joystick[joystick.value]
 
     def __controller_callback(self, message):

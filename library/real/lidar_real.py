@@ -10,7 +10,7 @@ from lidar import Lidar
 
 # General
 import numpy as np
-from collections import deque
+from nptyping import NDArray
 
 # ROS
 import rospy
@@ -34,6 +34,6 @@ class LidarReal(Lidar):
         self.__samples = list(data.ranges)
         self._event.set()
 
-    def get_samples(self):
+    def get_samples(self) -> NDArray[720, np.float32]:
         # TODO: Handle threading
         return self.__samples
