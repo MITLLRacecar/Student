@@ -26,7 +26,7 @@ import racecar_utils as rc_utils
 # The smallest contour we will recognize as a valid contour
 MIN_CONTOUR_SIZE = 30
 # A crop window for the floor directly in front of the car
-CROP_FLOOR = ((400, 0), (rc.camera.get_height(), rc.camera.get_width()))
+CROP_FLOOR = ((360, 0), (rc.camera.get_height(), rc.camera.get_width()))
 
 # Variables
 speed = 0.0  # The current speed of the car
@@ -46,14 +46,8 @@ BLUE = ((90, 50, 50), (120, 255, 255))  # The HSV range for the color blue
 
 def update_contour():
     """
-    Identifies a contour in the provided image to update global variables.
-
-    Args:
-        image: (2D numpy array of pixels) The image in which to find contours.
-
-    Note:
-        Updates the global variables contour, contour_image, contour_center,
-        and contour_area.
+    Finds contours in the current color image and uses them to update contour_center
+    and contour_area
     """
     global contour_center
     global contour_area
@@ -84,6 +78,10 @@ def update_contour():
             # Draw contour onto the image
             rc_utils.draw_contour(image, contour)
             rc_utils.draw_circle(image, contour_center)
+
+        else:
+            contour_center = None
+            contour_area = 0
 
         # Display the image to the screen
         rc.display.show_color_image(image)
@@ -132,6 +130,7 @@ def update():
     # Choose an angle based on contour_center
     # If we could not find a contour, keep the previous angle
     if contour_center is not None:
+        # Current implementation: bang-bang control (very choppy)
         # TODO (warmup): Implement a smoother way to follow the line
         if contour_center[1] < rc.camera.get_width() / 2:
             angle = -1

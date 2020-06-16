@@ -33,7 +33,7 @@ contour_center = None  # The (pixel row, pixel column) of contour
 contour_area = 0  # The area of contour
 
 # Colors, stored as a pair (hsv_min, hsv_max)
-ORANGE = ((10, 50, 50), (25, 255, 255))  # The HSV range for the color orange
+ORANGE = ((10, 100, 100), (20, 255, 255))  # The HSV range for the color orange
 
 ########################################################################################
 # Functions
@@ -42,14 +42,8 @@ ORANGE = ((10, 50, 50), (25, 255, 255))  # The HSV range for the color orange
 
 def update_contour():
     """
-    Identifies a contour in the provided image to update global variables.
-
-    Args:
-        image: (2D numpy array of pixels) The image in which to find contours.
-
-    Note:
-        Updates the global variables contour, contour_image, contour_center,
-        and contour_area.
+    Finds contours in the current color image and uses them to update contour_center
+    and contour_area
     """
     global contour_center
     global contour_area
@@ -60,7 +54,7 @@ def update_contour():
         contour_center = None
         contour_area = 0
     else:
-        # Find all of the blue contours
+        # Find all of the orange contours
         contours = rc_utils.find_contours(image, ORANGE[0], ORANGE[1])
 
         # Select the largest contour
@@ -74,6 +68,10 @@ def update_contour():
             # Draw contour onto the image
             rc_utils.draw_contour(image, contour)
             rc_utils.draw_circle(image, contour_center)
+
+        else:
+            contour_center = None
+            contour_area = 0
 
         # Display the image to the screen
         rc.display.show_color_image(image)
@@ -111,7 +109,7 @@ def update():
     # Search for contours in the current color image
     update_contour()
 
-    # TODO: Have the car drive up to the cone and park 1 meter away
+    # TODO: Drive up to the cone and park 1 meter away
 
     # Print the current speed and angle when the A button is held down
     if rc.controller.is_down(rc.controller.Button.A):
