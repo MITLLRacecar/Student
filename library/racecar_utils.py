@@ -95,7 +95,7 @@ def remap_range(
 
     # If saturate is true, enforce the new_min and new_max limits
     if saturate:
-        return max(new_min, min(new_max, new_val))
+        return clamp(new_min, new_max, new_val)
 
     return new_val
 
