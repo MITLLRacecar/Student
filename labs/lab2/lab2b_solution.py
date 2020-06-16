@@ -25,35 +25,40 @@ import racecar_utils as rc_utils
 
 
 class Mode(enum.IntEnum):
-    align = 0
-    reverse = 1
+    park = 0
+    forward = 1
+    reverse = 2
 
 
-# Constants
+# >> Constants
 # The smallest contour we will recognize as a valid contour
-MIN_CONTOUR_SIZE = 30
+MIN_CONTOUR_AREA = 30
 
-# Variables
+# Area of the cone contour when we are the correct distance away (must be tuned)
+GOAL_AREA = 24000
+
+# Area of the cone contour when we should switch to reverse while aligning
+REVERSE_AREA = GOAL_AREA * 0.6
+
+# Area of the cone contour when we should switch to forward while aligning
+FORWARD_AREA = GOAL_AREA * 0.4
+
+# Speed to use in parking and aligning modes
+PARK_SPEED = 0.3
+ALIGN_SPEED = 0.7
+
+# The HSV range for the color orange, stored as (hsv_min, hsv_max)
+ORANGE = ((10, 50, 50), (20, 255, 255))
+
+# If desired speed/angle is under these thresholds, they are considered "close enough"
+SPEED_THRESHOLD = 0.05
+ANGLE_THRESHOLD = 0.1
+
+# >> Variables
 speed = 0.0  # The current speed of the car
 angle = 0.0  # The current angle of the car's wheels
 contour_center = None  # The (pixel row, pixel column) of contour
 contour_area = 0  # The area of contour
-cur_mode = Mode.align
-reverse_counter = 0
-
-# Colors, stored as a pair (hsv_min, hsv_max)
-ORANGE = ((10, 100, 100), (20, 255, 255))  # The HSV range for the color orange
-
-# Area of the cone contour when we are the correct distance away (must be tuned)
-CONE_AREA = 10000
-
-# Area of the cone contour when we should switch from reverse to align mode
-REVERSE_CONE_AREA = 5000
-
-# If desired speed/angle is under these thresholds, they are considered "close enough"
-SPEED_THRESHOLD = 0.1
-ANGLE_THRESHOLD = 0.1
-
 
 ########################################################################################
 # Functions
@@ -78,7 +83,7 @@ def update_contour():
         contours = rc_utils.find_contours(image, ORANGE[0], ORANGE[1])
 
         # Select the largest contour
-        contour = rc_utils.get_largest_contour(contours, MIN_CONTOUR_SIZE)
+        contour = rc_utils.get_largest_contour(contours, MIN_CONTOUR_AREA)
 
         if contour is not None:
             # Calculate contour information
@@ -115,8 +120,8 @@ def start():
     # Set update_slow to refresh every half second
     rc.set_update_slow_time(0.5)
 
-    # Begin in "align" mode
-    cur_mode = Mode.align
+    # Begin in "forward" mode
+    cur_mode = Mode.forward
 
     # Print start message
     print(">> Lab 2B - Color Image Cone Parking")
@@ -134,42 +139,63 @@ def update():
     # Search for contours in the current color image
     update_contour()
 
-    # Use proportional control to set wheel angle based on contour x position
-    if contour_center is not None:
+    # If no cone is found, stop
+    if contour_center is None or contour_area == 0:
+        speed = 0
+        angle = 0
+
+    else:
+        # Use proportional control to set wheel angle based on contour x position
         angle = rc_utils.remap_range(contour_center[1], 0, rc.camera.get_width(), -1, 1)
 
-    # REVERSE MODE: back up until contour area is REVERSE_CONE_AREA
-    if cur_mode == Mode.reverse:
-        speed = -0.5
-        if contour_area < REVERSE_CONE_AREA:
-            cur_mode = Mode.align
+        # PARK MODE: Move forward or backward until contour_area is GOAL_AREA
+        if cur_mode == Mode.park:
+            speed = rc_utils.remap_range(
+                contour_area, GOAL_AREA / 2, GOAL_AREA, 1.0, 0.0
+            )
+            speed = rc_utils.clamp(-PARK_SPEED, PARK_SPEED, speed)
 
-    # ALIGN MODE: Set the speed based on the area of the cone contour:
-    # 0 = no contour found, stop
-    # less than CONE_AREA = we are too far away, accelerate forward
-    # CONE_AREA = we are the correct distance away, stop
-    # greater than CONE_AREA = we are too close, back up
-    elif contour_area > 0:
-        speed = rc_utils.remap_range(
-            contour_area, MIN_CONTOUR_SIZE, CONE_AREA, 1.0, 0.0
-        )
-        speed = rc_utils.clamp(-1.0, 1.0, speed)
+            # If speed is close to 0, round to 0 to "park" the car
+            if -SPEED_THRESHOLD < speed < SPEED_THRESHOLD:
+                speed = 0
 
-        # If speed is close to 0, round to 0 to avoid jittering
-        if -SPEED_THRESHOLD < speed < SPEED_THRESHOLD:
-            speed = 0
+            # If the angle is no longer correct, choose mode based on area
+            if abs(angle) > ANGLE_THRESHOLD:
+                cur_mode = Mode.forward if contour_area < FORWARD_AREA else Mode.reverse
 
-        # If we are at the correct distance but wrong angle, go into "reverse" mode
-        if speed == 0 and abs(angle) > ANGLE_THRESHOLD:
-            cur_mode = Mode.reverse
+        # FORWARD MODE: Move forward until area is greater than REVERSE_AREA
+        elif cur_mode == Mode.forward:
+            speed = rc_utils.remap_range(
+                contour_area, MIN_CONTOUR_AREA, REVERSE_AREA, 1.0, 0.0
+            )
+            speed = rc_utils.clamp(0, ALIGN_SPEED, speed)
 
-    # NO CONTOUR: Wait until we see a cone
-    else:
-        speed = 0
+            # Once we pass REVERSE_AREA, switch to reverse mode
+            if contour_area > REVERSE_AREA:
+                cur_mode = Mode.reverse
 
-    # Reverse the angle if we are driving backward
-    if speed < 0:
-        angle *= -1
+            # If we are close to the correct angle, switch to park mode
+            if abs(angle) < ANGLE_THRESHOLD:
+                cur_mode = Mode.park
+
+        # REVERSE MODE: move backward until area is less than FORWARD_AREA
+        else:
+            speed = rc_utils.remap_range(
+                contour_area, REVERSE_AREA, FORWARD_AREA, -1.0, 0.0
+            )
+            speed = rc_utils.clamp(-ALIGN_SPEED, 0, speed)
+
+            # Once we pass FORWARD_AREA, switch to forward mode
+            if contour_area < FORWARD_AREA:
+                cur_mode = Mode.forward
+
+            # If we are close to the correct angle, switch to park mode
+            if abs(angle) < ANGLE_THRESHOLD:
+                cur_mode = Mode.park
+
+        # Reverse the angle if we are driving backward
+        if speed < 0:
+            angle *= -1
 
     rc.drive.set_speed_angle(speed, angle)
 
@@ -183,6 +209,10 @@ def update():
             print("No contour found")
         else:
             print("Center:", contour_center, "Area:", contour_area)
+
+    # Print the current mode when the X button is held down
+    if rc.controller.is_down(rc.controller.Button.X):
+        print("Mode:", cur_mode)
 
 
 def update_slow():

@@ -22,18 +22,18 @@ import racecar_utils as rc_utils
 # Global variables
 ########################################################################################
 
-# Constants
+# >> Constants
 # The smallest contour we will recognize as a valid contour
-MIN_CONTOUR_SIZE = 30
+MIN_CONTOUR_AREA = 30
 
-# Variables
+# The HSV range for the color orange, stored as (hsv_min, hsv_max)
+ORANGE = ((10, 100, 100), (20, 255, 255))
+
+# >> Variables
 speed = 0.0  # The current speed of the car
 angle = 0.0  # The current angle of the car's wheels
 contour_center = None  # The (pixel row, pixel column) of contour
 contour_area = 0  # The area of contour
-
-# Colors, stored as a pair (hsv_min, hsv_max)
-ORANGE = ((10, 100, 100), (20, 255, 255))  # The HSV range for the color orange
 
 ########################################################################################
 # Functions
@@ -58,7 +58,7 @@ def update_contour():
         contours = rc_utils.find_contours(image, ORANGE[0], ORANGE[1])
 
         # Select the largest contour
-        contour = rc_utils.get_largest_contour(contours, MIN_CONTOUR_SIZE)
+        contour = rc_utils.get_largest_contour(contours, MIN_CONTOUR_AREA)
 
         if contour is not None:
             # Calculate contour information

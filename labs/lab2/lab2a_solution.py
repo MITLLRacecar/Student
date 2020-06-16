@@ -22,17 +22,12 @@ import racecar_utils as rc_utils
 # Global variables
 ########################################################################################
 
-# Constants
+# >> Constants
 # The smallest contour we will recognize as a valid contour
-MIN_CONTOUR_SIZE = 30
+MIN_CONTOUR_AREA = 30
+
 # A crop window for the floor directly in front of the car
 CROP_FLOOR = ((360, 0), (rc.camera.get_height(), rc.camera.get_width()))
-
-# Variables
-speed = 0.0  # The current speed of the car
-angle = 0.0  # The current angle of the car's wheels
-contour_center = None  # The (pixel row, pixel column) of contour
-contour_area = 0  # The area of contour
 
 # Colors, stored as a pair (hsv_min, hsv_max)
 BLUE = ((90, 50, 50), (120, 255, 255))  # The HSV range for the color blue
@@ -41,6 +36,13 @@ RED = ((170, 50, 50), (10, 255, 255))  # The HSV range for the color blue
 
 # Priority order for searching for tape colors
 COLOR_PRIORITY = (RED, GREEN, BLUE)
+
+# >> Variables
+speed = 0.0  # The current speed of the car
+angle = 0.0  # The current angle of the car's wheels
+contour_center = None  # The (pixel row, pixel column) of contour
+contour_area = 0  # The area of contour
+
 
 ########################################################################################
 # Functions
@@ -70,7 +72,7 @@ def update_contour():
             contours = rc_utils.find_contours(image, color[0], color[1])
 
             # Select the largest contour
-            contour = rc_utils.get_largest_contour(contours, MIN_CONTOUR_SIZE)
+            contour = rc_utils.get_largest_contour(contours, MIN_CONTOUR_AREA)
 
             if contour is not None:
                 # Calculate contour information
@@ -139,9 +141,9 @@ def update():
         angle = rc_utils.remap_range(contour_center[1], 0, rc.camera.get_width(), -1, 1)
 
     # Use the triggers to control the car's speed
-    forwardSpeed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
-    backSpeed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
-    speed = forwardSpeed - backSpeed
+    rt = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
+    lt = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
+    speed = rt - lt
 
     rc.drive.set_speed_angle(speed, angle)
 
