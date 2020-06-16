@@ -53,6 +53,10 @@ def start():
     assert rc_utils.remap_range(2, 0, 1, -10, 10) == 30
     assert rc_utils.remap_range(2, 0, 1, -10, 10, True) == 10
 
+    assert rc_utils.clamp(0, 10, 3) == 3
+    assert rc_utils.clamp(0, 10, -2) == 0
+    assert rc_utils.clamp(0, 10, 11) == 10
+
 
 def update():
     """

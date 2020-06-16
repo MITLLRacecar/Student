@@ -28,6 +28,31 @@ class ColorBGR(Enum):
     brown = (0, 63, 127)
 
 
+def clamp(min: float, max: float, value: float) -> float:
+    """
+    Clamps a value between a minimum and maximum value.
+
+    Args:
+        min: The minimum allowed value.
+        max: The maximum allowed value.
+        value: The input to clamp.
+
+    Returns:
+        The value saturated between min and max.
+
+    Example:
+        # a will be set to 3
+        a = rc_utils.clamp(0, 10, 3)
+
+        # b will be set to 0
+        b = rc_utils.remap_range(0, 10, -2)
+
+        # c will be set to 10
+        c = rc_utils.remap_range(0, 10, 11)
+    """
+    return min if value < min else max if value > max else value
+
+
 def remap_range(
     val: float,
     old_min: float,
