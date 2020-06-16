@@ -36,8 +36,12 @@ class DriveReal(Drive):
         self.__max_speed = 0.25
 
     def set_speed_angle(self, speed: float, angle: float) -> None:
-        assert -1.0 <= speed <= 1.0, "speed must be between -1.0 and 1.0 inclusive"
-        assert -1.0 <= angle <= 1.0, "angle must be between -1.0 and 1.0 inclusive"
+        assert (
+            -1.0 <= speed <= 1.0
+        ), "speed ({}) must be between -1.0 and 1.0 inclusive.".format(speed)
+        assert (
+            -1.0 <= angle <= 1.0
+        ), "angle ({}) must be between -1.0 and 1.0 inclusive.".format(angle)
 
         self.__message.drive.speed = rc_utils.remap_range(
             speed * self.__max_speed,
@@ -52,10 +56,10 @@ class DriveReal(Drive):
         )
 
     def set_max_speed(self, max_speed: float = 0.25) -> None:
-                assert (
+        assert (
             0.0 <= max_speed <= 1.0
-        ), "max_speed must be between 0.0 and 1.0 inclusive."
-        
+        ), "max_speed ({}) must be between 0.0 and 1.0 inclusive.".format(max_speed)
+
         self.__max_speed_scale_factor = max_speed
 
     def __update(self):
