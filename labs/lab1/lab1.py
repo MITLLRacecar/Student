@@ -3,7 +3,7 @@ Copyright Harvey Mudd College
 MIT License
 Fall 2019
 
-Lab 1 - Driving and Controller
+Lab 1 - Driving in Shapes
 """
 
 ########################################################################################

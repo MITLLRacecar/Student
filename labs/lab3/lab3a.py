@@ -55,15 +55,16 @@ def update():
     is pressed
     """
     # Use the triggers to control the car's speed
-    forwardSpeed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
-    backSpeed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
-    speed = forwardSpeed - backSpeed
+    rt = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
+    lt = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
+    speed = rt - lt
 
     # Calculate the distance of the object directly in front of the car
     depth_image = rc.camera.get_depth_image()
-    center_distance = rc_utils.get_center_distance(depth_image)
+    center_distance = rc_utils.get_depth_image_center_distance(depth_image)
 
-    # TODO (warmup): Prevent forward movement if the car is about to hit something
+    # TODO (warmup): Prevent forward movement if the car is about to hit something.
+    # Allow the user to override safety stop by holding the right bumper.
 
     # Use the left joystick to control the angle of the front wheels
     angle = rc.controller.get_joystick(rc.controller.Joystick.LEFT)[0]
@@ -80,6 +81,13 @@ def update():
 
     # Display the current depth image
     rc.display.show_depth_image(depth_image)
+
+    # TODO (stretch goal): Prevent forward movement if the car is about to drive off a
+    # ledge.  ONLY TEST THIS IN THE SIMULATION, DO NOT TEST THIS WITH A REAL CAR.
+
+    # TODO (stretch goal): Tune safety stop so that the car is still able to drive up
+    # and down gentle ramps.
+    # Hint: You may need to check distance at multiple points.
 
 
 ########################################################################################

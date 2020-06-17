@@ -236,18 +236,18 @@ def find_contours(
 
 
 def get_largest_contour(
-    contours: List[NDArray], min_contour_size: int = 30
+    contours: List[NDArray], min_area: int = 30
 ) -> Optional[NDArray]:
     """
-    Finds the largest contour with size greater than min_contour_size.
+    Finds the largest contour with size greater than min_area.
 
     Args:
         contours: A list of contours found in an image.
-        min_contour_size: The smallest contour to consider (in number of pixels)
+        min_area: The smallest contour to consider (in number of pixels)
 
     Returns:
         The largest contour from the list, or None if no
-        contour was larger than min_contour_size.
+        contour was larger than min_area.
 
     Example:
         # Extract the blue contours
@@ -264,9 +264,9 @@ def get_largest_contour(
     if len(contours) == 0:
         return None
 
-    # Find and return the largest contour if it is larger than MIN_CONTOUR_SIZE
+    # Find and return the largest contour if it is larger than min_area
     greatest_contour = max(contours, key=cv.contourArea)
-    if cv.contourArea(greatest_contour) < min_contour_size:
+    if cv.contourArea(greatest_contour) < min_area:
         return None
 
     return greatest_contour

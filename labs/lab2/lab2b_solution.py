@@ -59,6 +59,7 @@ speed = 0.0  # The current speed of the car
 angle = 0.0  # The current angle of the car's wheels
 contour_center = None  # The (pixel row, pixel column) of contour
 contour_area = 0  # The area of contour
+cur_mode = Mode.forward
 
 ########################################################################################
 # Functions
