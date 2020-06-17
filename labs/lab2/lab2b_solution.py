@@ -154,7 +154,7 @@ def update():
             speed = rc_utils.remap_range(
                 contour_area, GOAL_AREA / 2, GOAL_AREA, 1.0, 0.0
             )
-            speed = rc_utils.clamp(-PARK_SPEED, PARK_SPEED, speed)
+            speed = rc_utils.clamp(speed, -PARK_SPEED, PARK_SPEED)
 
             # If speed is close to 0, round to 0 to "park" the car
             if -SPEED_THRESHOLD < speed < SPEED_THRESHOLD:
@@ -169,7 +169,7 @@ def update():
             speed = rc_utils.remap_range(
                 contour_area, MIN_CONTOUR_AREA, REVERSE_AREA, 1.0, 0.0
             )
-            speed = rc_utils.clamp(0, ALIGN_SPEED, speed)
+            speed = rc_utils.clamp(speed, 0, ALIGN_SPEED)
 
             # Once we pass REVERSE_AREA, switch to reverse mode
             if contour_area > REVERSE_AREA:
@@ -184,7 +184,7 @@ def update():
             speed = rc_utils.remap_range(
                 contour_area, REVERSE_AREA, FORWARD_AREA, -1.0, 0.0
             )
-            speed = rc_utils.clamp(-ALIGN_SPEED, 0, speed)
+            speed = rc_utils.clamp(speed, -ALIGN_SPEED, 0)
 
             # Once we pass FORWARD_AREA, switch to forward mode
             if contour_area < FORWARD_AREA:

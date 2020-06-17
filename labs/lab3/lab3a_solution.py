@@ -111,9 +111,9 @@ def update():
 
     # Calculate a stop distance based on the forward speed
     stop_distance = rc_utils.clamp(
-        MIN_STOP_DISTANCE,
-        MAX_STOP_DISTANCE,
         MIN_STOP_DISTANCE + forward_speed * abs(forward_speed) * STOP_DISTANCE_SCALE,
+        MIN_STOP_DISTANCE,
+        MAX_STOP_DISTANCE
     )
 
     if not rc.controller.is_down(rc.controller.Button.RB):
