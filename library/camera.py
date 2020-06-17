@@ -20,6 +20,9 @@ class Camera(abc.ABC):
     _WIDTH: int = 640
     _HEIGHT: int = 480
 
+    # Maximum range of the depth camera (in cm)
+    _MAX_RANGE = 1200
+
     @abc.abstractmethod
     def get_color_image(self) -> NDArray[(480, 640, 3), np.uint8]:
         """
@@ -36,7 +39,7 @@ class Camera(abc.ABC):
 
         Example:
             # Initialize image with the most recent color image captured by the camera
-            image = rc.camera.get_image()
+            image = rc.camera.get_color_image()
 
             # Stores the amount of blue in the pixel on row 3, column 5
             blue = image[3][5][0]
@@ -69,7 +72,7 @@ class Camera(abc.ABC):
             The width (number of pixel columns) in the color and depth images.
 
         Example:
-            image = rc.camera.get_image()
+            image = rc.camera.get_color_image()
 
             # Access the top right pixel of the image
             top_right_pixel = image[0][rc.camera.get_width() - 1]
@@ -84,9 +87,25 @@ class Camera(abc.ABC):
             The height (number of pixel rows) in the color and depth images.
 
         Example:
-            image = rc.camera.get_image()
+            image = rc.camera.get_color_image()
 
             # Access the top bottom left pixel of the image
             bottom_left_pixel = image[rc.camera.get_height() - 1][0]
         """
         return self._HEIGHT
+
+    def get_max_range(self) -> float:
+        """
+        Returns the maximum distance in cm which can be detected by the depth camera.
+
+        Example:
+            depth_image = rc.camera.get_depth_image()
+            center_distance = rc_utils.get_depth_image_center_distance(depth_image)
+            # If center_distance is 0.0 (no data), set it to max_range
+            if center_distance == 0.0:
+                center_distance = rc.camera.get_max_range()
+
+        Returns:
+            The maximum range of the depth camera.
+        """
+        return self._MAX_RANGE
