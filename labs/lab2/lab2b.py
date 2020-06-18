@@ -109,7 +109,7 @@ def update():
     # Search for contours in the current color image
     update_contour()
 
-    # TODO: Drive up to the cone and park 1 meter away
+    # TODO: Park the car 30 cm away from the closest orange cone
 
     # Print the current speed and angle when the A button is held down
     if rc.controller.is_down(rc.controller.Button.A):

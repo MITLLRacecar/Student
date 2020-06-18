@@ -45,7 +45,7 @@ def update():
     After start() is run, this function is run every frame until the back button
     is pressed
     """
-    # TODO: Park the car 20 cm away from the closest orange cone.
+    # TODO: Park the car 30 cm away from the closest orange cone.
     # Use both color and depth information to handle cones of multiple sizes.
     # You may wish to copy some of your code from lab2b.py
 
