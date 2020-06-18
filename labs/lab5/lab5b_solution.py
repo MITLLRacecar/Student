@@ -38,6 +38,9 @@ GOAL_DIST = 30
 # The angle (in degrees) that the car will look to its sides to decide when to turn left
 SIDE_ANGLE = 75
 
+# Maximum angle (in degrees) to use when measuring front distance
+FRONT_DIST_ANGLE = 10
+
 # The amount the left distance must be larger than the right distance to turn left
 LEFT_TURN_RATIO = 2
 
@@ -66,7 +69,9 @@ def update():
     highlighted_samples = []  # Samples we will highlight in the LIDAR visualization
 
     # Choose speed based on forward distance
-    _, front_dist = rc_utils.get_lidar_closest_point(scan, (-15, 15))
+    _, front_dist = rc_utils.get_lidar_closest_point(
+        scan, (-FRONT_DIST_ANGLE, FRONT_DIST_ANGLE)
+    )
     speed = rc_utils.remap_range(front_dist, 0, BRAKE_DISTANCE, 0, MAX_SPEED, True)
 
     # Measure distance to the left and right walls ahead of the car
