@@ -23,6 +23,7 @@ import racecar_utils as rc_utils
 # Global variables
 ########################################################################################
 
+
 class Mode(enum.IntEnum):
     park = 0
     forward = 1
@@ -33,13 +34,13 @@ class Mode(enum.IntEnum):
 # The smallest contour we will recognize as a valid contour
 MIN_CONTOUR_AREA = 30
 
-# Distance we will park away from the cone (in cm)
+# Distance (in cm) we will park away from the cone
 GOAL_DISTANCE = 30
 
-# Distance at which we switch from reverse to forward mode
+# Distance (in cm) at which we switch from reverse to forward mode
 FORWARD_DISTANCE = 120
 
-# Distance at which we switch from forward to reverse mode
+# Distance (in cm) at which we switch from forward to reverse mode
 REVERSE_DISTANCE = 60
 
 # Speed to use in parking and aligning modes
@@ -62,6 +63,7 @@ cur_mode = Mode.forward
 ########################################################################################
 # Functions
 ########################################################################################
+
 
 def update_contour():
     """
@@ -94,6 +96,7 @@ def update_contour():
         # Display the image to the screen
         rc.display.show_color_image(image)
 
+
 def start():
     """
     This function is run once every time the start button is pressed
@@ -109,7 +112,7 @@ def start():
     # Set initial driving speed and angle
     rc.drive.set_speed_angle(speed, angle)
 
-    # Begin in "align" mode
+    # Begin in "forward" mode
     cur_mode = Mode.forward
 
     # Print start message
@@ -142,7 +145,7 @@ def update():
         # Use proportional control to set wheel angle based on contour x position
         angle = rc_utils.remap_range(contour_center[1], 0, rc.camera.get_width(), -1, 1)
 
-        # PARK MODE: Move forward or backward until contour_area is GOAL_AREA
+        # PARK MODE: Move forward or backward until contour_area is GOAL_DISTANCE
         if cur_mode == Mode.park:
             speed = rc_utils.remap_range(
                 distance, GOAL_DISTANCE * 2, GOAL_DISTANCE, 1.0, 0.0
