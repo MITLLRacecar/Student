@@ -608,13 +608,13 @@ def get_lidar_closest_point(
         # Find the closest distance in the 90 degree window in front of the car
         _, front_distance = rc_utils.get_lidar_closest_point(scan, (315, 45))
     """
-    assert (
-        0 <= window[0] <= 360 and 0 <= window[1] <= 360
-    ), "The degrees in window ({}) must be between 0 and 360".format(window)
+    # Adjust window angles into the 0 to 360 degree range
+    min_angle = window[0] % 360
+    max_angle = window[1] % 360
 
     # Find the indices of the first and last sample in window
-    first_sample: int = round(window[0] * len(scan) / 360)
-    last_sample: int = round(window[1] * len(scan) / 360)
+    first_sample: int = round(min_angle * len(scan) / 360)
+    last_sample: int = round(max_angle * len(scan) / 360)
 
     # If we pass the 0-360 boundary, we must consider the scan in two pieces
     if first_sample > last_sample:
@@ -671,12 +671,14 @@ def get_lidar_average_distance(
         # Find the distance to the forward and right of the car (1:30 position)
         forward_right_distance = rc_utils.get_lidar_average_distance(scan, 45)
     """
-    assert 0 <= angle < 360, "angle ({}) must be in the range 0 to 360.".format(angle)
     assert (
         0 <= window_angle < 360
     ), "window_angle ({}) must be in the range 0 to 360, and reasonably should not exceed 20.".format(
         window_angle
     )
+
+    # Adjust angle into the 0 to 360 degree range
+    angle %= 360
 
     # Calculate the indices at the edges of the requested window
     center_index: int = int(angle * scan.shape[0] / 360)
