@@ -571,17 +571,20 @@ def get_closest_pixel(
     return (minLoc[1], minLoc[0])
 
 
-def get_lidar_closest_point(scan: NDArray[Any, np.float32]) -> Tuple[float, float]:
+def get_lidar_closest_point(
+    scan: NDArray[Any, np.float32], window: Tuple[float, float] = (0, 360)
+) -> Tuple[float, float]:
     """
     Finds the closest point from a LIDAR scan.
 
     Args:
         scan: The samples from a LIDAR scan.
+        window: The degree range to consider, expressed as (min_degree, max_degree)
 
     Returns:
-        The (angle, distance) of the point closest to the car. Angle is in degrees,
-        starting at 0 directly in front of the car and increasing clockwise.
-        Distance is in cm.
+        The (angle, distance) of the point closest to the car within the specified
+        degree window. All angles are in degrees, starting at 0 directly in front of the
+        car and increasing clockwise. Distance is in cm.
 
     Warning:
         In areas with glass, mirrors, or large open spaces, there is a high
@@ -589,22 +592,55 @@ def get_lidar_closest_point(scan: NDArray[Any, np.float32]) -> Tuple[float, floa
 
     Note:
         Ignores any samples with a value of 0.0 (no data).
+        In order to define a window which passes through the 360-0 degree boundary, it
+        is acceptable for window min_degree to be larger than window max_degree.  For
+        example, (350, 10) is a 20 degree window in front of the car.
 
     Example:
         scan = rc.lidar.get_samples()
 
         # Find the angle and distance of the closest point
         angle, distance = rc_utils.get_lidar_closest_point(scan)
+
+        # Find the closest distance in the 90 degree window behind the car
+        _, back_distance = rc_utils.get_lidar_closest_point(scan, (135, 225))
+
+        # Find the closest distance in the 90 degree window in front of the car
+        _, front_distance = rc_utils.get_lidar_closest_point(scan, (315, 45))
     """
-    # Find the minimum value in scan which is not 0.0 (no data)
-    clean_scan = [elem for elem in scan if elem > 0.0]
-    closest_distance = min(clean_scan)
+    assert (
+        0 <= window[0] <= 360 and 0 <= window[1] <= 360
+    ), "The degrees in window ({}) must be between 0 and 360".format(window)
 
-    # Use the index of this value to find its angle
-    index = np.where(scan == closest_distance)[0][0]
-    degree = index * 360 / (scan.shape[0])
+    # Find the indices of the first and last sample in window
+    first_sample: int = round(window[0] * len(scan) / 360)
+    last_sample: int = round(window[1] * len(scan) / 360)
 
-    return (degree, closest_distance)
+    # If we pass the 0-360 boundary, we must consider the scan in two pieces
+    if first_sample > last_sample:
+        left_samples = scan[first_sample:]
+        right_samples = scan[0:last_sample]
+
+        # Turn 0.0 (no data) into a very large number so it is ignored
+        left_samples = (left_samples - 0.01) % 1000000
+        right_samples = (right_samples - 0.01) % 1000000
+
+        # Find index and value of min value in each piece
+        left_min_index = np.argmin(left_samples)
+        left_min = left_samples[left_min_index]
+        right_min_index = np.argmin(right_samples)
+        right_min = right_samples[right_min_index]
+
+        # Return the degree and angle of the smaller value
+        if left_min < right_min:
+            return (first_sample + left_min_index) * 360 / scan.shape[0], left_min
+        else:
+            return right_min_index * 360 / scan.shape[0], right_min
+
+    # Otherwise, use the same approach but for one continuous piece
+    samples = (scan[first_sample:last_sample] - 0.01) % 1000000
+    min_index = np.argmin(samples)
+    return (first_sample + min_index) * 360 / scan.shape[0], samples[min_index]
 
 
 def get_lidar_average_distance(
