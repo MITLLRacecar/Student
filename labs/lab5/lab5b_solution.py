@@ -23,11 +23,23 @@ import racecar_utils as rc_utils
 ########################################################################################
 
 # >> Constants
-MAX_SPEED = 0.5
+# The maximum speed the car will travel
+MAX_SPEED = 0.6
 
+# When an object in front of the car is closer than this (in cm), start braking
+BRAKE_DISTANCE = 150
+
+# The window of angles the car will consider when measuring distance to the right wall
+WINDOW_ANGLES = (15, 60)
+
+# The distance (in cm) the car will attempt to stay from the right wall
 GOAL_DIST = 30
 
-# Add any global variables here
+# The angle (in degrees) that the car will look to its sides to decide when to turn left
+SIDE_ANGLE = 75
+
+# The amount the left distance must be larger than the right distance to turn left
+LEFT_TURN_RATIO = 2
 
 ########################################################################################
 # Functions
@@ -51,27 +63,33 @@ def update():
     is pressed
     """
     scan = rc.lidar.get_samples()
+    highlighted_samples = []  # Samples we will highlight in the LIDAR visualization
 
     # Choose speed based on forward distance
-    front_dist = rc_utils.get_lidar_average_distance(scan, 0)
-    speed = rc_utils.remap_range(front_dist, 0, 200, 0, MAX_SPEED, True)
+    _, front_dist = rc_utils.get_lidar_closest_point(scan, (-15, 15))
+    speed = rc_utils.remap_range(front_dist, 0, BRAKE_DISTANCE, 0, MAX_SPEED, True)
 
-    left_ahead = rc_utils.get_lidar_average_distance(scan, 360 - 75)
-    right_ahead = rc_utils.get_lidar_average_distance(scan, 75)
-
-    highlighted_samples = []
-
+    # Measure distance to the left and right walls ahead of the car
+    left_ahead = rc_utils.get_lidar_average_distance(scan, -SIDE_ANGLE)
+    right_ahead = rc_utils.get_lidar_average_distance(scan, SIDE_ANGLE)
     ratio = left_ahead / right_ahead if left_ahead > 0 and right_ahead > 0 else 1.0
-    if front_dist < 200 and ratio > 2:
+
+    # If there is a wall ahead and the left wall is significantly father, assume that
+    # the hallway has turned left
+    if front_dist < BRAKE_DISTANCE and ratio > LEFT_TURN_RATIO:
         angle = -1
         print("HARD LEFT: ratio", ratio, "front dist", front_dist)
 
+    # Otherwise, try to stay GOAL_DIST away from the right wall
     else:
-        min_angle, min_side_dist = rc_utils.get_lidar_closest_point(scan, (15, 60))
-        angle = rc_utils.remap_range(min_side_dist, GOAL_DIST / 2, GOAL_DIST, -1, 0)
+        right_wall_angle, right_wall_dist = rc_utils.get_lidar_closest_point(
+            scan, WINDOW_ANGLES
+        )
+        angle = rc_utils.remap_range(right_wall_dist, GOAL_DIST / 2, GOAL_DIST, -1, 0)
         angle = rc_utils.clamp(angle, -1, 1)
-        print("min side:", min_side_dist, "front", front_dist)
-        highlighted_samples = [(min_angle, min_side_dist)]
+
+        # Display the closest point on the right wall
+        highlighted_samples = [(right_wall_angle, right_wall_dist)]
 
     rc.drive.set_speed_angle(speed, angle)
     rc.display.show_lidar(scan, highlighted_samples=highlighted_samples)
