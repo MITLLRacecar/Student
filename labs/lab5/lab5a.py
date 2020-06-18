@@ -55,16 +55,17 @@ def update():
     is pressed
     """
     # Use the triggers to control the car's speed
-    forwardSpeed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
-    backSpeed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
-    speed = forwardSpeed - backSpeed
+    rt = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
+    lt = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
+    speed = rt - lt
 
     # Calculate the distance in front of and behind the car
     scan = rc.lidar.get_samples()
     forward_distance = rc_utils.get_lidar_average_distance(scan, 0)
     back_distance = rc_utils.get_lidar_average_distance(scan, 180)
 
-    # TODO (warmup): Prevent the car from hitting things in front or behind it
+    # TODO (warmup): Prevent the car from hitting things in front or behind it.
+    # Allow the user to override safety stop by holding the left or right bumper.
 
     # Use the left joystick to control the angle of the front wheels
     angle = rc.controller.get_joystick(rc.controller.Joystick.LEFT)[0]
