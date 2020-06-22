@@ -44,6 +44,7 @@ def start():
         "\n"
         "Controls:\n"
         "   Right trigger = accelerate forward\n"
+        "   Right bumper = override safety stop\n"
         "   Left trigger = accelerate backward\n"
         "   Left joystick = turn front wheels\n"
         "   A button = print current speed and angle\n"
