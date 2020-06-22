@@ -24,7 +24,10 @@ import racecar_utils as rc_utils
 
 rc = racecar_core.create_racecar()
 
-# Add any global variables here
+# >> Constants
+# The (min, max) degrees to consider when measuring forward and rear distances
+FRONT_WINDOW = (-10, 10)
+REAR_WINDOW = (170, 190)
 
 ########################################################################################
 # Functions
@@ -44,7 +47,9 @@ def start():
         "\n"
         "Controls:\n"
         "   Right trigger = accelerate forward\n"
+        "   Right bumper = override forward safety stop\n"
         "   Left trigger = accelerate backward\n"
+        "   Left bumper = override rear safety stop\n"
         "   Left joystick = turn front wheels\n"
         "   A button = print current speed and angle\n"
         "   B button = print forward and back distances"
@@ -63,8 +68,8 @@ def update():
 
     # Calculate the distance in front of and behind the car
     scan = rc.lidar.get_samples()
-    forward_distance = rc_utils.get_lidar_average_distance(scan, 0)
-    back_distance = rc_utils.get_lidar_average_distance(scan, 180)
+    _, forward_dist = rc_utils.get_lidar_closest_point(scan, FRONT_WINDOW)
+    _, back_dist = rc_utils.get_lidar_closest_point(scan, REAR_WINDOW)
 
     # TODO (warmup): Prevent the car from hitting things in front or behind it.
     # Allow the user to override safety stop by holding the left or right bumper.
@@ -80,7 +85,7 @@ def update():
 
     # Print the distance of the closest object in front of and behind the car
     if rc.controller.is_down(rc.controller.Button.B):
-        print("Forward distance:", forward_distance, "Back distance:", back_distance)
+        print("Forward distance:", forward_dist, "Back distance:", back_dist)
 
     # Display the current LIDAR scan
     rc.display.show_lidar(scan)
