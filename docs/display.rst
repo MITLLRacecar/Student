@@ -3,5 +3,5 @@
 Display Module
 =========================================
 
-.. autoclass:: display.Display
+.. autoclass:: display::Display
    :members:

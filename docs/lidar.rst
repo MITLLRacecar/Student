@@ -3,5 +3,5 @@
 LIDAR Module
 =========================================
 
-.. autoclass:: lidar.Lidar
+.. autoclass:: lidar::Lidar
    :members:

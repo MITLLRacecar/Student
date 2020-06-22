@@ -3,5 +3,5 @@
 Physics Module
 =========================================
 
-.. autoclass:: physics.Physics
+.. autoclass:: physics::Physics
    :members:

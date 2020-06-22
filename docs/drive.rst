@@ -3,5 +3,5 @@
 Drive Module
 =========================================
 
-.. autoclass:: drive.Drive
+.. autoclass:: drive::Drive
    :members:

@@ -3,5 +3,5 @@
 Controller Module
 =========================================
 
-.. autoclass:: controller.Controller
+.. autoclass:: controller::Controller
    :members:

@@ -3,5 +3,5 @@
 Camera Module
 =========================================
 
-.. autoclass:: camera.Camera
+.. autoclass:: camera::Camera
    :members:
