@@ -16,13 +16,14 @@ import numpy as np
 import enum
 
 sys.path.insert(0, "../../library")
-from racecar_core import rc
+import racecar_core
 import racecar_utils as rc_utils
 
 ########################################################################################
 # Global variables
 ########################################################################################
 
+rc = racecar_core.create_racecar()
 
 class Mode(enum.IntEnum):
     align = 0

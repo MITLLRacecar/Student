@@ -13,11 +13,13 @@ Demo RACECAR program
 import sys
 
 sys.path.insert(0, '../library')
-from racecar_core import rc
+import racecar_core
 
 ########################################################################################
 # Global variables
 ########################################################################################
+
+rc = racecar_core.create_racecar()
 
 # Declare any global variables here
 counter = 0

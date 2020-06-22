@@ -13,12 +13,14 @@ Lab 1 - Driving in Shapes
 import sys
 
 sys.path.insert(1, "../../library")
-from racecar_core import rc
+import racecar_core
 import racecar_utils as rc_utils
 
 ########################################################################################
 # Global variables
 ########################################################################################
+
+rc = racecar_core.create_racecar()
 
 # Put any global variables here
 

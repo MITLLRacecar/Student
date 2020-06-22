@@ -15,18 +15,16 @@ import cv2 as cv
 import numpy as np
 
 sys.path.insert(0, "../../library")
-from racecar_core import rc
+import racecar_core
 import racecar_utils as rc_utils
 
 ########################################################################################
 # Global variables
 ########################################################################################
 
-# Variables
-forward_speed = 0  # cm/s
-prev_distance = 0  # cm
+rc = racecar_core.create_racecar()
 
-# Constants
+# >> Constants
 MIN_STOP_DISTANCE = 20  # cm
 MAX_STOP_DISTANCE = 80  # cm
 ALPHA = 0.2  # Amount to use current_speed in forward_speed
@@ -40,6 +38,11 @@ STOP_DISTANCE_SCALE = 40.0 / 10000
 
 # slow_distance / stop_distance
 SLOW_DISTANCE_RATIO = 1.5
+
+# >> Variables
+forward_speed = 0  # cm/s
+prev_distance = 0  # cm
+
 
 ########################################################################################
 # Functions
@@ -113,7 +116,7 @@ def update():
     stop_distance = rc_utils.clamp(
         MIN_STOP_DISTANCE + forward_speed * abs(forward_speed) * STOP_DISTANCE_SCALE,
         MIN_STOP_DISTANCE,
-        MAX_STOP_DISTANCE
+        MAX_STOP_DISTANCE,
     )
 
     if not rc.controller.is_down(rc.controller.Button.RB):

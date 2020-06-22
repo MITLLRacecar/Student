@@ -15,12 +15,14 @@ import cv2 as cv
 import numpy as np
 
 sys.path.insert(0, "../../library")
-from racecar_core import rc
+import racecar_core
 import racecar_utils as rc_utils
 
 ########################################################################################
 # Global variables
 ########################################################################################
+
+rc = racecar_core.create_racecar()
 
 # >> Constants
 # The maximum speed the car will travel

@@ -13,12 +13,14 @@ A simple program which can be used to manually test racecar_core functionality.
 import sys
 
 sys.path.insert(1, "../library")
-from racecar_core import rc
+import racecar_core
 import racecar_utils as rc_utils
 
 ########################################################################################
 # Global variables
 ########################################################################################
+
+rc = racecar_core.create_racecar()
 
 max_speed = 0
 update_slow_time = 0

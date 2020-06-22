@@ -14,18 +14,20 @@ import math
 import sys
 
 sys.path.insert(1, "../library")
-from racecar_core import rc
+import racecar_core
 import racecar_utils as rc_utils
 
 ########################################################################################
 # Global variables
 ########################################################################################
 
+rc = racecar_core.create_racecar()
+
+RED = ((170, 50, 50), (10, 255, 255))
+
 max_speed = 0
 show_triggers = False
 show_joysticks = False
-
-RED = ((170, 50, 50), (10, 255, 255))
 
 ########################################################################################
 # Functions

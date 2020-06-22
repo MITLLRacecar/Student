@@ -22,6 +22,8 @@ import racecar_utils as rc_utils
 # Global variables
 ########################################################################################
 
+rc = racecar_core.create_racecar()
+
 # Add any global variables here
 
 ########################################################################################

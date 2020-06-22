@@ -115,21 +115,29 @@ class Racecar(abc.ABC):
         """
         pass
 
-# # Create global Racecar instance
-# rc: Racecar
-# library_path = __file__.replace("racecar_core.py", "")
 
-# # Create a RaceacarSim (used to interface with the Unity simulation) if the user ran
-# # the program with the -s flag
-# if len(sys.argv) > 1 and sys.argv[1] == "-s":
-#     sys.path.insert(1, library_path + "simulation")
-#     from racecar_core_sim import RacecarSim
+def create_racecar() -> Racecar:
+    """
+    Generates a racecar object based on the execution flags.
 
-#     rc = RacecarSim()
+    Returns:
+        A RacecarSim object (for use with the Unity simulation) if the program was
+        executed with the -s flag, or a RacecarReal object (for use on the physical car)
+        otherwise.
+    """
+    library_path = __file__.replace("racecar_core.py", "")
 
-# # Otherwise, create a RacecarReal (used to run on the physical car)
-# else:
-#     sys.path.insert(1, library_path + "real")
-#     from racecar_core_real import RacecarReal
+    # Create a RaceacarSim (used to interface with the Unity simulation) if the user ran
+    # the program with the -s flag
+    if len(sys.argv) > 1 and sys.argv[1] == "-s":
+        sys.path.insert(1, library_path + "simulation")
+        from racecar_core_sim import RacecarSim
 
-#     rc = RacecarReal()
+        return RacecarSim()
+
+    # Otherwise, create a RacecarReal (used to run on the physical car)
+    else:
+        sys.path.insert(1, library_path + "real")
+        from racecar_core_real import RacecarReal
+
+        return RacecarReal()
