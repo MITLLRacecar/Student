@@ -27,7 +27,7 @@ rc = racecar_core.create_racecar()
 # >> Constants
 MIN_STOP_DISTANCE = 20  # cm
 MAX_STOP_DISTANCE = 80  # cm
-ALPHA = 0.2  # Amount to use current_speed in forward_speed
+ALPHA = 0.2  # Amount to use current_speed when updating cur_speed
 
 # Right and left points to sample in the depth image
 RIGHT_POINT = (rc.camera.get_height() // 2, int(rc.camera.get_width() * 5.0 / 8.0))
@@ -40,7 +40,7 @@ STOP_DISTANCE_SCALE = 40.0 / 10000
 SLOW_DISTANCE_RATIO = 1.5
 
 # >> Variables
-forward_speed = 0  # cm/s
+cur_speed = 0  # cm/s
 prev_distance = 0  # cm
 
 
@@ -53,14 +53,14 @@ def start():
     """
     This function is run once every time the start button is pressed
     """
-    global forward_speed
+    global cur_speed
     global prev_distance
 
     # Have the car begin at a stop
     rc.drive.stop()
 
     # Initialize variables
-    forward_speed = 0
+    cur_speed = 0
     depth_image = rc.camera.get_depth_image()
     prev_distance = rc_utils.get_depth_image_center_distance(depth_image)
 
@@ -70,6 +70,7 @@ def start():
         "\n"
         "Controls:\n"
         "   Right trigger = accelerate forward\n"
+        "   Right bumper = override safety stop\n"
         "   Left trigger = accelerate backward\n"
         "   Left joystick = turn front wheels\n"
         "   A button = print current speed and angle\n"
@@ -82,7 +83,7 @@ def update():
     After start() is run, this function is run every frame until the back button
     is pressed
     """
-    global forward_speed
+    global cur_speed
     global prev_distance
 
     # Use the triggers to control the car's speed
@@ -108,40 +109,35 @@ def update():
     distance = min(center_distance, right_distance, left_distance)
 
     # Update forward speed estimate
-    cur_speed = (prev_distance - distance) / rc.get_delta_time()
-    forward_speed += ALPHA * (cur_speed - forward_speed)
+    frame_speed = (prev_distance - distance) / rc.get_delta_time()
+    cur_speed += ALPHA * (frame_speed - cur_speed)
     prev_distance = distance
 
-    # Calculate a stop distance based on the forward speed
+    # Calculate slow and stop distances based on the forward speed
     stop_distance = rc_utils.clamp(
-        MIN_STOP_DISTANCE + forward_speed * abs(forward_speed) * STOP_DISTANCE_SCALE,
+        MIN_STOP_DISTANCE + cur_speed * abs(cur_speed) * STOP_DISTANCE_SCALE,
         MIN_STOP_DISTANCE,
         MAX_STOP_DISTANCE,
     )
+    slow_distance = stop_distance * SLOW_DISTANCE_RATIO
 
-    if not rc.controller.is_down(rc.controller.Button.RB):
-        # If we are past slow_distance and driving forward, start to slow down
-        slow_distance = stop_distance * SLOW_DISTANCE_RATIO
-        if speed > 0 and stop_distance < distance < slow_distance:
-            # Reduce speed proportional to how close we are to stop_distance
+    if not rc.controller.is_down(rc.controller.Button.RB) and cur_speed > 0:
+        # If we are past slow_distance, reduce speed proportional to how close we are
+        # to stop_distance
+        if stop_distance < distance < slow_distance:
             speed = min(
                 speed,
                 rc_utils.remap_range(distance, stop_distance, slow_distance, 0, 0.5),
             )
             print("Safety slow: speed limited to {}".format(speed))
 
-        # Safety stop if we are passed stop_distance
+        # Safety stop if we are passed stop_distance by reversing at a speed
+        # proportional to how far we are past stop_distance
         if 0 < distance < stop_distance:
-            # In this case, the car is already traveling in reverse, so we do not need
-            # to add much additional reverse throttle
-            if abs(stop_distance - MIN_STOP_DISTANCE) < 0.01:
-                speed = -0.2
-
-            # Reverse at a speed proportional to how far we are past stop_distance
-            else:
-                speed = rc_utils.remap_range(
-                    distance, MIN_STOP_DISTANCE, stop_distance, -1, -0.2, True
-                )
+            speed = rc_utils.remap_range(
+                distance, 0, stop_distance, -4, -0.2, True
+            )
+            speed = rc_utils.clamp(speed, -1, -0.2)
             print("Safety stop: reversing at {}".format(speed))
 
     # Use the left joystick to control the angle of the front wheels
@@ -157,9 +153,13 @@ def update():
     if rc.controller.is_down(rc.controller.Button.B):
         print("Center distance:", center_distance)
 
-    # Print current forward_speed estimate when the X button is held down
+    # Print cur_speed estimate and stop distance when the X button is held down
     if rc.controller.is_down(rc.controller.Button.X):
-        print("Forward speed estimate: {} cm/s".format(forward_speed))
+        print(
+            "Current speed estimate: {:.2f} cm/s, Stop distance: {:.2f}".format(
+                cur_speed, stop_distance
+            )
+        )
 
     # Display the current depth image
     rc.display.show_depth_image(depth_image)
