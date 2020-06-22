@@ -39,7 +39,7 @@ def start():
     print(
         ">> Lab 1 - Driving in Shapes\n"
         "\n"
-        "Controlls:\n"
+        "Controls:\n"
         "   Right trigger = accelerate forward\n"
         "   Left trigger = accelerate backward\n"
         "   Left joystick = turn front wheels\n"

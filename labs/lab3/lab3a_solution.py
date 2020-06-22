@@ -65,7 +65,7 @@ def start():
     print(
         ">> Lab 3A - Depth Camera Safety Stop\n"
         "\n"
-        "Controlls:\n"
+        "Controls:\n"
         "   Right trigger = accelerate forward\n"
         "   Left trigger = accelerate backward\n"
         "   Left joystick = turn front wheels\n"
