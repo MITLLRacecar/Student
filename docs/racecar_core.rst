@@ -22,5 +22,5 @@ The ``racecar_core`` library exposes the intended interface for programming the 
 Racecar Module
 =================================
 
-.. autoclass:: racecar_core.Racecar
+.. autoclass:: racecar_core::Racecar
    :members:
