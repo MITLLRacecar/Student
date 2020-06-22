@@ -19,9 +19,8 @@ The ``racecar_core`` library exposes the intended interface for programming the 
    sound
 
 =================================
-Main Module
+Racecar Module
 =================================
 
-.. doxygenclass:: racecar_core::Racecar
-   :project: racecar_core
+.. autoclass:: racecar_core.Racecar
    :members:

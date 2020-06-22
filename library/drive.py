@@ -15,7 +15,17 @@ class Drive(abc.ABC):
         """
         Sets the throttle applied to the back wheels and the angle of the front wheels.
 
-        Example:
+        Args:
+            speed: The amount of throttle (torque) applied to the back wheels from -1.0
+                (full backward) to 1.0 (full forward).
+            angle: The amount to turn the front wheels from -1.0 (full left) to 1.0
+                (full right).
+
+        Note:
+            The speed and angle arguments are unitless ratios.
+
+        Example::
+
             if counter < 1:
                 # Drive straight forward at full speed
                 rc.drive.set_speed_angle(1, 0)
@@ -25,15 +35,6 @@ class Drive(abc.ABC):
             else:
                 # Drive 70% to the right at half speed forward
                 rc.drive.set_speed_angle(0.5, 0.7)
-
-        Args:
-            speed: The amount of throttle (torque) applied to the back wheels from -1.0
-                (full backward) to 1.0 (full forward).
-            angle: The amount to turn the front wheels from -1.0 (full left) to 1.0
-                (full right).
-
-        Note:
-            The speed and angle arguments are unitless ratios.
         """
         pass
 
@@ -41,13 +42,14 @@ class Drive(abc.ABC):
         """
         Brings the car to a stop and points the front wheels forward.
 
-        Example:
+        Note:
+            stop is equivalent to rc.drive.set_speed_angle(0, 0)
+
+        Example::
+
             # Stops the car if the counter is greater than 5
             if counter > 5:
                 rc.drive.stop()
-
-        Note:
-            stop is equivalent to rc.drive.set_speed_angle(0, 0)
         """
         self.set_speed_angle(0, 0)
 
@@ -65,7 +67,8 @@ class Drive(abc.ABC):
             The max speed if you are in a safe environment without the potential for
             hard collisions.
 
-        Example:
+        Example::
+
             # Update the max speed to 0.5
             rc.set_max_speed(0.5)
         """

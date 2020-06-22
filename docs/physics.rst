@@ -3,6 +3,5 @@
 Physics Module
 =========================================
 
-.. doxygenclass:: physics::Physics
-   :project: racecar_core
+.. autoclass:: physics.Physics
    :members:

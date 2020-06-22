@@ -29,7 +29,8 @@ class Display(abc.ABC):
         Args:
             image: The color image to display to the the screen.
 
-        Example:
+        Example::
+
             image = rc.camera.get_color_image()
 
             # Show the image captured by the camera
@@ -53,7 +54,8 @@ class Display(abc.ABC):
             points: A list of points in (pixel row, pixel column) format to show on
                 the image as black crosses.
 
-        Example:
+        Example::
+
             depth_image = rc.camera.get_depth_image()
 
             # Show the depth_image captured by the camera.
@@ -120,7 +122,8 @@ class Display(abc.ABC):
             sample is equal angle appart, and that samples spans the entire 360 degrees.
             If this is not the case, the visualization will be inaccurate.
 
-        Example:
+        Example::
+
             depth_image = rc.camera.get_depth_image()
 
             # Show the depth_image captured by the camera.

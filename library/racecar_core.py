@@ -53,20 +53,6 @@ class Racecar(abc.ABC):
         """
         Sets the start and update functions used in user program mode.
 
-        Example:
-            # Create a racecar object
-            rc = Racecar()
-            # Define a start function
-            def start():
-                print("This function is called once")
-            # Define an update function
-            def update():
-                print("This function is called every frame")
-            # Provide the racecar with the start and update functions
-            rc.set_start_update(start, update)
-            # Tell the racecar to run until the program is exited
-            rc.go()
-
         Args:
             start: A function called once when the car enters user program mode.
             update: A function called every frame in user program mode. Approximately
@@ -76,6 +62,25 @@ class Racecar(abc.ABC):
 
         Note:
             The provided functions should not take any parameters.
+
+        Example::
+
+            # Create a racecar object
+            rc = Racecar()
+
+            # Define a start function
+            def start():
+                print("This function is called once")
+
+            # Define an update function
+            def update():
+                print("This function is called every frame")
+
+            # Provide the racecar with the start and update functions
+            rc.set_start_update(start, update)
+
+            # Tell the racecar to run until the program is exited
+            rc.go()
         """
         pass
 
@@ -88,7 +93,8 @@ class Racecar(abc.ABC):
             The number of seconds between the start of the previous frame and
             the start of the current frame.
 
-        Example:
+        Example::
+
             # Increases counter by the number of seconds elapsed in the previous frame
             counter += rc.get_delta_time()
         """
@@ -102,27 +108,28 @@ class Racecar(abc.ABC):
         Args:
             time: The time in seconds between calls to update_slow.
 
-        Example:
+        Example::
+
             # Sets the time between calls to update_slow to 2 seconds
             rc.set_update_slow_time(2)
         """
         pass
 
-# Create global Racecar instance
-rc: Racecar
-library_path = __file__.replace("racecar_core.py", "")
+# # Create global Racecar instance
+# rc: Racecar
+# library_path = __file__.replace("racecar_core.py", "")
 
-# Create a RaceacarSim (used to interface with the Unity simulation) if the user ran
-# the program with the -s flag
-if len(sys.argv) > 1 and sys.argv[1] == "-s":
-    sys.path.insert(1, library_path + "simulation")
-    from racecar_core_sim import RacecarSim
+# # Create a RaceacarSim (used to interface with the Unity simulation) if the user ran
+# # the program with the -s flag
+# if len(sys.argv) > 1 and sys.argv[1] == "-s":
+#     sys.path.insert(1, library_path + "simulation")
+#     from racecar_core_sim import RacecarSim
 
-    rc = RacecarSim()
+#     rc = RacecarSim()
 
-# Otherwise, create a RacecarReal (used to run on the physical car)
-else:
-    sys.path.insert(1, library_path + "real")
-    from racecar_core_real import RacecarReal
+# # Otherwise, create a RacecarReal (used to run on the physical car)
+# else:
+#     sys.path.insert(1, library_path + "real")
+#     from racecar_core_real import RacecarReal
 
-    rc = RacecarReal()
+#     rc = RacecarReal()

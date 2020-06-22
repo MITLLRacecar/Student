@@ -51,14 +51,6 @@ class Controller(abc.ABC):
         """
         Returns whether a certain button is currently pressed.
 
-        Example:
-            # This update function will print a message for every frame in which
-            # the A button is held down.  Thus, multiple messages will be printed
-            # if we press and hold the A button
-            def update():
-                if rc.controller.is_down(rc.controller.Button.A):
-                    print("The A button is currently pressed.")
-
         Args:
             button: Which button to check.
 
@@ -68,6 +60,15 @@ class Controller(abc.ABC):
         Note:
             The button argument must be an associated value of the Button enum,
             which is defined in the Controller module.
+
+        Example::
+
+            # This update function will print a message for every frame in which
+            # the A button is held down.  Thus, multiple messages will be printed
+            # if we press and hold the A button
+            def update():
+                if rc.controller.is_down(rc.controller.Button.A):
+                    print("The A button is currently pressed.")
         """
         pass
 
@@ -75,13 +76,6 @@ class Controller(abc.ABC):
     def was_pressed(self, button: Button) -> bool:
         """
         Returns whether a certain button was pressed this frame.
-
-        Example:
-            # This update function will print a single message each time the A
-            # button is pressed on the controller
-            def update():
-                if rc.controller.was_pressed(rc.controller.Button.A):
-                    print("The A button was pressed")
 
         Args:
             button: Which button to check.
@@ -92,6 +86,14 @@ class Controller(abc.ABC):
         Note:
             The button argument must be an associated value of the Button enum,
             which is defined in the Controller module.
+
+        Example::
+
+            # This update function will print a single message each time the A
+            # button is pressed on the controller
+            def update():
+                if rc.controller.was_pressed(rc.controller.Button.A):
+                    print("The A button was pressed")
         """
         pass
 
@@ -99,13 +101,6 @@ class Controller(abc.ABC):
     def was_released(self, button: Button) -> bool:
         """
         Returns whether a certain button was released this frame.
-
-        Example:
-            # This update function will print a single message each time the A
-            # button is released on the controller
-            def update():
-                if rc.controller.was_pressed(rc.controller.Button.A):
-                    print("The A button was released")
 
         Args:
             button: Which button to check.
@@ -116,6 +111,14 @@ class Controller(abc.ABC):
         Note:
             The button argument must be an associated value of the Button enum,
             which is defined in the Controller module.
+
+        Example::
+
+            # This update function will print a single message each time the A
+            # button is released on the controller
+            def update():
+                if rc.controller.was_pressed(rc.controller.Button.A):
+                    print("The A button was released")
         """
         pass
 
@@ -134,7 +137,8 @@ class Controller(abc.ABC):
             The trigger argument must be an associated value of the Trigger enum,
             which is defined in the Controller module.
 
-        Example:
+        Example::
+
             # Speed will receive a value from 0.0 to 1.0 based on how much the left
             # trigger is pressed
             speed = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
@@ -157,7 +161,8 @@ class Controller(abc.ABC):
             The joystick argument must be an associated value of the Joystick enum,
             which is defined in the Controller module.
 
-        Example:
+        Example::
+
             # x and y will be given values from -1.0 to 1.0 based on the position of
             # the left joystick
             (x, y) = rc.controller.get_joystick(rc.controller.Joystick.LEFT)

@@ -40,7 +40,8 @@ def clamp(value: float, min: float, max: float) -> float:
     Returns:
         The value saturated between min and max.
 
-    Example:
+    Example::
+
         # a will be set to 3
         a = rc_utils.clamp(3, 0, 10)
 
@@ -76,7 +77,8 @@ def remap_range(
         min need not be less than max; flipping the direction will cause the sign of
         the mapping to flip.  val does not have to be between old_min and old_max.
 
-    Example:
+    Example::
+
         # a will be set to 25
         a = rc_utils.remap_range(5, 0, 10, 0, 50)
 
@@ -124,7 +126,8 @@ def crop(
         If bottom_right_exclusive exceeds the bottom or right edge of the image, the
         full image is included along that axis.
 
-    Example:
+    Example::
+
         image = rc.camera.get_color_image()
 
         # Crop the image to only keep the top half
@@ -178,7 +181,8 @@ def find_contours(
     Note:
         Each channel in hsv_lower and hsv_upper ranges from 0 to 255.
 
-    Example:
+    Example::
+
         # Define the lower and upper hsv ranges for the color blue
         BLUE_HSV_MIN = (90, 50, 50)
         BLUE_HSV_MAX = (110, 255, 255)
@@ -249,7 +253,8 @@ def get_largest_contour(
         The largest contour from the list, or None if no
         contour was larger than min_area.
 
-    Example:
+    Example::
+
         # Extract the blue contours
         BLUE_HSV_MIN = (90, 50, 50)
         BLUE_HSV_MAX = (110, 255, 255)
@@ -280,7 +285,14 @@ def draw_contour(
     """
     Draws a contour on the provided image.
 
-    Example:
+    Args:
+        color_image: The color image on which to draw the contour.
+        contour: The contour to draw on the image.
+        color: The color to draw the contour, specified as
+            blue-green-red channels each ranging from 0 to 255 inclusive.
+
+    Example::
+
         image = rc.camera.get_color_image()
 
         # Extract the largest blue contour
@@ -292,12 +304,6 @@ def draw_contour(
         # Draw this contour onto image
         if (largest_contour is not None):
             draw_contour(image, largest_contour)
-
-    Args:
-        color_image: The color image on which to draw the contour.
-        contour: The contour to draw on the image.
-        color: The color to draw the contour, specified as
-            blue-green-red channels each ranging from 0 to 255 inclusive.
     """
     for channel in color:
         assert (
@@ -318,7 +324,15 @@ def draw_circle(
     """
     Draws a circle on the provided image.
 
-    Example:
+    Args:
+        color_image: The color image on which to draw the contour.
+        center: The pixel (row, column) of the center of the image.
+        color: The color to draw the circle, specified as
+            blue-green-red channels each ranging from 0 to 255 inclusive.
+        radius: The radius of the circle in pixels
+
+    Example::
+
         image = rc.camera.get_color_image()
 
         # Extract the largest blue contour
@@ -331,13 +345,6 @@ def draw_circle(
         if (largest_contour is not None):
             center = get_contour_center(contour)
             draw_circle(image, center, rc_utils.ColorBGR.red.value)
-
-    Args:
-        color_image: The color image on which to draw the contour.
-        center: The pixel (row, column) of the center of the image.
-        color: The color to draw the circle, specified as
-            blue-green-red channels each ranging from 0 to 255 inclusive.
-        radius: The radius of the circle in pixels
     """
     for channel in color:
         assert (
@@ -361,7 +368,17 @@ def get_contour_center(contour: NDArray) -> Optional[Tuple[int, int]]:
     """
     Finds the center of a contour from an image.
 
-    Example:
+    Args:
+        contour: The contour of which to find the center.
+
+    Returns:
+        The (row, column) of the pixel at the center of the contour.
+
+    Note:
+        Returns None if the contour contains no pixels.
+
+    Example::
+
         # Extract the largest blue contour
         BLUE_HSV_MIN = (90, 50, 50)
         BLUE_HSV_MAX = (110, 255, 255)
@@ -373,15 +390,6 @@ def get_contour_center(contour: NDArray) -> Optional[Tuple[int, int]]:
         # Find the center of this contour if it exists
         if (largest_contour is not None):
             center = rc_utils.get_contour_center(largest_contour)
-
-    Args:
-        contour: The contour of which to find the center.
-
-    Returns:
-        The (row, column) of the pixel at the center of the contour.
-
-    Note:
-        Returns None if the contour contains no pixels.
     """
     M = cv.moments(contour)
 
@@ -406,7 +414,8 @@ def get_contour_area(contour: NDArray) -> float:
     Returns:
         The number of pixels contained within the contour
 
-    Example:
+    Example::
+
         # Extract the largest blue contour
         BLUE_HSV_MIN = (90, 50, 50)
         BLUE_HSV_MAX = (110, 255, 255)
@@ -442,7 +451,8 @@ def get_depth_image_center_distance(
         with the depth of the surrounding pixels.  This helps reduce noise at the cost
         of reduced accuracy.  If kernel_size = 1, no averaging is done.
 
-    Example:
+    Example::
+
         depth_image = rc.camera.get_depth_image()
 
         # Find the distance of the object (in cm) the center of depth_image
@@ -483,7 +493,8 @@ def get_pixel_average_distance(
         with the distances of the surrounding pixels.  This helps reduce noise at the
         cost of reduced accuracy.
 
-    Example:
+    Example::
+
         depth_image = rc.camera.get_depth_image()
 
         # Find the distance of the object (in cm) at the pixel (100, 20) of depth_image
@@ -542,7 +553,8 @@ def get_closest_pixel(
         with the distances of the surrounding pixels.  This helps reduce noise at the
         cost of reduced accuracy.
 
-    Example:
+    Example::
+
         depth_image = rc.camera.get_depth_image()
 
         # Crop off the ground directly in front of the car
@@ -596,7 +608,8 @@ def get_lidar_closest_point(
         is acceptable for window min_degree to be larger than window max_degree.  For
         example, (350, 10) is a 20 degree window in front of the car.
 
-    Example:
+    Example::
+
         scan = rc.lidar.get_samples()
 
         # Find the angle and distance of the closest point
@@ -662,7 +675,8 @@ def get_lidar_average_distance(
         Ignores any samples with a value of 0.0 (no data).
         Increasing window_angle reduces noise at the cost of reduced accuracy.
 
-    Example:
+    Example::
+
         scan = rc.lidar.get_samples()
 
         # Find the distance directly behind the car (6:00 position)

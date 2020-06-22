@@ -69,7 +69,7 @@ class RacecarReal(Racecar):
         # Print welcome message
         print(">> Racecar initialization successful")
         print(
-            ">> Controlls:\n"
+            ">> Controls:\n"
             "     START button = run your program\n"
             "     BACK button = enter default drive mode\n"
             "     BACK + START buttons simultaneously = exit the program\n"

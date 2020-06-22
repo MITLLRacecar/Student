@@ -3,5 +3,5 @@
 Drive Module
 =========================================
 
-.. doxygenclass:: drive::Drive
+.. autoclass:: drive.Drive
    :members:

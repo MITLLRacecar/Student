@@ -26,7 +26,8 @@ class Lidar(abc.ABC):
         Returns:
             The number of points collected in a complete scan.
 
-        Example:
+        Example::
+
             total_points = rc.lidar.get_num_samples()
         """
         return self._NUM_SAMPLES
@@ -43,8 +44,8 @@ class Lidar(abc.ABC):
             Samples are in clockwise order, with the 0th sample directly in front of the
             car.  Each sample is an equal angle appart.
 
+        Example::
 
-        Example:
             # Access the most recent lidar scan.
             lidar_ranges = rc.lidar.get_ranges()
 

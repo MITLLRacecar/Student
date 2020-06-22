@@ -30,7 +30,8 @@ class Physics(abc.ABC):
             The y axis points directly up (perpendicular to the ground).
             The z axis points out of the front of the car.
 
-        Example:
+        Example::
+
             # accel stores the average acceleration over the previous frame
             accel = rc.physics.get_linear_acceleration()
 
@@ -57,7 +58,8 @@ class Physics(abc.ABC):
             the left, it has a positive angular velocity along the y axis.
 
 
-        Example:
+        Example::
+
             # ang_vel stores the average angular velocity over the previous frame
             ang_vel = rc.physics.get_angular_velocity()
 
