@@ -362,7 +362,3 @@ class Sound:
         devices = sd.query_devices()
         print("Your available devices:")
         print(devices)
-
-
-if __name__ == "__main__":
-    pass
