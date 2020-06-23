@@ -1,91 +1,92 @@
 """
-Copyright Harvey Mudd College
+Copyright MIT and Harvey Mudd College
 MIT License
-Fall 2019
+Summer 2020
 
-Lab 2 - Image Processing
+Lab 2A - Color Image Line Following
 """
 
-################################################################################
+########################################################################################
 # Imports
-################################################################################
+########################################################################################
 
 import sys
-
-sys.path.insert(0, "../../library")
-from racecar_core import *
-import racecar_utils as rc_utils
-
-rospy.init_node("racecar")
 import cv2 as cv
 import numpy as np
 
+sys.path.insert(1, "../../library")
+import racecar_core
+import racecar_utils as rc_utils
 
-################################################################################
+########################################################################################
 # Global variables
-################################################################################
+########################################################################################
 
-rc = Racecar()
+rc = racecar_core.create_racecar()
 
-# Constants
+# >> Constants
 # The smallest contour we will recognize as a valid contour
-MIN_CONTOUR_SIZE = 30
-# A crop window for the floor directly in front of the car
-CROP_FLOOR = ((400, 0), (rc.camera.get_height(), rc.camera.get_width()))
+MIN_CONTOUR_AREA = 30
 
-# Variables
+# A crop window for the floor directly in front of the car
+CROP_FLOOR = ((360, 0), (rc.camera.get_height(), rc.camera.get_width()))
+
+# Colors, stored as a pair (hsv_min, hsv_max)
+BLUE = ((90, 50, 50), (120, 255, 255))  # The HSV range for the color blue
+# TODO (challenge 1): add HSV ranges for other colors
+
+# >> Variables
 speed = 0.0  # The current speed of the car
 angle = 0.0  # The current angle of the car's wheels
-contour = None  # The current contour used for navigation
-contour_image = None  # The image from which the contour was extracted
 contour_center = None  # The (pixel row, pixel column) of contour
 contour_area = 0  # The area of contour
 
-# Colors, stored as a pair (hsv_min, hsv_max)
-BLUE = ((90, 50, 50), (110, 255, 255))  # The HSV range for the color blue
-# TODO (challenge 1): add HSV ranges for other colors
-
-
-################################################################################
+########################################################################################
 # Functions
-################################################################################
+########################################################################################
 
 
-def update_contour(image):
+def update_contour():
     """
-    Identifies a contour in the provided image to update global variables.
-
-    Args:
-        image: (2D numpy array of pixels) The image in which to find contours.
-
-    Note:
-        Updates the global variables contour, contour_image, contour_center,
-        and contour_area.
+    Finds contours in the current color image and uses them to update contour_center
+    and contour_area
     """
-    global contour
-    global contour_image
     global contour_center
     global contour_area
 
-    contour_image = image
+    image = rc.camera.get_color_image()
 
     if image is None:
-        contour = None
         contour_center = None
         contour_area = 0
     else:
         # TODO (challenge 1): Search for multiple tape colors with a priority order
         # (currently we only search for blue)
 
+        # Crop the image to the floor directly in front of the car
+        image = rc_utils.crop(image, CROP_FLOOR[0], CROP_FLOOR[1])
+
         # Find all of the blue contours
         contours = rc_utils.find_contours(image, BLUE[0], BLUE[1])
 
         # Select the largest contour
-        contour = rc_utils.get_largest_contour(contours, MIN_CONTOUR_SIZE)
+        contour = rc_utils.get_largest_contour(contours, MIN_CONTOUR_AREA)
 
-        # Update contour variables
-        contour_center = rc_utils.get_center(contour)
-        contour_area = rc_utils.get_area(contour)
+        if contour is not None:
+            # Calculate contour information
+            contour_center = rc_utils.get_contour_center(contour)
+            contour_area = rc_utils.get_contour_area(contour)
+
+            # Draw contour onto the image
+            rc_utils.draw_contour(image, contour)
+            rc_utils.draw_circle(image, contour_center)
+
+        else:
+            contour_center = None
+            contour_area = 0
+
+        # Display the image to the screen
+        rc.display.show_color_image(image)
 
 
 def start():
@@ -107,9 +108,9 @@ def start():
 
     # Print start message
     print(
-        ">> Lab 2 - Image processing\n"
+        ">> Lab 2A - Color Image Line Following\n"
         "\n"
-        "Controlls:\n"
+        "Controls:\n"
         "   Right trigger = accelerate forward\n"
         "   Left trigger = accelerate backward\n"
         "   A button = print current speed and angle\n"
@@ -125,22 +126,18 @@ def update():
     global speed
     global angle
 
-    image = rc.camera.get_image()
-
-    # Crop the image to the floor directly in front of the car
-    cropped_image = rc_utils.crop(image, CROP_FLOOR[0], CROP_FLOOR[1])
-
-    # Search for contours in the cropped image
-    update_contour(cropped_image)
+    # Search for contours in the current color image
+    update_contour()
 
     # Choose an angle based on contour_center
     # If we could not find a contour, keep the previous angle
     if contour_center is not None:
+        # Current implementation: bang-bang control (very choppy)
         # TODO (warmup): Implement a smoother way to follow the line
         if contour_center[1] < rc.camera.get_width() / 2:
-            angle = 1
-        else:
             angle = -1
+        else:
+            angle = 1
 
     # Use the triggers to control the car's speed
     forwardSpeed = rc.controller.get_trigger(rc.controller.Trigger.RIGHT)
@@ -160,22 +157,14 @@ def update():
         else:
             print("Center:", contour_center, "Area:", contour_area)
 
-    # TODO (challenge 2): When the left bumper (LB) is pressed, drive up to the closest
-    # cone and stop six inches in front of it.
-
 
 def update_slow():
     """
     After start() is run, this function is run at a constant rate that is slower
     than update().  By default, update_slow() is run once per second
     """
-    # To help debug, update_slow does the following:
-    # 1. Prints a line of ascii text to the console denoting the area of the contour
-    #    and where the car sees the line
-    # 2. Shows the most recent image to the screen with the largest contour drawn
-    #    on top in bright green
-
-    if contour_image is None:
+    # Print a line of ascii text denoting the contour area and x-position
+    if rc.camera.get_color_image() is None:
         # If no image is found, print all X's and don't display an image
         print("X" * 10 + " (No image) " + "X" * 10)
     else:
@@ -183,22 +172,16 @@ def update_slow():
         if contour_center is None:
             print("-" * 32 + " : area = " + str(contour_area))
 
-        # Otherwise, print a line of dashes with a | where the line is seen
+        # Otherwise, print a line of dashes with a | indicating the contour x-position
         else:
             s = ["-"] * 32
             s[int(contour_center[1] / 20)] = "|"
             print("".join(s) + " : area = " + str(contour_area))
 
-            # Draw the contour onto the image
-            drawn_image = rc_utils.draw_contour(contour_image, contour)
 
-        # Display the image to the screen
-        rc.display.show_image(drawn_image)
-
-
-################################################################################
-# Do not modify any code beyond this point
-################################################################################
+########################################################################################
+# DO NOT MODIFY: Register start and update and begin execution
+########################################################################################
 
 if __name__ == "__main__":
     rc.set_start_update(start, update, update_slow)

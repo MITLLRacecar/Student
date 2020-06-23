@@ -3,6 +3,5 @@
 Controller Module
 =========================================
 
-.. doxygenclass:: controller::Controller
-   :project: racecar_core
+.. autoclass:: controller::Controller
    :members:

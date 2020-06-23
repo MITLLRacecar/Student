@@ -3,6 +3,5 @@
 LIDAR Module
 =========================================
 
-.. doxygenclass:: lidar::Lidar
-   :project: racecar_core
+.. autoclass:: lidar::Lidar
    :members:

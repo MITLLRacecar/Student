@@ -6,28 +6,28 @@ Spring 2020
 Demo RACECAR program
 """
 
-################################################################################
+########################################################################################
 # Imports
-################################################################################
+########################################################################################
 
 import sys
+
 sys.path.insert(0, '../library')
-from racecar_core import *
-rospy.init_node('racecar')
+import racecar_core
 
-################################################################################
+########################################################################################
 # Global variables
-################################################################################
+########################################################################################
 
-rc = Racecar()
+rc = racecar_core.create_racecar()
 
 # Declare any global variables here
 counter = 0
 isDriving = False
 
-################################################################################
+########################################################################################
 # Functions
-################################################################################
+########################################################################################
 
 def start():
     """
@@ -38,7 +38,7 @@ def start():
     global counter
     global isDriving
 
-    # The start function is a great place to give initial values to globals
+    # The start function is a great place to give initial values to global variables
     counter = 0
     isDriving = False
 
@@ -57,7 +57,7 @@ def update():
     if rc.controller.was_pressed(rc.controller.Button.A):
       print("The A button was pressed")
 
-    # Reset the counter and start driving every time the B button is pressed on
+    # Reset the counter and start driving in an L every time the B button is pressed on
     # the controller
     if rc.controller.was_pressed(rc.controller.Button.B):
       counter = 0
@@ -79,18 +79,6 @@ def update():
         rc.drive.stop()
         isDriving = False
 
-    # Take and display a photo every time the X button is pressed on the
-    # controller
-    if rc.controller.was_pressed(rc.controller.Button.X):
-        # Capture an image from the RACECAR camera
-        image = rc.camera.get_image()
-
-        # If an image was captured, show it on the RACECAR monitor
-        if image is not None:
-            rc.display.show_image(image)
-        else:
-            print("Error: No image was captured")
-
 # update_slow() is similar to update() but is called once per second by default.
 # It is especially useful for printing debug messages, since printing a message
 # every frame in update is computationally expensive and creates clutter
@@ -106,9 +94,9 @@ def update_slow():
         print("The right bumper is currently down (update_slow)")
 
 
-################################################################################
-# Do not modify any code beyond this point
-################################################################################
+########################################################################################
+# DO NOT MODIFY: Register start and update and begin execution
+########################################################################################
 
 if __name__ == "__main__":
     rc.set_start_update(start, update, update_slow)

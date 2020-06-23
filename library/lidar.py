@@ -1,66 +1,55 @@
 """
-Copyright Harvey Mudd College
+Copyright MIT and Harvey Mudd College
 MIT License
-Spring 2020
+Summer 2020
 
-Contains the Lidar module of the racecar_core library
+Defines the interface for the Lidar module of the racecar_core library.
 """
 
-# General
+import abc
 import numpy as np
-from collections import deque
-
-# ROS
-import rospy
-from sensor_msgs.msg import LaserScan
-from cv_bridge import CvBridge, CvBridgeError
-import threading
+from nptyping import NDArray
 
 
-class Lidar:
+class Lidar(abc.ABC):
     """
     Returns the scan data captured by the Lidar.
     """
 
-    # The ROS topic from which we get Lidar data
-    __SCAN_TOPIC = "/scan"
+    # The number of samples in a full Lidar scan.
+    _NUM_SAMPLES: int = 720
 
-    def __init__(self):
-        self.__scan_sub = rospy.Subscriber(
-            self.__SCAN_TOPIC, LaserScan, self.__scan_callback
-        )
-        self._event = threading.Event()
-        self.__length = 0
-        self.__ranges = ()
-
-    def __scan_callback(self, data):
-
-        self.__length = len(data.ranges)
-        self.__ranges = list(data.ranges)
-        self._event.set()
-
-    def get_length(self, timeout=None):
+    def get_num_samples(self) -> int:
         """
-        Returns the length of the ranges array, to check for a valid scan.
+        Returns the number of samples in a full LIDAR scan.
 
         Returns:
-            (Int) The number of points collected in each scan.
+            The number of points collected in a complete scan.
 
-        Example:
-            total_points = rc.lidar.get_length()
-        """
-        self._event.wait(timeout)
-        return self.__length
+        Example::
 
-    def get_ranges(self, timeout=None):
+            total_points = rc.lidar.get_num_samples()
         """
-        Returns the array of all the distance value from a single lidar scan.
+        return self._NUM_SAMPLES
+
+    @abc.abstractmethod
+    def get_samples(self) -> NDArray[720, np.float32]:
+        """
+        Returns an array containing the distance values of each sample in a full scan.
 
         Returns:
-             (float) The tuple of distance measurements
+            An array of distance measurements in cm.
 
-        Example:
+        Note:
+            Samples are in clockwise order, with the 0th sample directly in front of the
+            car.  Each sample is an equal angle appart.
+
+        Example::
+
+            # Access the most recent lidar scan.
             lidar_ranges = rc.lidar.get_ranges()
+
+            # Get the distance of the measurement directly in front of the car
+            forward_distance = lidar_ranges[0]
         """
-        self._event.wait(timeout)
-        return self.__ranges
+        pass

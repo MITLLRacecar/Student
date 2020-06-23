@@ -3,6 +3,4 @@
 GPIO Module
 =========================================
 
-.. doxygennamespace:: GPIO
-   :project: racecar_core
-   :members:
+This module is currently in development.

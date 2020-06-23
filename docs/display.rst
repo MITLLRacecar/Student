@@ -3,6 +3,5 @@
 Display Module
 =========================================
 
-.. doxygenclass:: display::Display
-   :project: racecar_core
+.. autoclass:: display::Display
    :members:

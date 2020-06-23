@@ -3,6 +3,4 @@
 Sound Module
 =========================================
 
-.. doxygenclass:: sound::Sound
-   :project: racecar_core
-   :members:
+This module is currently in development.
