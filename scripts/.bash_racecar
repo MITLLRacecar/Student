@@ -64,6 +64,3 @@ racecar() {
     fi
   fi
 }
-
-# If you are using Windows, uncomment the following line:
-# export DISPLAY=localhost:42.0
