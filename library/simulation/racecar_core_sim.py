@@ -18,8 +18,9 @@ from racecar_core import Racecar
 
 class RacecarSim(Racecar):
     __IP = "127.0.0.1"
-    __UNITY_PORT = 5065
-    __PYTHON_PORT = 5066
+    __UNITY_PORT = (__IP, 5065)
+    __PYTHON_PORT = (__IP, 5066)
+    __UNITY_ASYNC_PORT = (__IP, 5064)
     __SOCKET = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     class Header(IntEnum):
@@ -55,11 +56,14 @@ class RacecarSim(Racecar):
         physics_get_linear_acceleration = 25
         physics_get_angular_velocity = 26
 
-    def __send_header(self, function_code: Header) -> None:
-        self.__send_data(struct.pack("B", function_code.value))
+    def __send_header(self, function_code: Header, isAsync: bool = False) -> None:
+        self.__send_data(struct.pack("B", function_code.value), isAsync)
 
-    def __send_data(self, data: bytes) -> None:
-        self.__SOCKET.sendto(data, (self.__IP, self.__UNITY_PORT))
+    def __send_data(self, data: bytes, isAsync: bool = False) -> None:
+        if isAsync:
+            self.__SOCKET.sendto(data, self.__UNITY_ASYNC_PORT)
+        else:
+            self.__SOCKET.sendto(data, self.__UNITY_PORT)
 
     def __receive_data(self, buffer_size: int = 8) -> bytes:
         data, _ = self.__SOCKET.recvfrom(buffer_size)
@@ -80,7 +84,7 @@ class RacecarSim(Racecar):
         self.__update_slow_counter: float = 0
         self.__delta_time: float = -1
 
-        self.__SOCKET.bind((self.__IP, self.__PYTHON_PORT))
+        self.__SOCKET.bind(self.__PYTHON_PORT)
 
     def go(self) -> None:
         print(">> Python script loaded, please enter user program mode in Unity")
