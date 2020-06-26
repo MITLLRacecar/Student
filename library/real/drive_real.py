@@ -8,7 +8,7 @@ Contains the Drive module of the racecar_core library
 
 from drive import Drive
 
-import rospy
+import rclpy as ros2
 import numbers
 from ackermann_msgs.msg import AckermannDriveStamped
 
@@ -29,8 +29,12 @@ class DriveReal(Drive):
     __PWM_SPEED_MAX = 9000
 
     def __init__(self):
-        self.__publisher = rospy.Publisher(
-            self.__TOPIC, AckermannDriveStamped, queue_size=1
+        # ROS node
+        self.__node = ros2.create_node('drive_pub')
+        # publish to the drive topic, which will publish a message
+        # every time __update is called
+        self.__publisher = self.__node.create_publisher(
+            AckermannDriveStamped, self.__TOPIC, qos_profile = 1
         )
         self.__message = AckermannDriveStamped()
         self.__max_speed = 0.25

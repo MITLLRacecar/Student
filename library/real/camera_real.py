@@ -13,28 +13,41 @@ import cv2 as cv
 import numpy as np
 from nptyping import NDArray
 
-# ROS
-import rospy
+# ROS2
+import rclpy as ros2
+from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy, QoSProfile
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
 
 class CameraReal(Camera):
     # The ROS topic from which we read camera data
-    __COLOR_TOPIC = "/camera/color/image_raw"
-    __DEPTH_TOPIC = "/camera/depth/image_rect_raw"
+    __COLOR_TOPIC = "/camera/color"
+    __DEPTH_TOPIC = "/camera/depth"
 
     def __init__(self):
         self.__bridge = CvBridge()
+        
+        # ROS node
+        self.node = ros2.create_node('image_sub')
+        
+        qos_profile = QoSProfile(depth=1)
+        qos_profile.history = QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST
+        qos_profile.reliability = QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT
+        qos_profile.durability = QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_VOLATILE
 
-        self.__color_image_sub = rospy.Subscriber(
-            self.__COLOR_TOPIC, Image, self.__color_callback
+        # subscribe to the image raw topic, which will call
+        # __color_callback every time the camera publishes data
+        self.__color_image_sub = self.node.create_subscription(
+            Image, self.__COLOR_TOPIC, self.__color_callback, qos_profile
         )
         self.__color_image = None
         self.__color_image_new = None
-
-        self.__depth_image_sub = rospy.Subscriber(
-            self.__DEPTH_TOPIC, Image, self.__depth_callback
+        
+        # subscribe to the image rect raw topic, which will call
+        # __depth_callback every time the camera publishes data
+        self.__depth_image_sub = self.node.create_subscription(
+            Image, self.__DEPTH_TOPIC, self.__depth_callback, qos_profile
         )
         self.__depth_image = None
         self.__depth_image_new = None
@@ -65,50 +78,8 @@ class CameraReal(Camera):
     def get_depth_image(self) -> NDArray[(480, 640), np.float32]:
         return self.__depth_image
 
-    def _get_image_async(self):
-        """
-        Jupyter only - returns the current color image captured by the camera.
-F
-        Returns:
-            (2D numpy array of triples) A two dimensional array indexed
-            from top left to the bottom right representing the pixels in the
-            image. Each entry in the array is a triple of the form
-            (blue, green, red) representing a single pixel.
-
-        Note:
-            Triple format = (blue, green, red), with
-                blue = the amount of blue at that pixel from 0 (none) to 255 (max)
-                green = the amount of green at that pixel from 0 (none) to 255 (max)
-                red = the amount of red at that pixel from 0 (none) to 255 (max)
-
-        Warning:
-            This function violates the start update paradigm and should only be used
-            in Jupyter Notebooks.
-
-        Example:
-            # Initialize image with the most recent image captured by the camera
-            image = rc.camera.get_image()
-        """
+    def get_color_image_async(self) -> NDArray[(480, 640, 3), np.uint8]:
         return self.__color_image_new
 
-    def _get_depth_image_async(self):
-        """
-        Jupyter only - returns the previous depth image captured by the camera.
-
-        Returns:
-            (2D numpy array of floats) A two dimensional array indexed
-            from top left to the bottom right representing the pixels in the
-            image. The value of each pixel is the distance detected at that point
-            in millimeters.
-
-        Warning:
-            This function violates the start update paradigm and should only be used
-            in Jupyter Notebooks.
-
-        Example:
-            # Initialize depth_image with the most recent depth image captured
-            # by the camera
-            depth_image = rc.camera.get_depth_image()
-        ```
-        """
+    def get_depth_image_async(self) -> NDArray[(480, 640), np.float32]:
         return self.__depth_image_new
