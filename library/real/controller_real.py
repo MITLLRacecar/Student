@@ -55,7 +55,7 @@ class ControllerReal(Controller):
         self.__cur_back = 0
 
         # ROS node
-        self.node = ros2.create_node('controller')
+        self.node = ros2.create_node("controller")
 
         # subscribe to the controller topic, which will call
         # __controller_callback every time the controller state changes
@@ -67,9 +67,6 @@ class ControllerReal(Controller):
         return self.__is_down[button.value]
 
     def was_pressed(self, button: Controller.Button) -> bool:
-        # print(f"Button value: {button.value}")
-        # print(f"Length of is_down: {len(self.__is_down)}")
-        # print(f"Length of was_down: {len(self.__was_down)}")
         return self.__is_down[button.value] and not self.__was_down[button.value]
 
     def was_released(self, button: Controller.Button) -> bool:
@@ -90,7 +87,7 @@ class ControllerReal(Controller):
                 physical state of the controller.
         """
         self.__cur_down = [bool(b) for b in message.buttons[:6] + message.buttons[9:11]]
-        # print(f"Length of cur_down: {len(self.__cur_down)}")
+
         self.__cur_trigger = [
             self.__convert_trigger_value(message.axes[2]),
             self.__convert_trigger_value(message.axes[5]),

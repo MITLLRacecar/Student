@@ -43,7 +43,7 @@ class CameraReal(Camera):
         )
         qos_profile.durability = QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_VOLATILE
 
-        # subscribe to the image raw topic, which will call
+        # subscribe to the color image topic, which will call
         # __color_callback every time the camera publishes data
         self.__color_image_sub = self.node.create_subscription(
             Image, self.__COLOR_TOPIC, self.__color_callback, qos_profile
@@ -51,7 +51,7 @@ class CameraReal(Camera):
         self.__color_image = None
         self.__color_image_new = None
 
-        # subscribe to the image rect raw topic, which will call
+        # subscribe to the depth image topic, which will call
         # __depth_callback every time the camera publishes data
         self.__depth_image_sub = self.node.create_subscription(
             Image, self.__DEPTH_TOPIC, self.__depth_callback, qos_profile
