@@ -567,7 +567,7 @@ def get_closest_pixel(
     """
     assert (
         kernel_size > 0 and kernel_size % 2 == 1
-    ), "kernel_size ({}) must positive and odd.".format(kernel_size)
+    ), f"kernel_size ({kernel_size}) must positive and odd."
 
     # Shift 0.0 values to 10,000 so they are not considered for the closest pixel
     depth_image = (depth_image - 1) % 10000
@@ -715,3 +715,91 @@ def get_lidar_average_distance(
         return 0.0
 
     return sum(samples) / len(samples)
+
+def colormap_depth_image(
+    depth_image: NDArray[(Any, Any), np.float32]
+) -> NDArray[(Any, Any, 3), np.uint8]:
+    """
+    Maps a depth image to a colored depth image.
+
+    Args:
+        depth_image: The depth image to process.
+
+    Returns:
+        A three dimensional array of color pixels.
+            0th dimension: pixel rows, indexed from top to bottom.
+            1st dimension: pixel columns, indexed from left to right.
+            2nd dimension: pixel color channels, in the blue-green-red format.
+
+    Note:
+        Each color value ranges from 0 to 255.
+        The color of each pixel is determined by its distance.
+
+    Example::
+        # retrieve a depth image
+        depth_image = rc.camera.get_depth_image()
+
+        # get the colormapped depth image
+        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
+
+    """
+    depth_colormap = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET)
+    return depth_colormap
+
+def stack_images_horizontal(
+    image_0: NDArray[(Any, Any, 3), np.uint8],
+    image_1: NDArray[(Any, Any, 3), np.uint8]
+) -> NDArray[(Any, Any, 3), np.uint8]:
+    """
+    Stack two images horizontally.    
+
+    Args:
+        image_0: A color image to place on the left.
+        image_1: A color image to place on the right.
+
+    Returns:
+        A color image with the original two images next to each other.
+
+    Note:
+        The images must have the same height.
+        
+
+    Example::
+        color_image = rc.camera.get_color_image()
+
+        depth_image = rc.camera.get_depth_image()
+        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
+
+        # Create a new image with the color on the left and depth on the right
+        new_image = rc_utils.stack_images_horizontally(color_image, depth_image_colormap)
+    """
+    return np.hstack((image_0, image_1))
+
+def stack_images_vertical(
+    image_0: NDArray[(Any, Any, 3), np.uint8],
+    image_1: NDArray[(Any, Any, 3), np.uint8]
+) -> NDArray[(Any, Any, 3), np.uint8]:
+    """
+    Stack two images vertically.    
+
+    Args:
+        image_0: A color image to place on the top.
+        image_1: A color image to place on the bottom.
+
+    Returns:
+        A color image with the original two images next to each other.
+
+    Note:
+        The images must have the same width.
+        
+
+    Example::
+        color_image = rc.camera.get_color_image()
+
+        depth_image = rc.camera.get_depth_image()
+        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
+
+        # Create a new image with the color on the top and depth on the bottom
+        new_image = rc_utils.stack_images_vertically(color_image, depth_image_colormap)
+    """
+    return np.vstack((image_0, image_1))
