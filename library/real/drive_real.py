@@ -30,11 +30,11 @@ class DriveReal(Drive):
 
     def __init__(self):
         # ROS node
-        self.__node = ros2.create_node('drive_pub')
+        self.__node = ros2.create_node("drive_pub")
         # publish to the drive topic, which will publish a message
         # every time __update is called
         self.__publisher = self.__node.create_publisher(
-            AckermannDriveStamped, self.__TOPIC, qos_profile = 1
+            AckermannDriveStamped, self.__TOPIC, qos_profile=1
         )
         self.__message = AckermannDriveStamped()
         self.__max_speed = 0.25

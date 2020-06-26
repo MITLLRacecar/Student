@@ -36,7 +36,7 @@ class RacecarReal(Racecar):
         # initialize ROS 2
         ros2.init()
         self.__executor = ros2.get_global_executor()
-        self.__rate_node = ros2.create_node('rate_node')
+        self.__rate_node = ros2.create_node("rate_node")
 
         # Modules
         self.camera = camera_real.CameraReal()
@@ -52,9 +52,7 @@ class RacecarReal(Racecar):
         lidar_added = self.__executor.add_node(self.lidar.node)
         controller_added = self.__executor.add_node(self.controller.node)
         physics_added = self.__executor.add_node(self.physics.node)
-        assert ( 
-            (rate_added and lidar_added and camera_added and controller_added)
-        ), (
+        assert rate_added and lidar_added and camera_added and controller_added, (
             "Issues initializing Racecar nodes. Node status: \n"
             f"Rate operational: {rate_added} | "
             f"Camera operational: {camera_added} | "
@@ -103,8 +101,8 @@ class RacecarReal(Racecar):
             try:
                 self.__executor.spin_once()
             except KeyboardInterrupt:
-                break 
-        ros2.shutdown()    
+                break
+        ros2.shutdown()
 
     def set_start_update(
         self,

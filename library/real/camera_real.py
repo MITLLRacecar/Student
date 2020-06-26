@@ -15,7 +15,12 @@ from nptyping import NDArray
 
 # ROS2
 import rclpy as ros2
-from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy, QoSProfile
+from rclpy.qos import (
+    QoSDurabilityPolicy,
+    QoSHistoryPolicy,
+    QoSReliabilityPolicy,
+    QoSProfile,
+)
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
@@ -27,13 +32,15 @@ class CameraReal(Camera):
 
     def __init__(self):
         self.__bridge = CvBridge()
-        
+
         # ROS node
-        self.node = ros2.create_node('image_sub')
-        
+        self.node = ros2.create_node("image_sub")
+
         qos_profile = QoSProfile(depth=1)
         qos_profile.history = QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST
-        qos_profile.reliability = QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT
+        qos_profile.reliability = (
+            QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT
+        )
         qos_profile.durability = QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_VOLATILE
 
         # subscribe to the image raw topic, which will call
@@ -43,7 +50,7 @@ class CameraReal(Camera):
         )
         self.__color_image = None
         self.__color_image_new = None
-        
+
         # subscribe to the image rect raw topic, which will call
         # __depth_callback every time the camera publishes data
         self.__depth_image_sub = self.node.create_subscription(

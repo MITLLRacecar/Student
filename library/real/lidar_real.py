@@ -26,7 +26,7 @@ class LidarReal(Lidar):
 
     def __init__(self):
         # ROS node
-        self.node = ros2.create_node('scan_sub')
+        self.node = ros2.create_node("scan_sub")
 
         # subscribe to the scan topic, which will call
         # __scan_callback every time the lidar sends data
@@ -42,9 +42,9 @@ class LidarReal(Lidar):
 
     def __update(self):
         self.__samples = self.__samples_new
-        
+
     def get_samples(self) -> NDArray[720, np.float32]:
         return self.__samples
-    
+
     def get_samples_async(self) -> NDArray[720, np.float32]:
         return self.__samples_new

@@ -15,7 +15,12 @@ from nptyping import NDArray
 
 # ROS2
 import rclpy as ros2
-from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy, QoSProfile
+from rclpy.qos import (
+    QoSDurabilityPolicy,
+    QoSHistoryPolicy,
+    QoSReliabilityPolicy,
+    QoSProfile,
+)
 from sensor_msgs.msg import Imu
 
 
@@ -28,11 +33,13 @@ class PhysicsReal(Physics):
     __BUFFER_CAP = 60
 
     def __init__(self):
-        self.node = ros2.create_node('imu_sub')
-        
+        self.node = ros2.create_node("imu_sub")
+
         qos_profile = QoSProfile(depth=1)
         qos_profile.history = QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST
-        qos_profile.reliability = QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT
+        qos_profile.reliability = (
+            QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT
+        )
         qos_profile.durability = QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_VOLATILE
 
         # subscribe to the accel topic, which will call
@@ -66,11 +73,7 @@ class PhysicsReal(Physics):
 
     def __gyro_callback(self, data):
         new_angular_velocity = np.array(
-            [
-                data.angular_velocity.x, 
-                data.angular_velocity.y, 
-                data.angular_velocity.z
-            ]
+            [data.angular_velocity.x, data.angular_velocity.y, data.angular_velocity.z]
         )
 
         self.__angular_velocity_buffer.append(new_angular_velocity)
