@@ -116,26 +116,34 @@ class Racecar(abc.ABC):
         pass
 
 
-def create_racecar() -> Racecar:
+def create_racecar(isSimulation: Optional[bool] = None) -> Racecar:
     """
-    Generates a racecar object based on the execution flags.
+    Generates a racecar object based on the isSimulation argument or execution flags.
+
+    Args:
+        isSimulation: If True, create a RacecarSim, if False, create a RacecarReal,
+            if None, decide based on the command line arguments
 
     Returns:
-        A RacecarSim object (for use with the Unity simulation) if the program was
-        executed with the -s flag, or a RacecarReal object (for use on the physical car)
-        otherwise.
+        A RacecarSim object (for use with the Unity simulation) or a RacecarReal object
+        (for use on the physical car).
+
+    Note:
+        If isSimulation is None, this function will return a RacecarSim if the program
+        was executed with the "-s" flag and a RacecarReal otherwise.
     """
     library_path = __file__.replace("racecar_core.py", "")
 
-    # Create a RaceacarSim (used to interface with the Unity simulation) if the user ran
-    # the program with the -s flag
-    if len(sys.argv) > 1 and sys.argv[1] == "-s":
+    # If isSimulation was not specify, set it to True if the user ran the program with
+    # the -s flag and false otherwise
+    if isSimulation is None:
+        isSimulation = len(sys.argv) > 1 and sys.argv[1] == "-s"
+
+    if isSimulation:
         sys.path.insert(1, library_path + "simulation")
         from racecar_core_sim import RacecarSim
 
         return RacecarSim()
-
-    # Otherwise, create a RacecarReal (used to run on the physical car)
     else:
         sys.path.insert(1, library_path + "real")
         from racecar_core_real import RacecarReal

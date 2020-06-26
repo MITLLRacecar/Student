@@ -42,7 +42,35 @@ class Camera(abc.ABC):
             # Initialize image with the most recent color image captured by the camera
             image = rc.camera.get_color_image()
 
-            # Stores the amount of blue in the pixel on row 3, column 5
+            # Store the amount of blue in the pixel on row 3, column 5
+            blue = image[3][5][0]
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_color_image_async(self) -> NDArray[(480, 640, 3), np.uint8]:
+        """
+        Returns the current color image without the car in "go" mode.
+
+        Returns:
+            An array representing the pixels in the image, organized as follows
+                0th dimension: pixel rows, indexed from top to bottom.
+                1st dimension: pixel columns, indexed from left to right.
+                2nd dimension: pixel color channels, in the blue-green-red format.
+
+        Note:
+            Each color value ranges from 0 to 255.
+
+        Warning:
+            This function breaks the start-update paradigm and should only be used in
+            Jupyter Notebook.
+
+        Example::
+
+            # Initialize image with the most recent color image captured by the camera
+            image = rc.camera.get_color_image_async()
+
+            # Store the amount of blue in the pixel on row 3, column 5
             blue = image[3][5][0]
         """
         pass
@@ -61,7 +89,30 @@ class Camera(abc.ABC):
             # Initialize image with the most recent depth image captured by the camera
             image = rc.camera.get_depth_image()
 
-            # Stores the distance of the object at pixel row 3, column 5
+            # Store the distance of the object at pixel row 3, column 5
+            distance = image[3][5]
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_depth_image_async(self) -> NDArray[(480, 640), np.float32]:
+        """
+        Returns the current depth image without the car in "go" mode.
+
+        Returns:
+            A two dimensional array indexed from top left to the bottom right storing
+            the distance of each pixel from the car in cm.
+
+        Warning:
+            This function breaks the start-update paradigm and should only be used in
+            Jupyter Notebook.
+
+        Example::
+
+            # Initialize image with the most recent depth image captured by the camera
+            image = rc.camera.get_depth_image_async()
+
+            # Store the distance of the object at pixel row 3, column 5
             distance = image[3][5]
         """
         pass

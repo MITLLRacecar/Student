@@ -329,7 +329,7 @@ def draw_circle(
         center: The pixel (row, column) of the center of the image.
         color: The color to draw the circle, specified as
             blue-green-red channels each ranging from 0 to 255 inclusive.
-        radius: The radius of the circle in pixels
+        radius: The radius of the circle in pixels.
 
     Example::
 
@@ -372,10 +372,8 @@ def get_contour_center(contour: NDArray) -> Optional[Tuple[int, int]]:
         contour: The contour of which to find the center.
 
     Returns:
-        The (row, column) of the pixel at the center of the contour.
-
-    Note:
-        Returns None if the contour contains no pixels.
+        The (row, column) of the pixel at the center of the contour, or None if the
+        contour is empty.
 
     Example::
 
