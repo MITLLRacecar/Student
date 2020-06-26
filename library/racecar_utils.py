@@ -145,7 +145,7 @@ def crop(
 
     assert (
         bottom_right_exclusive[0] > 0 and bottom_right_exclusive[1] > 0
-    ), "The row and column in bottom_right_exclusive ({bottom_right_exclusive}) must be positive."
+    ), f"The row and column in bottom_right_exclusive ({bottom_right_exclusive}) must be positive."
 
     # Extract the minimum and maximum pixel rows and columns from the parameters
     r_min, c_min = top_left_inclusive
@@ -298,9 +298,7 @@ def draw_contour(
     for channel in color:
         assert (
             0 <= channel <= 255
-        ), "Each channel in color ({}) must be in the range 0 to 255 inclusive.".format(
-            color
-        )
+        ), f"Each channel in color ({color}) must be in the range 0 to 255 inclusive."
 
     cv.drawContours(color_image, [contour], 0, color, 3)
 
@@ -339,16 +337,15 @@ def draw_circle(
     for channel in color:
         assert (
             0 <= channel <= 255
-        ), "Each channel in color ({}) must be in the range 0 to 255 inclusive.".format(
-            color
-        )
+        ), f"Each channel in color ({color}) must be in the range 0 to 255 inclusive."
+
     assert (
         0 <= center[0] < color_image.shape[0]
-    ), "center[0] ({}) must be a pixel row index in color_image.".format(center[0])
+    ), f"center[0] ({center[0]}) must be a pixel row index in color_image."
     assert (
         0 <= center[1] < color_image.shape[1]
-    ), "center[1] ({}) must be a pixel column index in color_image.".format(center[1])
-    assert radius > 0, "radius ({}) must be a positive integer.".format(radius)
+    ), f"center[1] ({center[1]}) must be a pixel column index in color_image."
+    assert radius > 0, f"radius ({radius}) must be a positive integer."
 
     # cv.circle expects the center in (column, row) format
     cv.circle(color_image, (center[1], center[0]), radius, color, -1)
