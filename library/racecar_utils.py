@@ -760,7 +760,7 @@ def stack_images_horizontal(
     """
     assert (
         image_0.shape[0] == image_1.shape[0]
-    ), f"image_0 height ({image_0.shape[0]}) must be the same as image_1 height {image_1.shape[0]}."
+    ), f"image_0 height ({image_0.shape[0]}) must be the same as image_1 height ({image_1.shape[0]})."
 
     return np.hstack((image_0, image_1))
 
@@ -792,6 +792,6 @@ def stack_images_vertical(
     """
     assert (
         image_0.shape[1] == image_1.shape[1]
-    ), f"image_0 width ({image_0.shape[1]}) must be the same as image_1 width {image_1.shape[1]}."
+    ), f"image_0 width ({image_0.shape[1]}) must be the same as image_1 width ({image_1.shape[1]})."
 
     return np.vstack((image_0, image_1))
