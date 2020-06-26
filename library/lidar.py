@@ -19,51 +19,37 @@ class Lidar(abc.ABC):
     # The number of samples in a full Lidar scan.
     _NUM_SAMPLES: int = 720
 
+    def get_num_samples(self) -> int:
+        """
+        Returns the number of samples in a full LIDAR scan.
+
+        Returns:
+            The number of points collected in a complete scan.
+
+        Example::
+
+            total_points = rc.lidar.get_num_samples()
+        """
+        return self._NUM_SAMPLES
+
     @abc.abstractmethod
     def get_samples(self) -> NDArray[720, np.float32]:
         """
-        Returns the current LIDAR scan as an array of distance measurements.
-        Returns:
-            An array of distance measurements in cm.
-        Note:
-            Samples are in clockwise order, with the 0th sample directly in front of the
-            car.  Each sample is an equal angle appart.
-        Example::
-            # Access the most recent lidar scan.
-            scan = rc.lidar.get_samples()
-            # Get the distance of the measurement directly in front of the car
-            forward_distance = scan[0]
-        """
-        pass
+        Returns an array containing the distance values of each sample in a full scan.
 
-    @abc.abstractmethod
-    def get_samples_async(self) -> NDArray[720, np.float32]:
-        """
-        Returns the current LIDAR scan without the car in "go" mode.
         Returns:
             An array of distance measurements in cm.
+
         Note:
             Samples are in clockwise order, with the 0th sample directly in front of the
             car.  Each sample is an equal angle appart.
-        Warning:
-            This function breaks the start-update paradigm and should only be used in
-            Jupyter Notebook.
+
         Example::
+
             # Access the most recent lidar scan.
-            scan = rc.lidar.get_samples_async()
+            lidar_ranges = rc.lidar.get_ranges()
+
             # Get the distance of the measurement directly in front of the car
             forward_distance = lidar_ranges[0]
         """
         pass
-
-    def get_num_samples(self) -> int:
-        """
-        Returns the number of samples in a full LIDAR scan.
-        Returns:
-            The number of points collected in a complete scan.
-        Example::
-            scan = rc.lidar.get_samples()
-            # Access the sample directly behind the car
-            rear_distance = scan[rc.lidar.get_num_samples() // 2]
-        """
-        return self._NUM_SAMPLES
