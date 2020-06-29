@@ -699,19 +699,18 @@ def get_lidar_average_distance(
 
 
 def colormap_depth_image(
-    depth_image: NDArray[(Any, Any), np.float32]
+    depth_image: NDArray[(Any, Any), np.float32], max_depth: int = 1000,
 ) -> NDArray[(Any, Any, 3), np.uint8]:
     """
-    Maps a depth image to a colored depth image.
+    Converts a depth image to a colored image representing depth.
 
     Args:
-        depth_image: The depth image to process.
+        depth_image: The depth image to convert.
+        max_depth: The farthest depth to show in the image in cm.  Anything past
+            this depth is shown as the farthest color.
 
     Returns:
-        A three dimensional array of color pixels.
-            0th dimension: pixel rows, indexed from top to bottom.
-            1st dimension: pixel columns, indexed from left to right.
-            2nd dimension: pixel color channels, in the blue-green-red format.
+        A color image representation of the provided depth image.
 
     Note:
         Each color value ranges from 0 to 255.
@@ -723,26 +722,30 @@ def colormap_depth_image(
 
         # get the colormapped depth image
         depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
-
     """
-    depth_colormap = cv.applyColorMap(
-        cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET
+    # Clip anything above max_depth
+    np.clip(depth_image, None, max_depth, depth_image)
+
+    # Shift down 1 unit so that 0 (no data) becomes the "farthest" color
+    depth_image = (depth_image - 1) % max_depth
+
+    return cv.applyColorMap(
+        -cv.convertScaleAbs(depth_image, alpha=255/max_depth), cv.COLORMAP_INFERNO
     )
-    return depth_colormap
 
 
 def stack_images_horizontal(
-    image_0: NDArray[(Any, Any, 3), np.uint8], image_1: NDArray[(Any, Any, 3), np.uint8]
-) -> NDArray[(Any, Any, 3), np.uint8]:
+    image_0: NDArray[(Any, ...), Any], image_1: NDArray[(Any, ...), Any]
+) -> NDArray[(Any, ...), Any]:
     """
-    Stack two images horizontally.    
+    Stack two images horizontally.
 
     Args:
-        image_0: A color image to place on the left.
-        image_1: A color image to place on the right.
+        image_0: The image to place on the left.
+        image_1: The image to place on the right.
 
     Returns:
-        A color image with the original two images next to each other.
+        An image with the original two images next to each other.
 
     Note:
         The images must have the same height.
@@ -764,17 +767,17 @@ def stack_images_horizontal(
 
 
 def stack_images_vertical(
-    image_0: NDArray[(Any, Any, 3), np.uint8], image_1: NDArray[(Any, Any, 3), np.uint8]
-) -> NDArray[(Any, Any, 3), np.uint8]:
+    image_0: NDArray[(Any, ...), Any], image_1: NDArray[(Any, ...), Any]
+) -> NDArray[(Any, ...), Any]:
     """
-    Stack two images vertically.    
+    Stack two images vertically.
 
     Args:
-        image_0: A color image to place on the top.
-        image_1: A color image to place on the bottom.
+        image_0: The image to place on the top.
+        image_1: The image to place on the bottom.
 
     Returns:
-        A color image with the original two images next to each other.
+        An image with the original two images on top of eachother.
 
     Note:
         The images must have the same width.
