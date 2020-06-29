@@ -137,19 +137,15 @@ def crop(
     """
     assert (
         0 <= top_left_inclusive[0] < image.shape[0]
-    ), "top_left_inclusive[0] ({}) must be a pixel row index in color_image.".format(
-        top_left_inclusive[0]
-    )
+    ), f"top_left_inclusive[0] ({top_left_inclusive[0]}) must be a pixel row index in color_image."
+
     assert (
         0 <= top_left_inclusive[1] < image.shape[1]
-    ), "top_left_inclusive[1] ({}) must be a pixel column index in color_image.".format(
-        top_left_inclusive[1]
-    )
+    ), f"top_left_inclusive[1] ({top_left_inclusive[1]}) must be a pixel column index in color_image."
+
     assert (
         bottom_right_exclusive[0] > 0 and bottom_right_exclusive[1] > 0
-    ), "The row and column in bottom_right_exclusive ({}) must be positive.".format(
-        bottom_right_exclusive
-    )
+    ), f"The row and column in bottom_right_exclusive ({bottom_right_exclusive}) must be positive."
 
     # Extract the minimum and maximum pixel rows and columns from the parameters
     r_min, c_min = top_left_inclusive
@@ -194,29 +190,23 @@ def find_contours(
     """
     assert (
         0 <= hsv_lower[0] <= 179 and 0 <= hsv_upper[0] <= 179
-    ), "The hue of hsv_lower ({}) and hsv_upper ({}) must be in the range 0 to 179 inclusive.".format(
-        hsv_lower, hsv_upper
-    )
+    ), f"The hue of hsv_lower ({hsv_lower}) and hsv_upper ({hsv_upper}) must be in the range 0 to 179 inclusive."
+
     assert (
         0 <= hsv_lower[1] <= 255 and 0 <= hsv_upper[1] <= 255
-    ), "The saturation of hsv_lower ({}) and hsv_upper ({}) must be in the range 0 to 255 inclusive.".format(
-        hsv_lower, hsv_upper
-    )
+    ), f"The saturation of hsv_lower ({hsv_lower}) and hsv_upper ({hsv_upper}) must be in the range 0 to 255 inclusive."
+
     assert (
         0 <= hsv_lower[0] <= 255 and 0 <= hsv_upper[0] <= 255
-    ), "The value of hsv_lower ({}) and hsv_upper ({}) must be in the range 0 to 255 inclusive.".format(
-        hsv_lower, hsv_upper
-    )
+    ), f"The value of hsv_lower ({hsv_lower}) and hsv_upper ({hsv_upper}) must be in the range 0 to 255 inclusive."
+
     assert (
         hsv_lower[1] <= hsv_upper[1]
-    ), "The saturation channel of hsv_lower ({}) must be less than that of hsv_upper ({}).".format(
-        hsv_lower, hsv_upper
-    )
+    ), f"The saturation channel of hsv_lower ({hsv_lower}) must be less than that of hsv_upper ({hsv_upper})."
+
     assert (
         hsv_lower[2] <= hsv_upper[2]
-    ), "The value channel of hsv_lower ({}) must be less than that of of hsv_upper ({}).".format(
-        hsv_lower, hsv_upper
-    )
+    ), f"The value channel of hsv_lower ({hsv_lower}) must be less than that of of hsv_upper ({hsv_upper})."
 
     # Convert the image from a blue-green-red pixel representation to a
     # hue-saturation-value representation
@@ -308,9 +298,7 @@ def draw_contour(
     for channel in color:
         assert (
             0 <= channel <= 255
-        ), "Each channel in color ({}) must be in the range 0 to 255 inclusive.".format(
-            color
-        )
+        ), f"Each channel in color ({color}) must be in the range 0 to 255 inclusive."
 
     cv.drawContours(color_image, [contour], 0, color, 3)
 
@@ -349,16 +337,15 @@ def draw_circle(
     for channel in color:
         assert (
             0 <= channel <= 255
-        ), "Each channel in color ({}) must be in the range 0 to 255 inclusive.".format(
-            color
-        )
+        ), f"Each channel in color ({color}) must be in the range 0 to 255 inclusive."
+
     assert (
         0 <= center[0] < color_image.shape[0]
-    ), "center[0] ({}) must be a pixel row index in color_image.".format(center[0])
+    ), f"center[0] ({center[0]}) must be a pixel row index in color_image."
     assert (
         0 <= center[1] < color_image.shape[1]
-    ), "center[1] ({}) must be a pixel column index in color_image.".format(center[1])
-    assert radius > 0, "radius ({}) must be a positive integer.".format(radius)
+    ), f"center[1] ({center[1]}) must be a pixel column index in color_image."
+    assert radius > 0, f"radius ({radius}) must be a positive integer."
 
     # cv.circle expects the center in (column, row) format
     cv.circle(color_image, (center[1], center[0]), radius, color, -1)
@@ -458,7 +445,7 @@ def get_depth_image_center_distance(
     """
     assert (
         kernel_size > 0 and kernel_size % 2 == 1
-    ), "kernel_size ({}) must positive and odd.".format(kernel_size)
+    ), f"kernel_size ({kernel_size}) must positive and odd."
 
     # Calculate the center pixel
     center_coords = (depth_image.shape[0] // 2, depth_image.shape[1] // 2)
@@ -501,17 +488,15 @@ def get_pixel_average_distance(
     (pix_row, pix_col) = pix_coord
     assert (
         0 <= pix_row < depth_image.shape[0]
-    ), "pix_coord[0] ({}) must be a pixel row index within depth_image.".format(
-        pix_coord[0]
-    )
+    ), f"pix_coord[0] ({pix_coord[0]}) must be a pixel row index within depth_image."
+
     assert (
         0 <= pix_col < depth_image.shape[1]
-    ), "pix_coord[1] ({}) must be a pixel column index within depth_image.".format(
-        pix_coord[1]
-    )
+    ), f"pix_coord[1] ({pix_coord[1]}) must be a pixel column index within depth_image."
+
     assert (
         kernel_size > 0 and kernel_size % 2 == 1
-    ), "kernel_size ({}) must positive and odd.".format(kernel_size)
+    ), f"kernel_size ({kernel_size}) must positive and odd."
 
     # Crop out out a kernel around the requested pixel
     cropped_center = crop(
@@ -565,7 +550,7 @@ def get_closest_pixel(
     """
     assert (
         kernel_size > 0 and kernel_size % 2 == 1
-    ), "kernel_size ({}) must positive and odd.".format(kernel_size)
+    ), f"kernel_size ({kernel_size}) must positive and odd."
 
     # Shift 0.0 values to 10,000 so they are not considered for the closest pixel
     depth_image = (depth_image - 1) % 10000
@@ -685,9 +670,7 @@ def get_lidar_average_distance(
     """
     assert (
         0 <= window_angle < 360
-    ), "window_angle ({}) must be in the range 0 to 360, and reasonably should not exceed 20.".format(
-        window_angle
-    )
+    ), f"window_angle ({window_angle}) must be in the range 0 to 360, and reasonably should not exceed 20."
 
     # Adjust angle into the 0 to 360 degree range
     angle %= 360
@@ -713,3 +696,100 @@ def get_lidar_average_distance(
         return 0.0
 
     return sum(samples) / len(samples)
+
+
+def colormap_depth_image(
+    depth_image: NDArray[(Any, Any), np.float32]
+) -> NDArray[(Any, Any, 3), np.uint8]:
+    """
+    Maps a depth image to a colored depth image.
+
+    Args:
+        depth_image: The depth image to process.
+
+    Returns:
+        A three dimensional array of color pixels.
+            0th dimension: pixel rows, indexed from top to bottom.
+            1st dimension: pixel columns, indexed from left to right.
+            2nd dimension: pixel color channels, in the blue-green-red format.
+
+    Note:
+        Each color value ranges from 0 to 255.
+        The color of each pixel is determined by its distance.
+
+    Example::
+        # retrieve a depth image
+        depth_image = rc.camera.get_depth_image()
+
+        # get the colormapped depth image
+        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
+
+    """
+    depth_colormap = cv.applyColorMap(
+        cv.convertScaleAbs(depth_image, alpha=0.03), cv.COLORMAP_JET
+    )
+    return depth_colormap
+
+
+def stack_images_horizontal(
+    image_0: NDArray[(Any, Any, 3), np.uint8], image_1: NDArray[(Any, Any, 3), np.uint8]
+) -> NDArray[(Any, Any, 3), np.uint8]:
+    """
+    Stack two images horizontally.    
+
+    Args:
+        image_0: A color image to place on the left.
+        image_1: A color image to place on the right.
+
+    Returns:
+        A color image with the original two images next to each other.
+
+    Note:
+        The images must have the same height.
+
+    Example::
+        color_image = rc.camera.get_color_image()
+
+        depth_image = rc.camera.get_depth_image()
+        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
+
+        # Create a new image with the color on the left and depth on the right
+        new_image = rc_utils.stack_images_horizontally(color_image, depth_image_colormap)
+    """
+    assert (
+        image_0.shape[0] == image_1.shape[0]
+    ), f"image_0 height ({image_0.shape[0]}) must be the same as image_1 height ({image_1.shape[0]})."
+
+    return np.hstack((image_0, image_1))
+
+
+def stack_images_vertical(
+    image_0: NDArray[(Any, Any, 3), np.uint8], image_1: NDArray[(Any, Any, 3), np.uint8]
+) -> NDArray[(Any, Any, 3), np.uint8]:
+    """
+    Stack two images vertically.    
+
+    Args:
+        image_0: A color image to place on the top.
+        image_1: A color image to place on the bottom.
+
+    Returns:
+        A color image with the original two images next to each other.
+
+    Note:
+        The images must have the same width.
+
+    Example::
+        color_image = rc.camera.get_color_image()
+
+        depth_image = rc.camera.get_depth_image()
+        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
+
+        # Create a new image with the color on the top and depth on the bottom
+        new_image = rc_utils.stack_images_vertically(color_image, depth_image_colormap)
+    """
+    assert (
+        image_0.shape[1] == image_1.shape[1]
+    ), f"image_0 width ({image_0.shape[1]}) must be the same as image_1 width ({image_1.shape[1]})."
+
+    return np.vstack((image_0, image_1))

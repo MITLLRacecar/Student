@@ -12,8 +12,8 @@ from controller import Controller
 import copy
 from typing import Tuple
 
-# ROS
-import rospy
+# ROS2
+import rclpy as ros2
 from sensor_msgs.msg import Joy
 
 
@@ -31,9 +31,10 @@ class ControllerReal(Controller):
 
     def __init__(self, racecar):
         self.__racecar = racecar
-
+        # print(f"Length of self.Button: {len(self.Button)}")
         # Button state at the start of last frame
         self.__was_down = [False] * len(self.Button)
+        # print(f"Length of __was_down: {len(self.__was_down)}")
         # Button state at the start of this frame
         self.__is_down = [False] * len(self.Button)
         # Button state received since the start of this frame
@@ -53,10 +54,13 @@ class ControllerReal(Controller):
         self.__cur_start = 0
         self.__cur_back = 0
 
+        # ROS node
+        self.node = ros2.create_node("controller")
+
         # subscribe to the controller topic, which will call
         # __controller_callback every time the controller state changes
-        self.__subscriber = rospy.Subscriber(
-            self.__TOPIC, Joy, self.__controller_callback
+        self.__subscriber = self.node.create_subscription(
+            Joy, self.__TOPIC, self.__controller_callback, 1
         )
 
     def is_down(self, button: Controller.Button) -> bool:
@@ -82,7 +86,7 @@ class ControllerReal(Controller):
             message: (ROS controller message object) An object encoding the
                 physical state of the controller.
         """
-        self.__cur_down = [bool(b) for b in message.buttons[:6] + message.buttons[9:10]]
+        self.__cur_down = [bool(b) for b in message.buttons[:6] + message.buttons[9:11]]
 
         self.__cur_trigger = [
             self.__convert_trigger_value(message.axes[2]),
@@ -105,18 +109,18 @@ class ControllerReal(Controller):
             self.__cur_start = start
             if start:
                 if self.__cur_back:
-                    self.__racecar._Racecar__handle_exit()
+                    self.__racecar._RacecarReal__handle_exit()
                 else:
-                    self.__racecar._Racecar__handle_start()
+                    self.__racecar._RacecarReal__handle_start()
 
         back = message.buttons[6]
         if back != self.__cur_back:
             self.__cur_back = back
             if back:
                 if self.__cur_start:
-                    self.__racecar._Racecar__handle_exit()
+                    self.__racecar._RacecarReal__handle_exit()
                 else:
-                    self.__racecar._Racecar__handle_back()
+                    self.__racecar._RacecarReal__handle_back()
 
     def __update(self):
         """

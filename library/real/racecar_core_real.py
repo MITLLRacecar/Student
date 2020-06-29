@@ -11,17 +11,16 @@ from datetime import datetime
 import threading
 from typing import Callable, Optional
 
-# ROS
-import rospy
-from sensor_msgs.msg import LaserScan
+# ROS2
+import rclpy as ros2
 
 # racecar_core modules
-import camera
-import controller
-import display
-import drive
-import lidar
-import physics
+import camera_real
+import controller_real
+import display_real
+import drive_real
+import lidar_real
+import physics_real
 
 from racecar_core import Racecar
 
@@ -34,13 +33,33 @@ class RacecarReal(Racecar):
     __FRAME_RATE = 60
 
     def __init__(self):
+        # initialize ROS 2
+        ros2.init()
+        self.__executor = ros2.get_global_executor()
+        self.__rate_node = ros2.create_node("rate_node")
+
         # Modules
-        self.camera = camera.Camera()
-        self.controller = controller.Controller(self)
-        self.display = display.Display()
-        self.drive = drive.Drive()
-        self.lidar = lidar.Lidar()
-        self.physics = physics.Physics()
+        self.camera = camera_real.CameraReal()
+        self.controller = controller_real.ControllerReal(self)
+        self.display = display_real.DisplayReal()
+        self.drive = drive_real.DriveReal()
+        self.lidar = lidar_real.LidarReal()
+        self.physics = physics_real.PhysicsReal()
+
+        # Add all nodes to the executor
+        rate_added = self.__executor.add_node(self.__rate_node)
+        camera_added = self.__executor.add_node(self.camera.node)
+        lidar_added = self.__executor.add_node(self.lidar.node)
+        controller_added = self.__executor.add_node(self.controller.node)
+        physics_added = self.__executor.add_node(self.physics.node)
+        assert rate_added and lidar_added and camera_added and controller_added, (
+            "Issues initializing Racecar nodes. Node status: \n"
+            f"Rate operational: {rate_added} | "
+            f"Camera operational: {camera_added} | "
+            f"Lidar operational: {lidar_added} | "
+            f"Controller operational: {controller_added} | "
+            f"Physics operational: {physics_added} | "
+        )
 
         # User provided start and update functions
         self.__user_start = None
@@ -79,7 +98,11 @@ class RacecarReal(Racecar):
     def go(self) -> None:
         self.__running = True
         while self.__running:
-            pass
+            try:
+                self.__executor.spin_once()
+            except KeyboardInterrupt:
+                break
+        ros2.shutdown()
 
     def set_start_update(
         self,
@@ -133,7 +156,7 @@ class RacecarReal(Racecar):
         """
         Calls the current update and update_modules once per frame.
         """
-        timer = rospy.Rate(self.__FRAME_RATE)
+        rate = self.__rate_node.create_rate(self.__FRAME_RATE)
         while True:
             self.__last_frame_time = self.__cur_frame_time
             self.__cur_frame_time = datetime.now()
@@ -147,16 +170,17 @@ class RacecarReal(Racecar):
                     self.__cur_update_slow()
                     self.__cur_update_counter = self.__max_update_counter
 
-            timer.sleep()
+            rate.sleep()
 
     def __update_modules(self):
         """
         Calls the update function on each module.
         """
-        self.drive._Drive__update()
-        self.controller._Controller__update()
-        self.camera._Camera__update()
-        self.physics._Physics__update()
+        self.drive._DriveReal__update()
+        self.controller._ControllerReal__update()
+        self.camera._CameraReal__update()
+        self.physics._PhysicsReal__update()
+        self.lidar._LidarReal__update()
 
     def __default_start(self):
         """

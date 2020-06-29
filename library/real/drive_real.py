@@ -8,7 +8,7 @@ Contains the Drive module of the racecar_core library
 
 from drive import Drive
 
-import rospy
+import rclpy as ros2
 import numbers
 from ackermann_msgs.msg import AckermannDriveStamped
 
@@ -29,8 +29,12 @@ class DriveReal(Drive):
     __PWM_SPEED_MAX = 9000
 
     def __init__(self):
-        self.__publisher = rospy.Publisher(
-            self.__TOPIC, AckermannDriveStamped, queue_size=1
+        # ROS node
+        self.__node = ros2.create_node("drive_pub")
+        # publish to the drive topic, which will publish a message
+        # every time __update is called
+        self.__publisher = self.__node.create_publisher(
+            AckermannDriveStamped, self.__TOPIC, qos_profile=1
         )
         self.__message = AckermannDriveStamped()
         self.__max_speed = 0.25
@@ -38,10 +42,10 @@ class DriveReal(Drive):
     def set_speed_angle(self, speed: float, angle: float) -> None:
         assert (
             -1.0 <= speed <= 1.0
-        ), "speed ({}) must be between -1.0 and 1.0 inclusive.".format(speed)
+        ), f"speed ({speed}) must be between -1.0 and 1.0 inclusive."
         assert (
             -1.0 <= angle <= 1.0
-        ), "angle ({}) must be between -1.0 and 1.0 inclusive.".format(angle)
+        ), f"angle ({angle}) must be between -1.0 and 1.0 inclusive."
 
         self.__message.drive.speed = rc_utils.remap_range(
             speed * self.__max_speed,
@@ -58,7 +62,7 @@ class DriveReal(Drive):
     def set_max_speed(self, max_speed: float = 0.25) -> None:
         assert (
             0.0 <= max_speed <= 1.0
-        ), "max_speed ({}) must be between 0.0 and 1.0 inclusive.".format(max_speed)
+        ), f"max_speed ({max_speed}) must be between 0.0 and 1.0 inclusive."
 
         self.__max_speed_scale_factor = max_speed
 
