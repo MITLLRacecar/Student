@@ -1,55 +1,55 @@
-#!/bin/bash
-# Establishes tools to easily communicate with a RACECAR
+#!/bin/sh
+# Creates the racecar tool for easily using and communicating with a RACECAR
 
 racecar() {
   if [ "$RACECAR_CONFIG_LOADED" != "TRUE" ]; then
     echo "Error: unable to find your local .config file.  Please make sure that you setup the racecar tool correctly."
-    echo "Go to \"https://matthewcalligaro.github.io/RacecarWebsite/scripts/tool_setup.html\" for setup instructions."
+    echo "Go to \"https://mitll-racecar-mn.readthedocs.io/en/latest/gettingStarted/computerSetup.html\" for setup instructions."
   else
-    local RACECAR_DESTINATION_PATH="~/Documents/""$RACECAR_TEAM"
-    if [ $# -eq 1 ] && [ "$1" == "cd" ]; then
+    local RACECAR_DESTINATION_PATH="~/Documents/${RACECAR_TEAM}"
+    if [ $# -eq 1 ] && [ "$1" = "cd" ]; then
       cd "$RACECAR_ABSOLUTE_PATH"/labs
-    elif [ $# -eq 1 ] && [ "$1" == "connect" ]; then
-      echo "Attempting to connect to RACECAR ("$RACECAR_IP")..."
-      ssh -t racecar@"$RACECAR_IP" "cd "$RACECAR_DESTINATION_PATH" && export DISPLAY=":0" && bash"
-    elif [ $# -eq 1 ] && [ "$1" == "jupyter" ]; then
+    elif [ $# -eq 1 ] && [ "$1" = "connect" ]; then
+      echo "Attempting to connect to RACECAR (${RACECAR_IP})..."
+      ssh -t racecar@"$RACECAR_IP" cd "$RACECAR_DESTINATION_PATH" && export DISPLAY=:0 && bash
+    elif [ $# -eq 1 ] && [ "$1" = "jupyter" ]; then
       racecar cd
       echo "Creating a Jupyter server..."
       jupyter-notebook --no-browser
-    elif [ $# -eq 1 ] && [ "$1" == "remove" ]; then
+    elif [ $# -eq 1 ] && [ "$1" = "remove" ]; then
       echo "Removing your team directory from your RACECAR..."
-      ssh racecar@"$RACECAR_IP" "cd ~/Documents/ && rm -rf "$RACECAR_TEAM""
-    elif [ $# -eq 1 ] && [ "$1" == "setup" ]; then
-      echo "Creating your team directory ("$RACECAR_DESTINATION_PATH") on your RACECAR..."
+      ssh racecar@"$RACECAR_IP" cd ~/Documents/ && rm -rf "$RACECAR_TEAM"
+    elif [ $# -eq 1 ] && [ "$1" = "setup" ]; then
+      echo "Creating your team directory (${RACECAR_DESTINATION_PATH}) on your RACECAR..."
       ssh racecar@"$RACECAR_IP" mkdir -p "$RACECAR_DESTINATION_PATH"
       racecar sync all
     elif [ $# -eq 2 ] && [ "$1" = "sim" ]; then
       python3 "$2" -s
     elif [ $# -eq 2 ] && [ "$1" = "sync" ]; then
       local valid_command=false
-      if [ "$2" == "library" ] || [ "$2" == "all" ]; then
-        echo "Copying your local copy of the RACECAR library to your car ("$RACECAR_IP")..."
+      if [ "$2" = "library" ] || [ "$2" = "all" ]; then
+        echo "Copying your local copy of the RACECAR library to your car (${RACECAR_IP})..."
         scp -rp "$RACECAR_ABSOLUTE_PATH"/library racecar@"$RACECAR_IP":"$RACECAR_DESTINATION_PATH"
         valid_command=true
       fi
-      if [ "$2" == "labs" ] || [ "$2" == "all" ]; then
-        echo "Copying your local copy of the RACECAR labs to your car ("$RACECAR_IP")..."
+      if [ "$2" = "labs" ] || [ "$2" = "all" ]; then
+        echo "Copying your local copy of the RACECAR labs to your car (${RACECAR_IP})..."
         scp -rp "$RACECAR_ABSOLUTE_PATH"/labs racecar@"$RACECAR_IP":"$RACECAR_DESTINATION_PATH"
         valid_command=true
       fi
-      if [ "$valid_command" == false ]; then
-        echo "'"$2"' is not a recognized sync command.  Please enter one of the following:"
+      if [ "$valid_command" = false ]; then
+        echo "'${2}' is not a recognized sync command.  Please enter one of the following:"
         echo "racecar sync labs"
         echo "racecar sync library"
         echo "racecar sync all"
       fi
-    elif [ $# -eq 1 ] && [ "$1" == "test" ]; then
+    elif [ $# -eq 1 ] && [ "$1" = "test" ]; then
       echo "racecar tool set up successfully!"
-      echo "  RACECAR_ABSOLUTE_PATH: "$RACECAR_ABSOLUTE_PATH
-      echo "  RACECAR_IP: "$RACECAR_IP
-      echo "  RACECAR_TEAM: "$RACECAR_TEAM
+      echo "  RACECAR_ABSOLUTE_PATH: ${RACECAR_ABSOLUTE_PATH}"
+      echo "  RACECAR_IP: ${RACECAR_IP}"
+      echo "  RACECAR_TEAM: ${RACECAR_TEAM}"
     else
-      if [ $# -eq 1 ] && [ "$1" == "help" ]; then
+      if [ $# -eq 1 ] && [ "$1" = "help" ]; then
         echo "The racecar tool helps your computer communicate with your RACECAR."
       else
         echo "That was not a recognized racecar command."

@@ -19,9 +19,8 @@ from racecar_core import Racecar
 class RacecarSim(Racecar):
     __IP = "127.0.0.1"
     __UNITY_PORT = (__IP, 5065)
-    __PYTHON_PORT = (__IP, 5066)
     __UNITY_ASYNC_PORT = (__IP, 5064)
-    __SOCKET = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    __PYTHON_PORT = (__IP, 5066)
 
     class Header(IntEnum):
         """
@@ -84,6 +83,8 @@ class RacecarSim(Racecar):
         self.__update_slow_counter: float = 0
         self.__delta_time: float = -1
 
+        self.__SOCKET = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__SOCKET.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.__SOCKET.bind(self.__PYTHON_PORT)
 
     def go(self) -> None:
