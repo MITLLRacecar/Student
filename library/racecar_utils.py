@@ -106,7 +106,7 @@ def crop(
     image: NDArray[(Any, ...), Any],
     top_left_inclusive: Tuple[float, float],
     bottom_right_exclusive: Tuple[float, float],
-):
+) -> NDArray[(Any, ...), Any]:
     """
     Crops an image to a rectangle based on the specified pixel points.
 
@@ -118,11 +118,12 @@ def crop(
             past the bottom right corner of the crop rectangle.
 
     Returns:
-        (depth image or color image) A cropped version of the image.
+        A cropped version of the image.
 
     Note:
         The top_left_inclusive pixel is included in the crop rectangle, but the
         bottom_right_exclusive pixel is not.
+
         If bottom_right_exclusive exceeds the bottom or right edge of the image, the
         full image is included along that axis.
 
@@ -240,8 +241,8 @@ def get_largest_contour(
         min_area: The smallest contour to consider (in number of pixels)
 
     Returns:
-        The largest contour from the list, or None if no
-        contour was larger than min_area.
+        The largest contour from the list, or None if no contour was larger
+        than min_area.
 
     Example::
 
@@ -553,14 +554,14 @@ def get_closest_pixel(
     ), f"kernel_size ({kernel_size}) must positive and odd."
 
     # Shift 0.0 values to 10,000 so they are not considered for the closest pixel
-    depth_image = (depth_image - 1) % 10000
+    depth_image = (depth_image - 0.01) % 10000
 
     # Apply a Gaussian blur to to reduce noise
     if kernel_size > 1:
-        blurred_depth = cv.GaussianBlur(depth_image, (kernel_size, kernel_size), 0)
+        blurred_image = cv.GaussianBlur(depth_image, (kernel_size, kernel_size), 0)
 
     # Find the pixel location of the minimum depth
-    (_, _, minLoc, _) = cv.minMaxLoc(blurred_depth)
+    (_, _, minLoc, _) = cv.minMaxLoc(blurred_image)
 
     # minLoc is formatted as (column, row), so we flip the order
     return (minLoc[1], minLoc[0])
@@ -726,11 +727,11 @@ def colormap_depth_image(
     # Clip anything above max_depth
     np.clip(depth_image, None, max_depth, depth_image)
 
-    # Shift down 1 unit so that 0 (no data) becomes the "farthest" color
-    depth_image = (depth_image - 1) % max_depth
+    # Shift down slightly so that 0 (no data) becomes the "farthest" color
+    depth_image = (depth_image - 0.01) % max_depth
 
     return cv.applyColorMap(
-        -cv.convertScaleAbs(depth_image, alpha=255/max_depth), cv.COLORMAP_INFERNO
+        -cv.convertScaleAbs(depth_image, alpha=255 / max_depth), cv.COLORMAP_INFERNO
     )
 
 
