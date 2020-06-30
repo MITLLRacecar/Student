@@ -23,8 +23,8 @@ racecar() {
       echo "Creating your team directory (${RACECAR_DESTINATION_PATH}) on your RACECAR..."
       ssh racecar@"$RACECAR_IP" mkdir -p "$RACECAR_DESTINATION_PATH"
       racecar sync all
-    elif [ $# -eq 2 ] && [ "$1" = "sim" ]; then
-      python3 "$2" -s
+    elif [ $# -ge 2 ] && [ "$1" = "sim" ]; then
+      python3 "$2" -s "$3"
     elif [ $# -eq 2 ] && [ "$1" = "sync" ]; then
       local valid_command=false
       if [ "$2" = "library" ] || [ "$2" = "all" ]; then
