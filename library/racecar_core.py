@@ -131,21 +131,30 @@ def create_racecar(isSimulation: Optional[bool] = None) -> Racecar:
     Note:
         If isSimulation is None, this function will return a RacecarSim if the program
         was executed with the "-s" flag and a RacecarReal otherwise.
+
+        If the program was executed with a "-d" flag, a display window is created.
     """
     library_path = __file__.replace("racecar_core.py", "")
 
-    # If isSimulation was not specify, set it to True if the user ran the program with
+    # If isSimulation was not specified, set it to True if the user ran the program with
     # the -s flag and false otherwise
     if isSimulation is None:
-        isSimulation = len(sys.argv) > 1 and sys.argv[1] == "-s"
+        isSimulation = "-s" in sys.argv
 
+    racecar: Racecar
     if isSimulation:
         sys.path.insert(1, library_path + "simulation")
         from racecar_core_sim import RacecarSim
 
-        return RacecarSim()
+        racecar = RacecarSim()
     else:
         sys.path.insert(1, library_path + "real")
         from racecar_core_real import RacecarReal
 
-        return RacecarReal()
+        racecar = RacecarReal()
+
+    # If the user supplied the -d flag, create a display window
+    if "-d" in sys.argv:
+        racecar.display.create_window()
+
+    return racecar

@@ -12,6 +12,11 @@ from display import Display
 
 
 class DisplayReal(Display):
+    __WINDOW_NAME: str = "RACECAR display window"
+
+    def create_window(self) -> None:
+        cv.namedWindow(self.__WINDOW_NAME)
+
     def show_color_image(self, image: NDArray) -> None:
-        cv.imshow("RACECAR display window", image)
+        cv.imshow(self.__WINDOW_NAME, image)
         cv.waitKey(1)

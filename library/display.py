@@ -26,6 +26,27 @@ class Display(abc.ABC):
     __LIDAR_CAR_RADIUS = 2
 
     @abc.abstractmethod
+    def create_window(self) -> None:
+        """
+        Creates an empty window into which images will be displayed.
+
+        Note:
+            It is not necessary to call create_window before any of the other display
+            methods (show_color_image, show_depth_image, etc.).  These methods will
+            automatically create a new window if one was not already created.
+
+        Example::
+
+            # Creates a window
+            rc.camera.create_window()
+
+            # Display an image in this window
+            image = rc.camera.get_color_image()
+            rc.display.show_color_image(image)
+        """
+        pass
+
+    @abc.abstractmethod
     def show_color_image(self, image: NDArray) -> None:
         """
         Displays a color image in a window.
