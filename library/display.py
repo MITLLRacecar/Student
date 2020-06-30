@@ -12,14 +12,18 @@ import math
 from typing import List, Tuple, Any
 from nptyping import NDArray
 
+import racecar_utils as rc_utils
+
 
 class Display(abc.ABC):
     """
     Allows the user to print images to the screen.
     """
 
-    # The radius of the cross used to denote a point in a depth image
-    __CROSS_RADIUS = 3
+    # The radii dots used to indicate points
+    __BIG_DOT_RADIUS = 8
+    __SMALL_DOT_RADIUS = 4
+    __LIDAR_CAR_RADIUS = 2
 
     @abc.abstractmethod
     def show_color_image(self, image: NDArray) -> None:
@@ -49,10 +53,10 @@ class Display(abc.ABC):
 
         Args:
             image: The depth image to display to the screen.
-            max_depth: The farthest depth to show in the image in cm.  Anything past
+            max_depth: The farthest depth to show in the image in cm. Anything past
                 this depth is shown as black.
             points: A list of points in (pixel row, pixel column) format to show on
-                the image as black crosses.
+                the image as colored dots.
 
         Example::
 
@@ -73,25 +77,24 @@ class Display(abc.ABC):
                 point
             )
 
-        # Clip anything above max_depth
-        np.clip(image, None, max_depth, image)
+        color_image = rc_utils.colormap_depth_image(image, max_depth)
 
-        # Shift down 1 unit so that 0 (no data) becomes the "farthest" color
-        image = (image - 1) % max_depth
+        # Draw a dot at each point in points
+        for point in points:
+            rc_utils.draw_circle(
+                color_image,
+                point,
+                rc_utils.ColorBGR.green.value,
+                radius=self.__BIG_DOT_RADIUS,
+            )
+            rc_utils.draw_circle(
+                color_image,
+                point,
+                rc_utils.ColorBGR.blue.value,
+                radius=self.__SMALL_DOT_RADIUS,
+            )
 
-        # Scale measurements so that the closest depth becomes 255 (white) and max_depth
-        # becomes 0 (black).
-        image = 1 - (image / max_depth)
-
-        # Draw a black plus at each point in points
-        for (row, col) in points:
-            for i in range(-self.__CROSS_RADIUS, self.__CROSS_RADIUS):
-                if 0 <= row + i < image.shape[0]:
-                    image[row + i][col] = 0
-                if 0 <= col + i < image.shape[1]:
-                    image[row][col + i] = 0
-
-        self.show_color_image(image)
+        self.show_color_image(color_image)
 
     def show_lidar(
         self,
@@ -150,9 +153,12 @@ class Display(abc.ABC):
                 image[r][c][2] = 255
 
         # Draw a green dot to denote the car
-        for r in range(radius - 1, radius + 1):
-            for c in range(radius - 1, radius + 1):
-                image[r][c][1] = 255
+        rc_utils.draw_circle(
+            image,
+            (radius, radius),
+            rc_utils.ColorBGR.green.value,
+            self.__LIDAR_CAR_RADIUS,
+        )
 
         # Draw a light blue pixel for each point in highlighted_samples
         for (angle, distance) in highlighted_samples:
