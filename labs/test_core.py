@@ -51,6 +51,24 @@ def start():
     rc.drive.set_max_speed(max_speed)
     rc.drive.stop()
 
+    # Print start message
+    print(
+        ">> Test Core: A testing program for the racecar_core library.\n"
+        "\n"
+        "Controls:\n"
+        "   Right trigger = accelerate forward\n"
+        "   Left trigger = accelerate backward\n"
+        "   Left joystick = turn front wheels\n"
+        "   Left bumper = decrease max speed\n"
+        "   Right bumper = increase max speed\n"
+        "   Left joystick click = print trigger values\n"
+        "   Right joystick click = print joystick values\n"
+        "   A button = Display color image\n"
+        "   B button = Display depth image\n"
+        "   X button = Display lidar data\n"
+        "   Y button = Display IMU data\n"
+    )
+
 
 def update():
     """

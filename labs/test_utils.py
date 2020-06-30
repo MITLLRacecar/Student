@@ -50,6 +50,7 @@ def start():
     show_triggers = False
     show_joysticks = False
 
+    # Test numeric functions
     assert rc_utils.remap_range(5, 0, 10, 0, 50) == 25
     assert rc_utils.remap_range(5, 0, 20, 1000, 900) == 975
     assert rc_utils.remap_range(2, 0, 1, -10, 10) == 30
@@ -58,6 +59,20 @@ def start():
     assert rc_utils.clamp(3, 0, 10) == 3
     assert rc_utils.clamp(-2, 0, 10) == 0
     assert rc_utils.clamp(11, 0, 10) == 10
+
+    # Print start message
+    print(
+        ">> Test Utils: A testing program for the racecar_utils library.\n"
+        "\n"
+        "Controls:\n"
+        "   Right trigger = accelerate forward\n"
+        "   Left trigger = accelerate backward\n"
+        "   Left joystick = turn front wheels\n"
+        "   A button = Take a color image and crop it to the top left\n"
+        "   B button = Take a color image and identify the largest red contour\n"
+        "   X button = Take a depth image and print several statistics\n"
+        "   Y button = Take a lidar scan and print several statistics\n"
+    )
 
 
 def update():
@@ -106,7 +121,9 @@ def update():
         print("Depth image right distance: {:.2f} cm".format(right_distance))
 
         cropped = rc_utils.crop(
-            depth_image, (0, 0), (rc.camera.get_height() // 2, rc.camera.get_width())
+            depth_image,
+            (0, 0),
+            (rc.camera.get_height() * 2 // 3, rc.camera.get_width()),
         )
         closest_point = rc_utils.get_closest_pixel(cropped)
         closest_distance = cropped[closest_point[0]][closest_point[1]]
