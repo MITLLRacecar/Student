@@ -13,7 +13,7 @@ Lab 4A - IMU: Roll Prevention
 import sys
 
 sys.path.insert(0, "../../library")
-from racecar_core import *
+import racecar_core
 import racecar_utils as rc_utils
 
 import cv2 as cv

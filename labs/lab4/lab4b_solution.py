@@ -13,7 +13,7 @@ Lab 4B - IMU: Driving in shapes
 import sys
 
 sys.path.insert(0, "../../library")
-from racecar_core import *
+import racecar_core
 import racecar_utils as rc_utils
 
 import cv2 as cv
@@ -125,6 +125,10 @@ def update():
     ang_vel = rc.physics.get_angular_velocity()
     lin_acc = rc.physics.get_linear_acceleration()
 
+    current_linear_velocity = (
+                old_linear_velocity + lin_acc[2] * rc.get_delta_time()
+            )
+
     # If the queue is not empty, follow the current drive instruction
     if len(queue) > 0:
         speed = queue[0][1]
@@ -133,23 +137,16 @@ def update():
         if abs(angle) == 1 and speed == 1:
             radians_left = queue[0][0] - (abs(ang_vel[1]) * rc.get_delta_time())
             queue[0] = (radians_left, speed, angle)
-            current_linear_velocity = (
-                abs(ang_vel[1]) * WHEEL_DISTANCE / math.sin(math.pi / 4)
-            )
         # If we are driving straight, update distance left to travel
         if abs(angle) == 0 and speed == 1:
             # Displacement can be calculated using the following equations
             # s = v_avg * Δt, s.t. v_avg = (v_i + v_f) / 2 and v_f = v_i + a * Δt, or
             # s = v_i * Δt + (1/2) * a * (Δt)**2
-            current_linear_velocity = (
-                old_linear_velocity + lin_acc[2] * rc.get_delta_time()
-            )
             avg_linear_velocity = (old_linear_velocity + current_linear_velocity) / 2
             dist_traveled = avg_linear_velocity * rc.get_delta_time()
             dist_left = queue[0][0] - dist_traveled
             queue[0] = (dist_left, speed, angle)
         if queue[0][0] <= 0:
-            print("Pop")
             queue.pop(0)
 
     # Update the old veloxcity value
@@ -191,8 +188,8 @@ def drive_square():
     # Stop driving
     queue.append((0, 0, 0))
 
-    # Repeat 4 copies of: drive straight, turn left
-    for i in range(1, 4):
+    # Repeat 4 copies of: turn right, drive straight
+    for i in range(0, 4):
         queue.append((RADS_LEFT, 1, 1))
         queue.append((DIST_LEFT, 1, 0))
 

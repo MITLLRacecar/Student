@@ -13,7 +13,7 @@ Lab 4A - IMU: Rolling Prevention
 import sys
 
 sys.path.insert(0, "../../library")
-from racecar_core import *
+import racecar_core
 import racecar_utils as rc_utils
 
 import cv2 as cv
@@ -70,9 +70,11 @@ def update():
 
     # TODO (warmup): Prevent the car from turning too abruptly
     # Cap the angle based on the speed
-    angle_cap = 1 - 0.25 * abs(speed)
+    angle_cap = 1 - (0.40 * abs(speed))
     if angle > angle_cap:
         angle = angle_cap
+    if angle < -angle_cap:
+        angle = -angle_cap
 
     # Students may choose to adjust the angle, the speed, or both.
     # The example provides an upper limit for the angle based on the speed,
