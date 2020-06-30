@@ -623,7 +623,7 @@ def get_lidar_closest_point(
     # If we pass the 0-360 boundary, we must consider the scan in two pieces
     if first_sample > last_sample:
         left_samples = scan[first_sample:]
-        right_samples = scan[0:last_sample + 1]
+        right_samples = scan[:last_sample + 1]
 
         # Turn 0.0 (no data) into a very large number so it is ignored
         left_samples = (left_samples - 0.01) % 1000000
