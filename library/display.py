@@ -53,10 +53,10 @@ class Display(abc.ABC):
 
         Args:
             image: The depth image to display to the screen.
-            max_depth: The farthest depth to show in the image in cm.  Anything past
+            max_depth: The farthest depth to show in the image in cm. Anything past
                 this depth is shown as black.
             points: A list of points in (pixel row, pixel column) format to show on
-                the image as black crosses.
+                the image as colored dots.
 
         Example::
 
