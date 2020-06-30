@@ -19,7 +19,7 @@ class CameraSim(Camera):
 
     def get_color_image(self) -> NDArray[(480, 640, 3), np.uint8]:
         if not self.__is_color_image_current:
-            self.__color_image = self.__request_color_image(True)
+            self.__color_image = self.__request_color_image(False)
             self.__is_color_image_current = True
 
         return self.__color_image
