@@ -64,7 +64,7 @@ def update():
     # Calculate angle from left joystick
     angle = rc.controller.get_joystick(rc.controller.Joystick.LEFT)[0]
 
-    # TODO (warmup): Prevent the car from turning too abruptly
+    # TODO (warmup): Prevent the car from turning too abruptly using the IMU
 
     rc.drive.set_speed_angle(speed, angle)
 
