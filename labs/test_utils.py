@@ -107,6 +107,8 @@ def update():
     # Print depth image statistics and show the cropped upper half
     if rc.controller.was_pressed(rc.controller.Button.X):
         depth_image = rc.camera.get_depth_image()
+
+        # Measure average distance at several points
         left_distance = rc_utils.get_pixel_average_distance(
             depth_image, (rc.camera.get_height() // 2, rc.camera.get_width() // 4),
         )
@@ -115,11 +117,22 @@ def update():
         right_distance = rc_utils.get_pixel_average_distance(
             depth_image, (rc.camera.get_height() // 2, 3 * rc.camera.get_width() // 4),
         )
-        print("Depth image left distance: {:.2f} cm".format(left_distance))
-        print("Depth image center distance: {:.2f} cm".format(center_distance))
-        print("Depth image raw center distance: {:.2f} cm".format(center_distance_raw))
-        print("Depth image right distance: {:.2f} cm".format(right_distance))
+        print(f"Depth image left distance: {left_distance:.2f} cm")
+        print(f"Depth image center distance: {center_distance:.2f} cm")
+        print(f"Depth image raw center distance: {center_distance_raw:.2f} cm")
+        print(f"Depth image right distance: {right_distance:.2f} cm")
 
+        # Measure pixels where the kernel falls off the edge of the photo
+        upper_left_distance = rc_utils.get_pixel_average_distance(
+            depth_image, (2, 1), 11
+        )
+        lower_right_distance = rc_utils.get_pixel_average_distance(
+            depth_image, (rc.camera.get_height() - 2, rc.camera.get_width() - 5), 13
+        )
+        print(f"Depth image upper left distance: {upper_left_distance:.2f} cm")
+        print(f"Depth image lower right distance: {lower_right_distance:.2f} cm")
+
+        # Find closest point in bottom third
         cropped = rc_utils.crop(
             depth_image,
             (0, 0),
@@ -128,9 +141,7 @@ def update():
         closest_point = rc_utils.get_closest_pixel(cropped)
         closest_distance = cropped[closest_point[0]][closest_point[1]]
         print(
-            "Depth image closest point (upper half): (row={}, col={}), distance={:.2f} cm".format(
-                closest_point[0], closest_point[1], closest_distance
-            )
+            f"Depth image closest point (upper half): (row={closest_point[0]}, col={closest_point[1]}), distance={closest_distance:.2f} cm"
         )
         rc.display.show_depth_image(cropped, points=[closest_point])
 
@@ -141,16 +152,14 @@ def update():
         right_distance = rc_utils.get_lidar_average_distance(lidar, 90)
         back_distance = rc_utils.get_lidar_average_distance(lidar, 180)
         left_distance = rc_utils.get_lidar_average_distance(lidar, 270)
-        print("Front LIDAR distance: {:.2f} cm".format(front_distance))
-        print("Right LIDAR distance: {:.2f} cm".format(right_distance))
-        print("Back LIDAR distance: {:.2f} cm".format(back_distance))
-        print("Left LIDAR distance: {:.2f} cm".format(left_distance))
+        print(f"Front LIDAR distance: {front_distance:.2f} cm")
+        print(f"Right LIDAR distance: {right_distance:.2f} cm")
+        print(f"Back LIDAR distance: {back_distance:.2f} cm")
+        print(f"Left LIDAR distance: {left_distance:.2f} cm")
 
         closest_sample = rc_utils.get_lidar_closest_point(lidar)
         print(
-            "Closest LIDAR point: {:.2f} degrees, {:.2f} cm".format(
-                closest_sample[0], closest_sample[1]
-            )
+            f"Closest LIDAR point: {closest_sample[0]:.2f} degrees, {closest_sample[1]:.2f} cm"
         )
         rc.display.show_lidar(lidar, highlighted_samples=[closest_sample])
 
@@ -159,11 +168,8 @@ def update():
     if abs(rjoy_x) > 0 or abs(rjoy_y) > 0:
         lidar = rc.lidar.get_samples()
         angle = (math.atan2(rjoy_x, rjoy_y) * 180 / math.pi) % 360
-        print(
-            "LIDAR distance at angle {:.2f} = {:.2f} cm".format(
-                angle, rc_utils.get_lidar_average_distance(lidar, angle)
-            )
-        )
+        distance = rc_utils.get_lidar_average_distance(lidar, angle)
+        print(f"LIDAR distance at angle {angle:.2f} = {distance:.2f} cm")
 
     # Default drive-style controls
     left_trigger = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
