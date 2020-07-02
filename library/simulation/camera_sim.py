@@ -14,8 +14,8 @@ class CameraSim(Camera):
         self.__depth_image: NDArray[(480, 640), np.float32] = None
         self.__is_depth_image_current: bool = False
 
-        self._DEPTH_WIDTH: int = self._WIDTH // 8
-        self._DEPTH_HEIGHT: int = self._HEIGHT // 8
+        self._MAX_DEPTH_WIDTH: int = self._WIDTH // 8
+        self._MAX_DEPTH_HEIGHT: int = self._HEIGHT // 8
 
     def get_color_image(self) -> NDArray[(480, 640, 3), np.uint8]:
         if not self.__is_color_image_current:
@@ -68,13 +68,19 @@ class CameraSim(Camera):
             self.__racecar.Header.camera_get_depth_image, isAsync
         )
         raw_bytes: bytes = self.__racecar._RacecarSim__receive_data(
-            self._DEPTH_WIDTH * self._DEPTH_HEIGHT * 4
+            self._MAX_DEPTH_WIDTH * self._MAX_DEPTH_HEIGHT * 4
         )
         depth_image = np.frombuffer(raw_bytes, dtype=np.float32)
-        depth_image = np.reshape(
-            depth_image, (self._DEPTH_HEIGHT, self._DEPTH_WIDTH), "C"
-        )
 
+        # Calculate received height and width
+        n: int = (len(depth_image) // 300).bit_length() // 2
+        depth_width: int = 20 * 1 << n
+        depth_height: int = 15 * 1 << n
+
+        # Reshape and resize to full resolution
+        depth_image = np.reshape(
+            depth_image, (depth_height, depth_width), "C"
+        )
         depth_image = cv.resize(
             depth_image, (self._WIDTH, self._HEIGHT), interpolation=cv.INTER_AREA
         )
