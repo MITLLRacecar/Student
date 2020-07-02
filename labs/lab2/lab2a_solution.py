@@ -33,8 +33,8 @@ CROP_FLOOR = ((360, 0), (rc.camera.get_height(), rc.camera.get_width()))
 
 # Colors, stored as a pair (hsv_min, hsv_max)
 BLUE = ((90, 50, 50), (120, 255, 255))  # The HSV range for the color blue
-GREEN = ((40, 50, 50), (80, 255, 255))  # The HSV range for the color blue
-RED = ((170, 50, 50), (10, 255, 255))  # The HSV range for the color blue
+GREEN = ((40, 50, 50), (80, 255, 255))  # The HSV range for the color green
+RED = ((170, 50, 50), (10, 255, 255))  # The HSV range for the color red
 
 # Priority order for searching for tape colors
 COLOR_PRIORITY = (RED, GREEN, BLUE)
