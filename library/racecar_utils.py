@@ -512,8 +512,6 @@ def get_pixel_average_distance(
     elif pix_col + kernel_width // 2 >= depth_image.shape[1]:
         kernel_width = 2 * (depth_image.shape[1] - pix_col - 1) + 1
 
-    print(kernel_width, kernel_height)
-
     # Crop out out a kernel around the requested pixel
     cropped_center = crop(
         depth_image,
