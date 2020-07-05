@@ -1,8 +1,7 @@
-import math
 import struct
 import socket
-import time
 import sys
+import select
 from enum import IntEnum
 from typing import Callable, Optional
 
@@ -20,7 +19,6 @@ class RacecarSim(Racecar):
     __IP = "127.0.0.1"
     __UNITY_PORT = (__IP, 5065)
     __UNITY_ASYNC_PORT = (__IP, 5064)
-    __PYTHON_PORT = (__IP, 5066)
 
     class Header(IntEnum):
         """
@@ -28,32 +26,33 @@ class RacecarSim(Racecar):
         """
 
         error = 0
-        unity_start = 1
-        unity_update = 2
-        unity_exit = 3
-        python_finished = 4
-        python_send_next = 5
-        racecar_go = 6
-        racecar_set_start_update = 7
-        racecar_get_delta_time = 8
-        racecar_set_update_slow_time = 9
-        camera_get_color_image = 10
-        camera_get_depth_image = 11
-        camera_get_width = 12
-        camera_get_height = 13
-        controller_is_down = 14
-        controller_was_pressed = 15
-        controller_was_released = 16
-        controller_get_trigger = 17
-        controller_get_joystick = 18
-        display_show_image = 19
-        drive_set_speed_angle = 20
-        drive_stop = 21
-        drive_set_max_speed = 22
-        lidar_get_num_samples = 23
-        lidar_get_samples = 24
-        physics_get_linear_acceleration = 25
-        physics_get_angular_velocity = 26
+        connect = 1
+        unity_start = 2
+        unity_update = 3
+        unity_exit = 4
+        python_finished = 5
+        python_send_next = 6
+        racecar_go = 7
+        racecar_set_start_update = 8
+        racecar_get_delta_time = 9
+        racecar_set_update_slow_time = 10
+        camera_get_color_image = 11
+        camera_get_depth_image = 12
+        camera_get_width = 13
+        camera_get_height = 14
+        controller_is_down = 15
+        controller_was_pressed = 16
+        controller_was_released = 17
+        controller_get_trigger = 18
+        controller_get_joystick = 19
+        display_show_image = 20
+        drive_set_speed_angle = 21
+        drive_stop = 22
+        drive_set_max_speed = 23
+        lidar_get_num_samples = 24
+        lidar_get_samples = 25
+        physics_get_linear_acceleration = 26
+        physics_get_angular_velocity = 27
 
     def __send_header(self, function_code: Header, isAsync: bool = False) -> None:
         self.__send_data(struct.pack("B", function_code.value), isAsync)
@@ -84,30 +83,52 @@ class RacecarSim(Racecar):
         self.__delta_time: float = -1
 
         self.__SOCKET = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.__SOCKET.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.__SOCKET.bind(self.__PYTHON_PORT)
 
     def go(self) -> None:
-        print(">> Python script loaded, please enter user program mode in Unity")
+        print(
+            ">> Python script loaded, awaiting connection from RacecarSim."
+        )
+
+        # Repeatedly try to connect to RacecarSim (async) until we receive a response
+        while True:
+            self.__send_header(self.Header.connect, True)
+            ready = select.select([self.__SOCKET], [], [], 0.25)
+            if ready[0]:
+                data, _ = self.__SOCKET.recvfrom(8)
+                header = int.from_bytes(data, sys.byteorder)
+                if header == self.Header.connect.value:
+                    print(
+                        ">> Connection established with RacecarSim. Enter user program mode in RacecarSim to begin..."
+                    )
+                    break
+                else:
+                    print(">> Invalid handshake with RacecarSim, closing script...")
+                    self.__send_header(self.Header.error)
+                    return
+
+        # Respond to start/update commands from RacecarSim (sync) until we receive an
+        # exit or error command
         while True:
             data, _ = self.__SOCKET.recvfrom(8)
             header = int.from_bytes(data, sys.byteorder)
 
-            response = self.Header.error
             if header == self.Header.unity_start.value:
                 self.set_update_slow_time()
                 self.__start()
-                response = self.Header.python_finished
             elif header == self.Header.unity_update.value:
                 self.__handle_update()
-                response = self.Header.python_finished
             elif header == self.Header.unity_exit.value:
-                print(">> Exit command received from Unity")
+                print(">> Exit command received from RacecarSim, closing script...")
+                break
+            elif header == self.Header.error:
+                print(">> Error command received from RacecarSim, closing script...")
                 break
             else:
-                print(">> Error: unexpected packet from Unity", header)
+                print(f">> Error: unexpected packet with header {header} received from RacecarSim, closing script...")
+                self.__send_header(self.Header.error)
+                break
 
-            self.__send_header(response)
+            self.__send_header(self.Header.python_finished)
 
     def set_start_update(
         self,

@@ -97,7 +97,10 @@ def remap_range(
 
     # If saturate is true, enforce the new_min and new_max limits
     if saturate:
-        return clamp(new_val, new_min, new_max)
+        if new_min < new_max:
+            return clamp(new_val, new_min, new_max)
+        else:
+            return clamp(new_val, new_max, new_min)
 
     return new_val
 
@@ -490,28 +493,41 @@ def get_pixel_average_distance(
     assert (
         0 <= pix_row < depth_image.shape[0]
     ), f"pix_coord[0] ({pix_coord[0]}) must be a pixel row index within depth_image."
-
     assert (
         0 <= pix_col < depth_image.shape[1]
     ), f"pix_coord[1] ({pix_coord[1]}) must be a pixel column index within depth_image."
-
     assert (
         kernel_size > 0 and kernel_size % 2 == 1
     ), f"kernel_size ({kernel_size}) must positive and odd."
 
+    kernel_width: int = kernel_size
+    kernel_height: int = kernel_size
+
+    # If the kernel extends past the top or bottom row, decrease kernel_height
+    if kernel_height // 2 > pix_row:
+        kernel_height = 2 * pix_row + 1
+    elif pix_row + kernel_height // 2 >= depth_image.shape[0]:
+        kernel_height = 2 * (depth_image.shape[0] - pix_row - 1) + 1
+
+    # If the kernel extends past the first or last column, decrease kernel_width
+    if kernel_width // 2 > pix_col:
+        kernel_width = 2 * pix_col + 1
+    elif pix_col + kernel_width // 2 >= depth_image.shape[1]:
+        kernel_width = 2 * (depth_image.shape[1] - pix_col - 1) + 1
+
     # Crop out out a kernel around the requested pixel
     cropped_center = crop(
         depth_image,
-        (pix_row - kernel_size // 2, pix_col - kernel_size // 2),
-        (pix_row + kernel_size // 2 + 1, pix_col + kernel_size // 2 + 1),
+        (pix_row - kernel_height // 2, pix_col - kernel_width // 2),
+        (pix_row + kernel_height // 2 + 1, pix_col + kernel_width // 2 + 1),
     )
 
     # Apply a Gaussian blur to the cropped depth image to average the surrounding
     # pixel depths
-    blurred_center = cv.GaussianBlur(cropped_center, (kernel_size, kernel_size), 0)
+    blurred_center = cv.GaussianBlur(cropped_center, (kernel_width, kernel_height), 0)
 
-    # Return the depth of the center pixel
-    return blurred_center[kernel_size // 2, kernel_size // 2]
+    # Return the depth at the center of the kernel
+    return blurred_center[kernel_height // 2, kernel_width // 2]
 
 
 def get_closest_pixel(
@@ -623,7 +639,7 @@ def get_lidar_closest_point(
     # If we pass the 0-360 boundary, we must consider the scan in two pieces
     if first_sample > last_sample:
         left_samples = scan[first_sample:]
-        right_samples = scan[:last_sample + 1]
+        right_samples = scan[: last_sample + 1]
 
         # Turn 0.0 (no data) into a very large number so it is ignored
         left_samples = (left_samples - 0.01) % 1000000
@@ -642,7 +658,7 @@ def get_lidar_closest_point(
             return right_min_index * 360 / scan.shape[0], right_min
 
     # Otherwise, use the same approach but for one continuous piece
-    samples = (scan[first_sample:last_sample + 1] - 0.01) % 1000000
+    samples = (scan[first_sample : last_sample + 1] - 0.01) % 1000000
     min_index = np.argmin(samples)
     return (first_sample + min_index) * 360 / scan.shape[0], samples[min_index]
 
