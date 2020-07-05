@@ -43,8 +43,27 @@ class Mode(enum.IntEnum):
 BLUE = ((100, 150, 150), (120, 255, 255))  # The HSV range for the color blue
 RED = ((170, 50, 50), (10, 255, 255))  # The HSV range for the color blue
 
+# Speeds
+MAX_ALIGN_SPEED = 0.8
+MIN_ALIGN_SPEED = 0.4
+PASS_SPEED = 0.5
+FIND_SPEED = 0.2
+REVERSE_SPEED = -0.2
+NO_CONES_SPEED = 0.4
+
+# Times
+REVERSE_BRAKE_TIME = 0.25
+SHORT_PASS_TIME = 1.0
+LONG_PASS_TIME = 1.2
+
+# Cone finding parameters
 MIN_CONTOUR_AREA = 100
 MAX_DISTANCE = 250
+REVERSE_DISTANCE = 50
+STOP_REVERSE_DISTANCE = 60
+
+CLOSE_DISTANCE = 30
+FAR_DISTANCE = 120
 
 # >> Variables
 cur_mode = Mode.no_cones
@@ -63,7 +82,7 @@ prev_blue_distance = 0
 
 def find_cones():
     """
-    Docstring
+    Find the closest red and blue cones and update corresponding global variables.
     """
     global red_center
     global red_distance
@@ -162,19 +181,27 @@ def update():
         if (
             red_center is None
             or red_distance == 0
-            or red_distance - prev_red_distance > 30
+            or red_distance - prev_red_distance > CLOSE_DISTANCE
         ):
-            if 0 < prev_red_distance < 150:
+            if 0 < prev_red_distance < FAR_DISTANCE:
                 counter = max(1, counter)
                 cur_mode = Mode.red_pass
             else:
                 cur_mode = Mode.no_cones
-        elif red_distance < 50 and red_center[1] > rc.camera.get_width() // 4:
-            counter = 0.25
+        elif (
+            red_distance < REVERSE_DISTANCE
+            and red_center[1] > rc.camera.get_width() // 4
+        ):
+            counter = REVERSE_BRAKE_TIME
             cur_mode = Mode.red_reverse
         else:
             goal_point = rc_utils.remap_range(
-                red_distance, 30, 100, 0, rc.camera.get_width() // 4, True
+                red_distance,
+                CLOSE_DISTANCE,
+                FAR_DISTANCE,
+                0,
+                rc.camera.get_width() // 4,
+                True,
             )
 
             angle = rc_utils.remap_range(
@@ -182,27 +209,37 @@ def update():
             )
             angle = rc_utils.clamp(angle, -1, 1)
 
-            speed = rc_utils.remap_range(red_distance, 30, 120, 0.3, 0.6, True)
+            speed = rc_utils.remap_range(
+                red_distance,
+                CLOSE_DISTANCE,
+                FAR_DISTANCE,
+                MIN_ALIGN_SPEED,
+                MAX_ALIGN_SPEED,
+                True,
+            )
 
     elif cur_mode == Mode.blue_align:
         if (
             blue_center is None
             or blue_distance == 0
-            or blue_distance - prev_blue_distance > 30
+            or blue_distance - prev_blue_distance > CLOSE_DISTANCE
         ):
-            if 0 < prev_blue_distance < 150:
+            if 0 < prev_blue_distance < FAR_DISTANCE:
                 counter = max(1, counter)
                 cur_mode = Mode.blue_pass
             else:
                 cur_mode = Mode.no_cones
-        elif blue_distance < 40 and blue_center[1] < rc.camera.get_width() * 3 // 4:
-            counter = 0.25
+        elif (
+            blue_distance < REVERSE_DISTANCE
+            and blue_center[1] < rc.camera.get_width() * 3 // 4
+        ):
+            counter = REVERSE_BRAKE_TIME
             cur_mode = Mode.blue_reverse
         else:
             goal_point = rc_utils.remap_range(
                 blue_distance,
-                30,
-                100,
+                CLOSE_DISTANCE,
+                FAR_DISTANCE,
                 rc.camera.get_width(),
                 rc.camera.get_width() * 3 // 4,
                 True,
@@ -213,11 +250,18 @@ def update():
             )
             angle = rc_utils.clamp(angle, -1, 1)
 
-            speed = rc_utils.remap_range(blue_distance, 30, 120, 0.3, 0.6, True)
+            speed = rc_utils.remap_range(
+                blue_distance,
+                CLOSE_DISTANCE,
+                FAR_DISTANCE,
+                MIN_ALIGN_SPEED,
+                MAX_ALIGN_SPEED,
+                True,
+            )
 
     if cur_mode == Mode.red_pass:
         angle = rc_utils.remap_range(counter, 1, 0, 0, -0.5)
-        speed = 0.5
+        speed = PASS_SPEED
 
         counter -= rc.get_delta_time()
         if counter <= 0:
@@ -225,7 +269,7 @@ def update():
 
     elif cur_mode == Mode.blue_pass:
         angle = rc_utils.remap_range(counter, 1, 0, 0, 0.5)
-        speed = 0.5
+        speed = PASS_SPEED
 
         counter -= rc.get_delta_time()
         if counter <= 0:
@@ -233,13 +277,13 @@ def update():
 
     elif cur_mode == Mode.red_find:
         angle = 1
-        speed = 0.2
+        speed = FIND_SPEED
         if red_distance > 0:
             cur_mode = Mode.red_align
 
     elif cur_mode == Mode.blue_find:
         angle = -1
-        speed = 0.2
+        speed = FIND_SPEED
         if blue_distance > 0:
             cur_mode = Mode.blue_align
 
@@ -250,9 +294,12 @@ def update():
             angle = 1
         else:
             angle = -1
-            speed = -0.2
-            if red_distance > 60 or red_center[1] < rc.camera.get_width() // 10:
-                counter = 1.2
+            speed = REVERSE_SPEED
+            if (
+                red_distance > STOP_REVERSE_DISTANCE
+                or red_center[1] < rc.camera.get_width() // 10
+            ):
+                counter = LONG_PASS_TIME
                 cur_mode = Mode.red_align
 
     elif cur_mode == Mode.blue_reverse:
@@ -262,14 +309,17 @@ def update():
             angle = 1
         else:
             angle = 1
-            speed = -0.2
-            if blue_distance > 60 or blue_center[1] > rc.camera.get_width() * 9 / 10:
-                counter = 1.2
+            speed = REVERSE_SPEED
+            if (
+                blue_distance > STOP_REVERSE_DISTANCE
+                or blue_center[1] > rc.camera.get_width() * 9 / 10
+            ):
+                counter = LONG_PASS_TIME
                 cur_mode = Mode.blue_align
 
     elif cur_mode == Mode.no_cones:
         angle = 0
-        speed = 0.4
+        speed = NO_CONES_SPEED
 
         if red_distance > 0 and blue_distance == 0:
             cur_mode = Mode.red_align
