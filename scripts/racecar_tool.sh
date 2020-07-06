@@ -6,19 +6,19 @@ racecar() {
     echo "Error: unable to find your local .config file.  Please make sure that you setup the racecar tool correctly."
     echo "Go to \"https://mitll-racecar-mn.readthedocs.io/en/latest/gettingStarted/computerSetup.html\" for setup instructions."
   else
-    local RACECAR_DESTINATION_PATH="~/Documents/${RACECAR_TEAM}"
+    local RACECAR_DESTINATION_PATH="/home/racecar/Documents/${RACECAR_TEAM}"
     if [ $# -eq 1 ] && [ "$1" = "cd" ]; then
-      cd "$RACECAR_ABSOLUTE_PATH"/labs
+      cd "$RACECAR_ABSOLUTE_PATH"/labs || return
     elif [ $# -eq 1 ] && [ "$1" = "connect" ]; then
       echo "Attempting to connect to RACECAR (${RACECAR_IP})..."
-      ssh -t racecar@"$RACECAR_IP" cd "$RACECAR_DESTINATION_PATH" && export DISPLAY=:0 && bash
+      ssh -t racecar@"$RACECAR_IP" "cd ${RACECAR_DESTINATION_PATH} && export DISPLAY=:0 && bash"
     elif [ $# -eq 1 ] && [ "$1" = "jupyter" ]; then
       racecar cd
       echo "Creating a Jupyter server..."
       jupyter-notebook --no-browser
     elif [ $# -eq 1 ] && [ "$1" = "remove" ]; then
       echo "Removing your team directory from your RACECAR..."
-      ssh racecar@"$RACECAR_IP" cd ~/Documents/ && rm -rf "$RACECAR_TEAM"
+      ssh racecar@"$RACECAR_IP" "cd /home/racecar/Documents/ && rm -rf ${RACECAR_TEAM}"
     elif [ $# -eq 1 ] && [ "$1" = "setup" ]; then
       echo "Creating your team directory (${RACECAR_DESTINATION_PATH}) on your RACECAR..."
       ssh racecar@"$RACECAR_IP" mkdir -p "$RACECAR_DESTINATION_PATH"
