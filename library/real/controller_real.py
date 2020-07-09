@@ -29,6 +29,30 @@ class ControllerReal(Controller):
     # register a non-zero value along that axis
     __JOYSTICK_DEAD_ZONE = 0.2
 
+    # The index of each button the message.buttons
+    __BUTTON_MAP = [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        9,
+        10,
+    ]
+
+    # The index of the start button in message.buttons
+    __START_MAP = 7
+
+    # The index of the back button in message.buttons
+    __BACK_MAP = 6
+
+    # The index of the triggers in message.axes
+    __TRIGGER_MAP = [2, 5]
+
+    # The indices of the (x, y) joystick axes in message.axes
+    __JOYSTICK_MAP = [(0, 1), (3, 4)]
+
     def __init__(self, racecar):
         self.__racecar = racecar
         # print(f"Length of self.Button: {len(self.Button)}")
@@ -86,25 +110,21 @@ class ControllerReal(Controller):
             message: (ROS controller message object) An object encoding the
                 physical state of the controller.
         """
-        self.__cur_down = [bool(b) for b in message.buttons[:6] + message.buttons[9:11]]
+        for i in range(0, len(self.__BUTTON_MAP)):
+            self.__cur_down[i] = bool(message.buttons[self.__BUTTON_MAP[i]])
 
-        self.__cur_trigger = [
-            self.__convert_trigger_value(message.axes[2]),
-            self.__convert_trigger_value(message.axes[5]),
-        ]
+        for i in range(0, len(self.__TRIGGER_MAP)):
+            self.__cur_trigger[i] = self.__convert_trigger_value(
+                message.axes[self.__TRIGGER_MAP[i]]
+            )
 
-        self.__cur_joystick = [
-            (
-                self.__convert_joystick_value(message.axes[0]),
-                self.__convert_joystick_value(message.axes[1]),
-            ),
-            (
-                self.__convert_joystick_value(message.axes[3]),
-                self.__convert_joystick_value(message.axes[4]),
-            ),
-        ]
+        for i in range(0, len(self.__JOYSTICK_MAP)):
+            self.__cur_joystick[i] = self.__convert_joystick_values(
+                message.axes[self.__JOYSTICK_MAP[i][0]],
+                message.axes[self.__JOYSTICK_MAP[i][1]],
+            )
 
-        start = message.buttons[7]
+        start = message.buttons[self.__START_MAP]
         if start != self.__cur_start:
             self.__cur_start = start
             if start:
@@ -113,7 +133,7 @@ class ControllerReal(Controller):
                 else:
                     self.__racecar._RacecarReal__handle_start()
 
-        back = message.buttons[6]
+        back = message.buttons[self.__BACK_MAP]
         if back != self.__cur_back:
             self.__cur_back = back
             if back:
@@ -131,25 +151,31 @@ class ControllerReal(Controller):
         self.__last_trigger = copy.deepcopy(self.__cur_trigger)
         self.__last_joystick = copy.deepcopy(self.__cur_joystick)
 
-    def __convert_trigger_value(self, value):
+    def __convert_trigger_value(self, value: float) -> float:
         """
         Converts a received trigger value into the desired range.
 
         Args:
-            value: (float) The value of the controller provided in the ROS message.
+            value: The value of the trigger provided in the ROS message.
         """
         value = (1.0 - value) / 2
         if value < self.__TRIGGER_DEAD_ZONE:
             return 0
         return value
 
-    def __convert_joystick_value(self, value):
+    def __convert_joystick_values(self, x: float, y: float) -> Tuple[float, float]:
         """
         Converts a received joystick axis value into the desired range.
 
         Args:
-            value: (float) The value of the joystick axis provided in the ROS message.
+            x: The value of the joystick x axis provided in the ROS message.
+            y: The value of the joystick y axis provided in the ROS message.
         """
-        if abs(value) < self.__JOYSTICK_DEAD_ZONE:
-            return 0
-        return value
+        x = -x
+
+        if abs(x) < self.__JOYSTICK_DEAD_ZONE:
+            x = 0
+        if abs(y) < self.__JOYSTICK_DEAD_ZONE:
+            y = 0
+
+        return (x, y)
