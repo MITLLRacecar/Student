@@ -21,7 +21,7 @@ class DisplayReal(Display):
         self.__display_found = (
             self.__DISPLAY
             in os.popen(
-                "cd /tmp/.X11-unix && for x in X*; do echo “:${x#X}”; done "
+                "cd /tmp/.X11-unix && for x in X*; do echo ":${x#X}"; done "
             ).read()
         )
         if self.__display_found:
