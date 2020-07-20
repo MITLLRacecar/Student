@@ -820,3 +820,55 @@ def stack_images_vertical(
     ), f"image_0 width ({image_0.shape[1]}) must be the same as image_1 width ({image_1.shape[1]})."
 
     return np.vstack((image_0, image_1))
+
+def get_ar_tags(
+    color_image: NDArray[(Any, Any, 3), np.uint8]
+) -> Tuple[List[NDArray[(1, 4, 2), np.int32]], Optional[NDArray[(Any,1), np.int32]]]:
+    """
+    Finds ar tags in a image.
+
+    Args:
+        color_image: A color image.
+
+    Returns:
+        A list of each ar tag's four corners clockwise and an array of the ar tag ids.
+
+    Example::
+        color_image = copy.deepcopy(rc.camera.get_color_image())
+
+        # detect and draw color images
+        corners, ids = racecar_utils.get_ar_tags(color_image)   
+        color_image = racecar_utils.draw_ar_tags(color_image, corners, ids)
+
+        rc.display.show_color_image(color_image)
+    """
+    corners, ids, _ = cv.aruco.detectMarkers(color_image, cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250), parameters=cv.aruco.DetectorParameters_create())
+    print(f"corners : {corners}, ids : {ids}")
+    return (corners, ids)
+
+def draw_ar_tags(color_image: NDArray[(Any, Any, 3), np.uint32], corners: List[NDArray[(1, 4, 2), np.int32]], ids: NDArray[(Any,1), np.int32] , color:Tuple[int, int, int] = ColorBGR.green.value) -> NDArray[(Any, Any, 3), np.uint8]:
+    """
+    Draw ar tags in a image.
+
+    Args:
+        color_image: A color image.
+        corners: A list of ndarrays with ar tag corners.
+        ids: A list of ar tag ids.
+
+    Note:
+        The length of corners must be the same as the first dimension of ids.
+        The original image is modified.
+
+    Returns:
+        A list of each ar tag's four corners clockwise and an array of the ar tag ids.
+
+    Example::
+        color_image = copy.deepcopy(rc.camera.get_color_image())
+
+        # detect and draw color images
+        corners, ids = racecar_utils.get_ar_tags(color_image)   
+        color_image = racecar_utils.draw_ar_tags(color_image, corners, ids)
+
+        rc.display.show_color_image(color_image)
+    """
+    return cv.aruco.drawDetectedMarkers(color_image, corners, ids, color)
