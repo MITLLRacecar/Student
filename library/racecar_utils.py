@@ -667,7 +667,7 @@ def get_lidar_average_distance(
     scan: NDArray[Any, np.float32], angle: float, window_angle: float = 4
 ) -> float:
     """
-    Finds the average distance to obstacles in front of the car.
+    Finds the average distance of the object at a particular angle relative to the car.
 
     Args:
         scan: The samples from a LIDAR scan
