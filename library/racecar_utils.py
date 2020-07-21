@@ -822,7 +822,7 @@ def stack_images_vertical(
     return np.vstack((image_0, image_1))
 
 
-def get_ar_tags(
+def get_ar_markers(
     color_image: NDArray[(Any, Any, 3), np.uint8]
 ) -> Tuple[List[NDArray[(1, 4, 2), np.int32]], Optional[NDArray[(Any, 1), np.int32]]]:
     """
@@ -838,8 +838,8 @@ def get_ar_tags(
         color_image = copy.deepcopy(rc.camera.get_color_image())
 
         # detect and draw ar tags
-        corners, ids = racecar_utils.get_ar_tags(color_image)   
-        color_image = racecar_utils.draw_ar_tags(color_image, corners, ids)
+        corners, ids = racecar_utils.get_ar_markers(color_image)   
+        color_image = racecar_utils.draw_ar_markers(color_image, corners, ids)
 
         rc.display.show_color_image(color_image)
     """
@@ -852,7 +852,7 @@ def get_ar_tags(
     return (corners, ids)
 
 
-def draw_ar_tags(
+def draw_ar_markers(
     color_image: NDArray[(Any, Any, 3), np.uint32],
     corners: List[NDArray[(1, 4, 2), np.int32]],
     ids: NDArray[(Any, 1), np.int32],
@@ -877,8 +877,8 @@ def draw_ar_tags(
         color_image = copy.deepcopy(rc.camera.get_color_image())
 
         # detect and draw ar tags
-        corners, ids = racecar_utils.get_ar_tags(color_image)   
-        color_image = racecar_utils.draw_ar_tags(color_image, corners, ids)
+        corners, ids = racecar_utils.get_ar_markers(color_image)   
+        color_image = racecar_utils.draw_ar_markers(color_image, corners, ids)
 
         rc.display.show_color_image(color_image)
     """
@@ -910,7 +910,7 @@ def get_ar_direction(ar_corners: NDArray[(1, 4, 2), np.int32]) -> Direction:
         color_image = copy.deepcopy(rc.camera.get_color_image())
 
         # detect ar tag and print direction
-        corners, ids = racecar_utils.get_ar_tags(color_image)   
+        corners, ids = racecar_utils.get_ar_markers(color_image)   
         if len(corners) > 0:
             print(get_ar_direction(corners[0]))
     """
