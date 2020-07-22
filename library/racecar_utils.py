@@ -826,18 +826,18 @@ def get_ar_markers(
     color_image: NDArray[(Any, Any, 3), np.uint8]
 ) -> Tuple[List[NDArray[(1, 4, 2), np.int32]], Optional[NDArray[(Any, 1), np.int32]]]:
     """
-    Finds ar tags in a image.
+    Finds AR markers in a image.
 
     Args:
         color_image: A color image.
 
     Returns:
-        A list of each ar tag's four corners clockwise and an array of the ar tag ids.
+        A list of each AR marker's four corners clockwise and an array of the AR marker ids.
 
     Example::
         color_image = copy.deepcopy(rc.camera.get_color_image())
 
-        # detect and draw ar tags
+        # detect and draw AR markers
         corners, ids = racecar_utils.get_ar_markers(color_image)   
         color_image = racecar_utils.draw_ar_markers(color_image, corners, ids)
 
@@ -848,7 +848,6 @@ def get_ar_markers(
         cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250),
         parameters=cv.aruco.DetectorParameters_create(),
     )
-    print(f"corners : {corners}, ids : {ids}")
     return (corners, ids)
 
 
@@ -856,27 +855,27 @@ def draw_ar_markers(
     color_image: NDArray[(Any, Any, 3), np.uint32],
     corners: List[NDArray[(1, 4, 2), np.int32]],
     ids: NDArray[(Any, 1), np.int32],
-    color: Tuple[int, int, int] = ColorBGR.green.value,
+    color: Tuple[int, int, int] = ColorBGR.green.value
 ) -> NDArray[(Any, Any, 3), np.uint8]:
     """
-    Draw ar tags in a image.
+    Draw AR markers in a image.
 
     Args:
         color_image: A color image.
-        corners: A list of ndarrays with ar tag corners.
-        ids: A list of ar tag ids.
+        corners: A list of ndarrays with AR marker corners.
+        ids: A list of AR marker ids.
 
     Note:
         The length of corners must be the same as the first dimension of ids.
         The original image is modified.
 
     Returns:
-        A list of each ar tag's four corners clockwise and an array of the ar tag ids.
+        A list of each AR marker's four corners clockwise and an array of the ar marker ids.
 
     Example::
         color_image = copy.deepcopy(rc.camera.get_color_image())
 
-        # detect and draw ar tags
+        # detect and draw AR markers
         corners, ids = racecar_utils.get_ar_markers(color_image)   
         color_image = racecar_utils.draw_ar_markers(color_image, corners, ids)
 
@@ -884,32 +883,35 @@ def draw_ar_markers(
     """
     return cv.aruco.drawDetectedMarkers(color_image, corners, ids, color)
 
+
 class Direction(Enum):
     """
-    AR Tag direction
+    AR marker direction
     """
+
     UP = auto()
     RIGHT = auto()
     DOWN = auto()
     LEFT = auto()
-    
+
+
 def get_ar_direction(ar_corners: NDArray[(1, 4, 2), np.int32]) -> Direction:
     """
-    Return the direction of an ar tag.
+    Return the direction of an AR marker.
 
     Args:
-        ar_corners: An array of the ar tag's corner coordinates.
+        ar_corners: An array of the AR marker's corner coordinates.
 
     Note:
         The first dimension of the input array is 1.
 
     Returns:
-        The direction the ar tag faces.
+        The direction the AR markers faces.
 
     Example::
         color_image = copy.deepcopy(rc.camera.get_color_image())
 
-        # detect ar tag and print direction
+        # detect AR marker and print direction
         corners, ids = racecar_utils.get_ar_markers(color_image)   
         if len(corners) > 0:
             print(get_ar_direction(corners[0]))
