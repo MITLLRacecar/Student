@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 from typing import *
 from nptyping import NDArray
-from enum import Enum, auto
+from enum import Enum, IntEnum
 
 
 class ColorBGR(Enum):
@@ -884,15 +884,14 @@ def draw_ar_markers(
     return cv.aruco.drawDetectedMarkers(color_image, corners, ids, color)
 
 
-class Direction(Enum):
+class Direction(IntEnum):
     """
     AR marker direction
     """
-
-    UP = auto()
-    RIGHT = auto()
-    DOWN = auto()
-    LEFT = auto()
+    UP = 0
+    RIGHT = 1
+    DOWN = 2
+    LEFT = 3
 
 
 def get_ar_direction(ar_corners: NDArray[(1, 4, 2), np.int32]) -> Direction:
