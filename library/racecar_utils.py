@@ -1,31 +1,91 @@
+"""
+Copyright MIT and Harvey Mudd College
+MIT License
+Summer 2020
+
+Contains helper functions to support common operations.
+"""
+
 import cv2 as cv
 import numpy as np
 from typing import *
 from nptyping import NDArray
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 
 
-class ColorBGR(Enum):
+########################################################################################
+# General
+########################################################################################
+
+
+class TerminalColor(IntEnum):
     """
-    Common colors defined in the blue-green-red (BGR) format, with each channel
-    ranging from 0 to 255 inclusive.
+    Colors which can be used when printing text to the terminal, with each value
+    corresponding to the ASCII code for that color.
     """
 
-    blue = (255, 0, 0)
-    light_blue = (255, 255, 0)
-    green = (0, 255, 0)
-    dark_green = (0, 127, 0)
-    yellow = (0, 255, 255)
-    orange = (0, 127, 255)
-    red = (0, 0, 255)
-    pink = (255, 0, 255)
-    purple = (255, 0, 127)
-    black = (0, 0, 0)
-    dark_gray = (63, 63, 63)
-    gray = (127, 127, 127)
-    light_gray = (191, 191, 191)
-    white = (255, 255, 255)
-    brown = (0, 63, 127)
+    black = 30
+    dark_red = 31
+    dark_green = 32
+    orange = 33
+    dark_blue = 34
+    purple = 35
+    dark_cyan = 36
+    light_grey = 37
+    dark_grey = 90
+    red = 91
+    green = 92
+    yellow = 93
+    blue = 94
+    pink = 95
+    cyan = 96
+
+
+def print_colored(text: str, color: TerminalColor) -> None:
+    """
+    Prints a line of text to the terminal with a specified color.
+
+    Args:
+        text: The text to print to the terminal.
+        color: The color to print the text.
+
+    Example::
+
+        rc_utils.print_colored("This will be black", rc_utils.TerminalColor.black)
+        rc_utils.print_colored("This will be red", rc_utils.TerminalColor.red)
+        rc_utils.print_colored("This will be green", rc_utils.TerminalColor.green)
+    """
+    print(f"\033[{color.value}m{text}\033[00m")
+
+
+def print_error(text: str) -> None:
+    """
+    Prints a line of text to the terminal in red.
+
+    Args:
+        text: The text to print to the terminal.
+
+    Example::
+
+        # This text will be printed to the terminal in red
+        rc_utils.print_error("Error: No image detected")
+    """
+    print_colored(text, TerminalColor.red)
+
+
+def print_warning(text: str) -> None:
+    """
+    Prints a line of text to the terminal in yellow.
+
+    Args:
+        text: The text to print to the terminal.
+
+    Example::
+
+        # This text will be printed to the terminal in yellow
+        rc_utils.print_warning("Warning: Potential collision detected, reducing speed")
+    """
+    print_colored(text, TerminalColor.yellow)
 
 
 def clamp(value: float, min: float, max: float) -> float:
@@ -105,6 +165,11 @@ def remap_range(
     return new_val
 
 
+########################################################################################
+# Images (General)
+########################################################################################
+
+
 def crop(
     image: NDArray[(Any, ...), Any],
     top_left_inclusive: Tuple[float, float],
@@ -157,6 +222,98 @@ def crop(
 
     # Shorten the array to the specified row and column ranges
     return image[r_min:r_max, c_min:c_max]
+
+
+def stack_images_horizontal(
+    image_0: NDArray[(Any, ...), Any], image_1: NDArray[(Any, ...), Any]
+) -> NDArray[(Any, ...), Any]:
+    """
+    Stack two images horizontally.
+
+    Args:
+        image_0: The image to place on the left.
+        image_1: The image to place on the right.
+
+    Returns:
+        An image with the original two images next to each other.
+
+    Note:
+        The images must have the same height.
+
+    Example::
+        color_image = rc.camera.get_color_image()
+
+        depth_image = rc.camera.get_depth_image()
+        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
+
+        # Create a new image with the color on the left and depth on the right
+        new_image = rc_utils.stack_images_horizontally(color_image, depth_image_colormap)
+    """
+    assert (
+        image_0.shape[0] == image_1.shape[0]
+    ), f"image_0 height ({image_0.shape[0]}) must be the same as image_1 height ({image_1.shape[0]})."
+
+    return np.hstack((image_0, image_1))
+
+
+def stack_images_vertical(
+    image_0: NDArray[(Any, ...), Any], image_1: NDArray[(Any, ...), Any]
+) -> NDArray[(Any, ...), Any]:
+    """
+    Stack two images vertically.
+
+    Args:
+        image_0: The image to place on the top.
+        image_1: The image to place on the bottom.
+
+    Returns:
+        An image with the original two images on top of eachother.
+
+    Note:
+        The images must have the same width.
+
+    Example::
+        color_image = rc.camera.get_color_image()
+
+        depth_image = rc.camera.get_depth_image()
+        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
+
+        # Create a new image with the color on the top and depth on the bottom
+        new_image = rc_utils.stack_images_vertically(color_image, depth_image_colormap)
+    """
+    assert (
+        image_0.shape[1] == image_1.shape[1]
+    ), f"image_0 width ({image_0.shape[1]}) must be the same as image_1 width ({image_1.shape[1]})."
+
+    return np.vstack((image_0, image_1))
+
+
+########################################################################################
+# Color Images
+########################################################################################
+
+
+class ColorBGR(Enum):
+    """
+    Common colors defined in the blue-green-red (BGR) format, with each channel
+    ranging from 0 to 255 inclusive.
+    """
+
+    blue = (255, 0, 0)
+    light_blue = (255, 255, 0)
+    green = (0, 255, 0)
+    dark_green = (0, 127, 0)
+    yellow = (0, 255, 255)
+    orange = (0, 127, 255)
+    red = (0, 0, 255)
+    pink = (255, 0, 255)
+    purple = (255, 0, 127)
+    black = (0, 0, 0)
+    dark_gray = (63, 63, 63)
+    gray = (127, 127, 127)
+    light_gray = (191, 191, 191)
+    white = (255, 255, 255)
+    brown = (0, 63, 127)
 
 
 def find_contours(
@@ -419,6 +576,11 @@ def get_contour_area(contour: NDArray) -> float:
     return cv.contourArea(contour)
 
 
+########################################################################################
+# Depth Images
+########################################################################################
+
+
 def get_depth_image_center_distance(
     depth_image: NDArray[(Any, Any), np.float32], kernel_size: int = 5
 ) -> float:
@@ -583,6 +745,47 @@ def get_closest_pixel(
     return (minLoc[1], minLoc[0])
 
 
+def colormap_depth_image(
+    depth_image: NDArray[(Any, Any), np.float32], max_depth: int = 1000,
+) -> NDArray[(Any, Any, 3), np.uint8]:
+    """
+    Converts a depth image to a colored image representing depth.
+
+    Args:
+        depth_image: The depth image to convert.
+        max_depth: The farthest depth to show in the image in cm.  Anything past
+            this depth is shown as the farthest color.
+
+    Returns:
+        A color image representation of the provided depth image.
+
+    Note:
+        Each color value ranges from 0 to 255.
+        The color of each pixel is determined by its distance.
+
+    Example::
+        # retrieve a depth image
+        depth_image = rc.camera.get_depth_image()
+
+        # get the colormapped depth image
+        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
+    """
+    # Clip anything above max_depth
+    np.clip(depth_image, None, max_depth, depth_image)
+
+    # Shift down slightly so that 0 (no data) becomes the "farthest" color
+    depth_image = (depth_image - 0.01) % max_depth
+
+    return cv.applyColorMap(
+        -cv.convertScaleAbs(depth_image, alpha=255 / max_depth), cv.COLORMAP_INFERNO
+    )
+
+
+########################################################################################
+# LIDAR
+########################################################################################
+
+
 def get_lidar_closest_point(
     scan: NDArray[Any, np.float32], window: Tuple[float, float] = (0, 360)
 ) -> Tuple[float, float]:
@@ -722,104 +925,9 @@ def get_lidar_average_distance(
     return sum(samples) / len(samples)
 
 
-def colormap_depth_image(
-    depth_image: NDArray[(Any, Any), np.float32], max_depth: int = 1000,
-) -> NDArray[(Any, Any, 3), np.uint8]:
-    """
-    Converts a depth image to a colored image representing depth.
-
-    Args:
-        depth_image: The depth image to convert.
-        max_depth: The farthest depth to show in the image in cm.  Anything past
-            this depth is shown as the farthest color.
-
-    Returns:
-        A color image representation of the provided depth image.
-
-    Note:
-        Each color value ranges from 0 to 255.
-        The color of each pixel is determined by its distance.
-
-    Example::
-        # retrieve a depth image
-        depth_image = rc.camera.get_depth_image()
-
-        # get the colormapped depth image
-        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
-    """
-    # Clip anything above max_depth
-    np.clip(depth_image, None, max_depth, depth_image)
-
-    # Shift down slightly so that 0 (no data) becomes the "farthest" color
-    depth_image = (depth_image - 0.01) % max_depth
-
-    return cv.applyColorMap(
-        -cv.convertScaleAbs(depth_image, alpha=255 / max_depth), cv.COLORMAP_INFERNO
-    )
-
-
-def stack_images_horizontal(
-    image_0: NDArray[(Any, ...), Any], image_1: NDArray[(Any, ...), Any]
-) -> NDArray[(Any, ...), Any]:
-    """
-    Stack two images horizontally.
-
-    Args:
-        image_0: The image to place on the left.
-        image_1: The image to place on the right.
-
-    Returns:
-        An image with the original two images next to each other.
-
-    Note:
-        The images must have the same height.
-
-    Example::
-        color_image = rc.camera.get_color_image()
-
-        depth_image = rc.camera.get_depth_image()
-        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
-
-        # Create a new image with the color on the left and depth on the right
-        new_image = rc_utils.stack_images_horizontally(color_image, depth_image_colormap)
-    """
-    assert (
-        image_0.shape[0] == image_1.shape[0]
-    ), f"image_0 height ({image_0.shape[0]}) must be the same as image_1 height ({image_1.shape[0]})."
-
-    return np.hstack((image_0, image_1))
-
-
-def stack_images_vertical(
-    image_0: NDArray[(Any, ...), Any], image_1: NDArray[(Any, ...), Any]
-) -> NDArray[(Any, ...), Any]:
-    """
-    Stack two images vertically.
-
-    Args:
-        image_0: The image to place on the top.
-        image_1: The image to place on the bottom.
-
-    Returns:
-        An image with the original two images on top of eachother.
-
-    Note:
-        The images must have the same width.
-
-    Example::
-        color_image = rc.camera.get_color_image()
-
-        depth_image = rc.camera.get_depth_image()
-        depth_image_colormap = rc_utils.colormap_depth_image(depth_image)
-
-        # Create a new image with the color on the top and depth on the bottom
-        new_image = rc_utils.stack_images_vertically(color_image, depth_image_colormap)
-    """
-    assert (
-        image_0.shape[1] == image_1.shape[1]
-    ), f"image_0 width ({image_0.shape[1]}) must be the same as image_1 width ({image_1.shape[1]})."
-
-    return np.vstack((image_0, image_1))
+########################################################################################
+# AR Tags
+########################################################################################
 
 
 def get_ar_markers(
@@ -835,10 +943,11 @@ def get_ar_markers(
         A list of each ar tag's four corners clockwise and an array of the ar tag ids.
 
     Example::
+
         color_image = copy.deepcopy(rc.camera.get_color_image())
 
         # detect and draw ar tags
-        corners, ids = racecar_utils.get_ar_markers(color_image)   
+        corners, ids = racecar_utils.get_ar_markers(color_image)
         color_image = racecar_utils.draw_ar_markers(color_image, corners, ids)
 
         rc.display.show_color_image(color_image)
@@ -874,6 +983,7 @@ def draw_ar_markers(
         A list of each ar tag's four corners clockwise and an array of the ar tag ids.
 
     Example::
+
         color_image = copy.deepcopy(rc.camera.get_color_image())
 
         # detect and draw ar tags
@@ -884,15 +994,18 @@ def draw_ar_markers(
     """
     return cv.aruco.drawDetectedMarkers(color_image, corners, ids, color)
 
+
 class Direction(Enum):
     """
     AR Tag direction
     """
+
     UP = auto()
     RIGHT = auto()
     DOWN = auto()
     LEFT = auto()
-    
+
+
 def get_ar_direction(ar_corners: NDArray[(1, 4, 2), np.int32]) -> Direction:
     """
     Return the direction of an ar tag.
