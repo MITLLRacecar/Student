@@ -3,6 +3,7 @@ import socket
 import sys
 import select
 from enum import IntEnum
+from signal import signal, SIGINT
 from typing import Callable, Optional
 
 import camera_sim
@@ -13,6 +14,7 @@ import lidar_sim
 import physics_sim
 
 from racecar_core import Racecar
+import racecar_utils as rc_utils
 
 
 class RacecarSim(Racecar):
@@ -32,27 +34,28 @@ class RacecarSim(Racecar):
         unity_exit = 4
         python_finished = 5
         python_send_next = 6
-        racecar_go = 7
-        racecar_set_start_update = 8
-        racecar_get_delta_time = 9
-        racecar_set_update_slow_time = 10
-        camera_get_color_image = 11
-        camera_get_depth_image = 12
-        camera_get_width = 13
-        camera_get_height = 14
-        controller_is_down = 15
-        controller_was_pressed = 16
-        controller_was_released = 17
-        controller_get_trigger = 18
-        controller_get_joystick = 19
-        display_show_image = 20
-        drive_set_speed_angle = 21
-        drive_stop = 22
-        drive_set_max_speed = 23
-        lidar_get_num_samples = 24
-        lidar_get_samples = 25
-        physics_get_linear_acceleration = 26
-        physics_get_angular_velocity = 27
+        python_exit = 7
+        racecar_go = 8
+        racecar_set_start_update = 9
+        racecar_get_delta_time = 10
+        racecar_set_update_slow_time = 11
+        camera_get_color_image = 12
+        camera_get_depth_image = 13
+        camera_get_width = 14
+        camera_get_height = 15
+        controller_is_down = 16
+        controller_was_pressed = 17
+        controller_was_released = 18
+        controller_get_trigger = 19
+        controller_get_joystick = 20
+        display_show_image = 21
+        drive_set_speed_angle = 22
+        drive_stop = 23
+        drive_set_max_speed = 24
+        lidar_get_num_samples = 25
+        lidar_get_samples = 26
+        physics_get_linear_acceleration = 27
+        physics_get_angular_velocity = 28
 
     def __send_header(self, function_code: Header, isAsync: bool = False) -> None:
         self.__send_data(struct.pack("B", function_code.value), isAsync)
@@ -82,27 +85,36 @@ class RacecarSim(Racecar):
         self.__update_slow_counter: float = 0
         self.__delta_time: float = -1
 
+        signal(SIGINT, self.__handle_sigint)
+
         self.__SOCKET = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def go(self) -> None:
-        print(
-            ">> Python script loaded, awaiting connection from RacecarSim."
-        )
+        print(">> Python script loaded, awaiting connection from RacecarSim.")
 
         # Repeatedly try to connect to RacecarSim (async) until we receive a response
         while True:
             self.__send_header(self.Header.connect, True)
             ready = select.select([self.__SOCKET], [], [], 0.25)
             if ready[0]:
-                data, _ = self.__SOCKET.recvfrom(8)
-                header = int.from_bytes(data, sys.byteorder)
+                data, _ = self.__SOCKET.recvfrom(2)
+                header = int(data[0])
                 if header == self.Header.connect.value:
-                    print(
-                        ">> Connection established with RacecarSim. Enter user program mode in RacecarSim to begin..."
+                    car_index = int(data[1])
+                    rc_utils.print_colored(
+                        f">> Connection established with RacecarSim (assigned to car number {car_index}). Enter user program mode in RacecarSim to begin...",
+                        rc_utils.TerminalColor.green,
                     )
                     break
+                elif header == self.Header.error.value:
+                    rc_utils.print_error(
+                        ">> Every racecar already had a connected program, closing script..."
+                    )
+                    return
                 else:
-                    print(">> Invalid handshake with RacecarSim, closing script...")
+                    rc_utils.print_error(
+                        ">> Invalid handshake with RacecarSim, closing script..."
+                    )
                     self.__send_header(self.Header.error)
                     return
 
@@ -118,13 +130,19 @@ class RacecarSim(Racecar):
             elif header == self.Header.unity_update.value:
                 self.__handle_update()
             elif header == self.Header.unity_exit.value:
-                print(">> Exit command received from RacecarSim, closing script...")
+                rc_utils.print_warning(
+                    ">> Exit command received from RacecarSim, closing script..."
+                )
                 break
             elif header == self.Header.error:
-                print(">> Error command received from RacecarSim, closing script...")
+                rc_utils.print_error(
+                    ">> Error command received from RacecarSim, closing script..."
+                )
                 break
             else:
-                print(f">> Error: unexpected packet with header {header} received from RacecarSim, closing script...")
+                rc_utils.print_error(
+                    f">> Error: unexpected packet with header [{header}] received from RacecarSim, closing script..."
+                )
                 self.__send_header(self.Header.error)
                 break
 
@@ -163,3 +181,11 @@ class RacecarSim(Racecar):
         self.camera._CameraSim__update()
         self.controller._ControllerSim__update()
         self.lidar._LidarSim__update()
+
+    def __handle_sigint(self, signal_received: int, frame) -> None:
+        rc_utils.print_warning(
+            ">> CTRL-C (SIGINT) detected. Sending exit command to Unity..."
+        )
+        self.__send_header(self.Header.python_exit, True)
+        print(">> Closing script...")
+        exit(0)
