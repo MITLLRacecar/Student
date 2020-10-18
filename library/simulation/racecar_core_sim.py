@@ -168,7 +168,6 @@ class RacecarSim(Racecar):
                 except SystemExit:
                     raise
                 except:
-                    print("EXCEPTION IN START")
                     self.__send_error(self.Error.python_exception)
                     raise
             elif header == self.Header.unity_update.value:
@@ -179,7 +178,6 @@ class RacecarSim(Racecar):
                 except SystemExit:
                     raise
                 except:
-                    print("EXCEPTION IN UPDATE")
                     self.__send_error(self.Error.python_exception)
                     raise
             elif header == self.Header.unity_exit.value:
