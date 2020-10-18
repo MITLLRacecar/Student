@@ -12,6 +12,5 @@ class DisplaySim(Display):
         cv.namedWindow(self.__WINDOW_NAME, cv.WINDOW_NORMAL)
 
     def show_color_image(self, image: NDArray) -> None:
-        cv.namedWindow(self.__WINDOW_NAME, cv.WINDOW_NORMAL)
         cv.imshow(self.__WINDOW_NAME, image)
         cv.waitKey(1)
