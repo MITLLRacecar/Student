@@ -990,7 +990,7 @@ class ARTag:
         return self.__color
 
     def __str__(self) -> str:
-        return f"ID: {self.__id}\ncorners: {self.__corners}\ndirection: {self.__direction}\ncolor: {self.__color}"
+        return f"ID: {self.__id}\nCorners: {self.__corners}\nDirection: {self.__direction}\nColor: {self.__color}"
 
 
 def get_ar_markers(color_image: NDArray[(Any, Any, 3), np.uint8]) -> List[ARTag]:
