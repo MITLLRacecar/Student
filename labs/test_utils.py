@@ -163,6 +163,17 @@ def update():
         )
         rc.display.show_lidar(lidar, highlighted_samples=[closest_sample])
 
+    # Identify AR markers
+    if rc.controller.was_pressed(rc.controller.Button.RB):
+        image = rc.camera.get_color_image()
+        markers = rc_utils.get_ar_markers(image)
+        for i in range(len(markers)):
+            print(f"AR Marker {i}:")
+            print(markers[i])
+            print("")
+        image = rc_utils.draw_ar_markers(image, markers)
+        rc.display.show_color_image(image)
+
     # Print lidar distance in the direction the right joystick is pointed
     rjoy_x, rjoy_y = rc.controller.get_joystick(rc.controller.Joystick.RIGHT)
     if abs(rjoy_x) > 0 or abs(rjoy_y) > 0:
