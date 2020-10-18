@@ -930,9 +930,70 @@ def get_lidar_average_distance(
 ########################################################################################
 
 
-def get_ar_markers(
-    color_image: NDArray[(Any, Any, 3), np.uint8]
-) -> Tuple[List[NDArray[(1, 4, 2), np.int32]], Optional[NDArray[(Any, 1), np.int32]]]:
+class Direction(Enum):
+    """
+    The directions which an AR Tag can face.
+    """
+
+    UP = auto()
+    RIGHT = auto()
+    DOWN = auto()
+    LEFT = auto()
+
+
+class ARTag:
+    def __init__(self, id: int, corners: NDArray[(4, 2), np.int32]) -> None:
+        self.__id: int = id
+        self.__corners: NDArray[(4, 2), np.int32] = corners
+        self.__color: str = "not detected"
+        self.__color_area: int = 0
+
+        # Calculate tag direction based on coners
+        if corners[0][1] > corners[2][1]:
+            if corners[0][0] > corners[2][0]:
+                self.__direction = Direction.DOWN
+            else:
+                self.__direction = Direction.LEFT
+        else:
+            if corners[0][0] > corners[2][0]:
+                self.__direction = Direction.RIGHT
+            else:
+                self.__direction = Direction.UP
+
+    def detect_color(
+        self,
+        color_image: NDArray[(Any, Any), np.float32],
+        color_name: str,
+        hsv_lower: Tuple[int, int, int],
+        hsv_upper: Tuple[int, int, int],
+    ) -> None:
+        contours = find_contours(color_image, hsv_lower, hsv_upper)
+        largest_contour = get_largest_contour(contours)
+        contour_area = get_contour_area(largest_contour)
+        if contour_area > self.__color_area:
+            self.__color_area = contour_area
+            self.color = color_name
+
+    def get_id(self) -> int:
+        return self.__id
+
+    def get_corners(self) -> NDArray[(4, 2), np.int32]:
+        return self.__corners
+
+    def get_corners_aruco_format(self) -> NDArray[(1, 4, 2), np.float32]:
+        return self.__corners.astype(np.float32).reshape(1, 4, 2)
+
+    def get_direction(self) -> Direction:
+        return self.__direction
+
+    def get_color(self) -> str:
+        return self.__color
+
+    def __str__(self) -> str:
+        return f"ID: {self.__id}\ncorners: {self.__corners}\ndirection: {self.__direction}\ncolor: {self.__color}"
+
+
+def get_ar_markers(color_image: NDArray[(Any, Any, 3), np.uint8]) -> List[ARTag]:
     """
     Finds ar tags in a image.
 
@@ -957,14 +1018,15 @@ def get_ar_markers(
         cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250),
         parameters=cv.aruco.DetectorParameters_create(),
     )
-    print(f"corners : {corners}, ids : {ids}")
-    return (corners, ids)
+    tags: List[ARTag] = []
+    for i in range(len(corners)):
+        tags.append(ARTag(ids[i][0], corners[i][0].astype(np.int32)))
+    return tags
 
 
 def draw_ar_markers(
-    color_image: NDArray[(Any, Any, 3), np.uint32],
-    corners: List[NDArray[(1, 4, 2), np.int32]],
-    ids: NDArray[(Any, 1), np.int32],
+    color_image: NDArray[(Any, Any, 3), np.uint8],
+    tags: List[ARTag],
     color: Tuple[int, int, int] = ColorBGR.green.value,
 ) -> NDArray[(Any, Any, 3), np.uint8]:
     """
@@ -987,53 +1049,14 @@ def draw_ar_markers(
         color_image = copy.deepcopy(rc.camera.get_color_image())
 
         # detect and draw ar tags
-        corners, ids = racecar_utils.get_ar_markers(color_image)   
+        corners, ids = racecar_utils.get_ar_markers(color_image)
         color_image = racecar_utils.draw_ar_markers(color_image, corners, ids)
 
         rc.display.show_color_image(color_image)
     """
+    ids = np.zeros((len(tags), 1), np.int32)
+    corners = []
+    for i in range(len(tags)):
+        ids[i][0] = tags[i].get_id()
+        corners.append(tags[i].get_corners_aruco_format())
     return cv.aruco.drawDetectedMarkers(color_image, corners, ids, color)
-
-
-class Direction(Enum):
-    """
-    AR Tag direction
-    """
-
-    UP = auto()
-    RIGHT = auto()
-    DOWN = auto()
-    LEFT = auto()
-
-
-def get_ar_direction(ar_corners: NDArray[(1, 4, 2), np.int32]) -> Direction:
-    """
-    Return the direction of an ar tag.
-
-    Args:
-        ar_corners: An array of the ar tag's corner coordinates.
-
-    Note:
-        The first dimension of the input array is 1.
-
-    Returns:
-        The direction the ar tag faces.
-
-    Example::
-        color_image = copy.deepcopy(rc.camera.get_color_image())
-
-        # detect ar tag and print direction
-        corners, ids = racecar_utils.get_ar_markers(color_image)   
-        if len(corners) > 0:
-            print(get_ar_direction(corners[0]))
-    """
-    if ar_corners[0][0][1] > ar_corners[0][2][1]:
-        if ar_corners[0][0][0] > ar_corners[0][2][0]:
-            return Direction.DOWN
-        else:
-            return Direction.LEFT
-    else:
-        if ar_corners[0][0][0] > ar_corners[0][2][0]:
-            return Direction.RIGHT
-        else:
-            return Direction.UP
