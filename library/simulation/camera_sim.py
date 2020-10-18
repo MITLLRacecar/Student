@@ -48,15 +48,9 @@ class CameraSim(Camera):
         )
 
         # Read the color image as 32 packets
-        raw_bytes: bytes = bytes()
-        for i in range(0, 32):
-            raw_bytes += self.__racecar._RacecarSim__receive_data(
-                self._WIDTH * self._HEIGHT * 4 // 32
-            )
-            self.__racecar._RacecarSim__send_header(
-                self.__racecar.Header.python_send_next, isAsync
-            )
-
+        raw_bytes = self.__racecar._RacecarSim__receive_fragmented(
+            32, self._WIDTH * self._HEIGHT * 4, isAsync
+        )
         color_image = np.frombuffer(raw_bytes, dtype=np.uint8)
         color_image = np.reshape(color_image, (self._HEIGHT, self._WIDTH, 4), "C")
 
@@ -78,9 +72,7 @@ class CameraSim(Camera):
         depth_height: int = 15 * 1 << n
 
         # Reshape and resize to full resolution
-        depth_image = np.reshape(
-            depth_image, (depth_height, depth_width), "C"
-        )
+        depth_image = np.reshape(depth_image, (depth_height, depth_width), "C")
         depth_image = cv.resize(
             depth_image, (self._WIDTH, self._HEIGHT), interpolation=cv.INTER_AREA
         )
