@@ -995,13 +995,13 @@ class ARTag:
 
 def get_ar_markers(color_image: NDArray[(Any, Any, 3), np.uint8]) -> List[ARTag]:
     """
-    Finds ar tags in a image.
+    Finds AR markers in a image.
 
     Args:
         color_image: A color image.
 
     Returns:
-        A list of each ar tag's four corners clockwise and an array of the ar tag ids.
+        A list of each AR marker's four corners clockwise and an array of the AR marker ids.
 
     Example::
 
@@ -1030,19 +1030,19 @@ def draw_ar_markers(
     color: Tuple[int, int, int] = ColorBGR.green.value,
 ) -> NDArray[(Any, Any, 3), np.uint8]:
     """
-    Draw ar tags in a image.
+    Draw AR markers in a image.
 
     Args:
         color_image: A color image.
-        corners: A list of ndarrays with ar tag corners.
-        ids: A list of ar tag ids.
+        corners: A list of ndarrays with AR marker corners.
+        ids: A list of AR marker ids.
 
     Note:
         The length of corners must be the same as the first dimension of ids.
         The original image is modified.
 
     Returns:
-        A list of each ar tag's four corners clockwise and an array of the ar tag ids.
+        A list of each AR marker's four corners clockwise and an array of the ar marker ids.
 
     Example::
 
