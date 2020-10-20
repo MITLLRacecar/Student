@@ -7,6 +7,7 @@ Defines the interface of the Camera module of the racecar_core library.
 """
 
 import abc
+import copy
 import numpy as np
 from nptyping import NDArray
 
@@ -23,10 +24,9 @@ class Camera(abc.ABC):
     # Maximum range of the depth camera (in cm)
     _MAX_RANGE = 1200
 
-    @abc.abstractmethod
     def get_color_image(self) -> NDArray[(480, 640, 3), np.uint8]:
         """
-        Returns the current color image captured by the camera.
+        Returns a deep copy of the current color image captured by the camera.
 
         Returns:
             An array representing the pixels in the image, organized as follows
@@ -37,13 +37,59 @@ class Camera(abc.ABC):
         Note:
             Each color value ranges from 0 to 255.
 
+            This function returns a deep copy of the captured image. This means that
+            we can modify the returned image and it will not change the image returned
+            by future calls to get_color_image().
+
         Example::
 
-            # Initialize image with the most recent color image captured by the camera
+            # Initialize image with a deep copy of the most recent color image captured
+            # by the camera
             image = rc.camera.get_color_image()
 
             # Store the amount of blue in the pixel on row 3, column 5
             blue = image[3][5][0]
+        """
+        return copy.deepcopy(self.get_color_image_no_copy())
+
+    @abc.abstractmethod
+    def get_color_image_no_copy(self) -> NDArray[(480, 640, 3), np.uint8]:
+        """
+        Returns a direct reference to the color image captured by the camera.
+
+        Returns:
+            An array representing the pixels in the image, organized as follows
+                0th dimension: pixel rows, indexed from top to bottom.
+                1st dimension: pixel columns, indexed from left to right.
+                2nd dimension: pixel color channels, in the blue-green-red format.
+
+        Warning:
+            Do not modify the returned image. The returned image is a reference to the
+            captured image, so any changes will also affect the images returned by any
+            future calls to get_color_image() or get_color_image_no_copy().
+
+        Note:
+            Each color value ranges from 0 to 255.
+
+            Unlike get_color_image(), this function does not create a deep copy of the
+            captured image, and is therefore more efficient.
+
+        Example::
+
+            # Initialize image with a direct reference to the recent color image
+            # captured by the camera
+            image = rc.camera.get_color_image()
+
+            # Store the amount of blue in the pixel on row 3, column 5
+            blue = image[3][5][0]
+
+            # We can safely call crop because it does not modify the source image
+            cropped_image = rc_utils.crop(image, (0, 0), (10, 10))
+
+            # However, if we wish to draw on the image, we must first create a manual
+            # copy with copy.deepcopy()
+            image_copy = copy.deepcopy(image)
+            modified_image = rc_utils.draw_circle(image_copy, (50, 50))
         """
         pass
 

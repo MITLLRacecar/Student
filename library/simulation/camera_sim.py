@@ -17,7 +17,7 @@ class CameraSim(Camera):
         self._MAX_DEPTH_WIDTH: int = self._WIDTH // 8
         self._MAX_DEPTH_HEIGHT: int = self._HEIGHT // 8
 
-    def get_color_image(self) -> NDArray[(480, 640, 3), np.uint8]:
+    def get_color_image_no_copy(self) -> NDArray[(480, 640, 3), np.uint8]:
         if not self.__is_color_image_current:
             self.__color_image = self.__request_color_image(False)
             self.__is_color_image_current = True
