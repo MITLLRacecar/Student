@@ -83,9 +83,9 @@ def update():
     # Check if each button was_pressed or was_released
     for button in rc.controller.Button:
         if rc.controller.was_pressed(button):
-            print("Button {} was pressed".format(button.name))
+            print(f"Button [{button.name}] was pressed")
         if rc.controller.was_released(button):
-            print("Button {} was released".format(button.name))
+            print(f"Button [{button.name}] was released")
 
     # Click left and right joystick to toggle showing trigger and joystick values
     left_trigger = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
@@ -100,14 +100,10 @@ def update():
         show_joysticks = not show_joysticks
 
     if show_triggers:
-        print("Left trigger: {}; Right trigger: {}".format(left_trigger, right_trigger))
+        print(f"Left trigger: [{left_trigger}]; Right trigger: [{right_trigger}]")
 
     if show_joysticks:
-        print(
-            "Left joystick: {}; Right joystick: {}".format(
-                left_joystick, right_joystick
-            )
-        )
+        print(f"Left joystick: [{left_joystick}]; Right joystick: [{right_joystick}]")
 
     # Use triggers and left joystick to control car (like default drive)
     rc.drive.set_speed_angle(right_trigger - left_trigger, left_joystick[0])
@@ -118,15 +114,15 @@ def update():
         rc.drive.set_max_speed(max_speed)
         update_slow_time *= 2
         rc.set_update_slow_time(update_slow_time)
-        print("max_speed set to {}".format(max_speed))
-        print("update_slow_time set to {} seconds".format(update_slow_time))
+        print(f"max_speed set to [{max_speed}]")
+        print(f"update_slow_time set to [{update_slow_time}] seconds")
     if rc.controller.was_pressed(rc.controller.Button.RB):
         max_speed = min(1, max_speed * 2)
         rc.drive.set_max_speed(max_speed)
         update_slow_time /= 2
         rc.set_update_slow_time(update_slow_time)
-        print("max_speed set to {}".format(max_speed))
-        print("update_slow_time set to {} seconds".format(update_slow_time))
+        print(f"max_speed set to [{max_speed}]")
+        print(f"update_slow_time set to [{update_slow_time}] seconds")
 
     # Capture and display color images when the A button is down
     if rc.controller.is_down(rc.controller.Button.A):
@@ -136,29 +132,23 @@ def update():
     elif rc.controller.is_down(rc.controller.Button.B):
         depth_image = rc.camera.get_depth_image()
         rc.display.show_depth_image(depth_image)
-        print(
-            "Depth center distance: {:.2f} cm".format(
-                rc_utils.get_depth_image_center_distance(depth_image)
-            )
-        )
+        depth_center_distance = rc_utils.get_depth_image_center_distance(depth_image)
+        print(f"Depth center distance: [{depth_center_distance:.2f}] cm")
 
     # Capture and display Lidar data when the X button is down
     elif rc.controller.is_down(rc.controller.Button.X):
         lidar = rc.lidar.get_samples()
         rc.display.show_lidar(lidar)
-        print(
-            "LIDAR forward distance: {:.2f} cm".format(
-                rc_utils.get_lidar_average_distance(lidar, 0)
-            )
-        )
+        lidar_forward_distance = rc_utils.get_lidar_average_distance(lidar, 0)
+        print(f"LIDAR forward distance: [{lidar_forward_distance:.2f}] cm")
 
     # Show IMU data when the Y button is pressed
     if rc.controller.is_down(rc.controller.Button.Y):
         a = rc.physics.get_linear_acceleration()
         w = rc.physics.get_angular_velocity()
         print(
-            "Linear acceleration: ({:5.2f},{:5.2f},{:5.2f}); ".format(a[0], a[1], a[2])
-            + "Angular velocity: ({:5.2f},{:5.2f},{:5.2f})".format(w[0], w[1], w[2])
+            f"Linear acceleration: ({a[0]:5.2f},{a[1]:5.2f},{a[2]:5.2f}); "
+            + f"Angular velocity: ({w[0]:5.2f},{w[1]:5.2f},{w[2]:5.2f})"
         )
 
 
@@ -170,7 +160,7 @@ def update_slow():
     # Check if each button is_down
     for button in rc.controller.Button:
         if rc.controller.is_down(button):
-            print("Button {} is down".format(button.name))
+            print(f"Button [{button.name}] is down")
 
 
 ########################################################################################

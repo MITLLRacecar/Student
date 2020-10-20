@@ -97,7 +97,7 @@ def update():
         if largest_contour is not None:
             center = rc_utils.get_contour_center(largest_contour)
             area = rc_utils.get_contour_area(largest_contour)
-            print("Largest red contour: center={}, area={:.2f}".format(center, area))
+            print(f"Largest red contour: center={center}, area={area:.2f}")
             rc_utils.draw_contour(image, largest_contour, rc_utils.ColorBGR.green.value)
             rc_utils.draw_circle(image, center, rc_utils.ColorBGR.yellow.value)
             rc.display.show_color_image(image)
@@ -171,7 +171,7 @@ def update():
             print(f"AR Marker {i}:")
             print(markers[i])
             print("")
-        image = rc_utils.draw_ar_markers(image, markers)
+        rc_utils.draw_ar_markers(image, markers)
         rc.display.show_color_image(image)
 
     # Print lidar distance in the direction the right joystick is pointed

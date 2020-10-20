@@ -94,9 +94,7 @@ class Display(abc.ABC):
         for point in points:
             assert (
                 0 <= point[0] < image.shape[0] and 0 <= point[1] < image.shape[1]
-            ), "The point {} is not a valid pixel row and column within image.".format(
-                point
-            )
+            ), f"The point [{point}] is not a valid pixel row and column within image."
 
         color_image = rc_utils.colormap_depth_image(image, max_depth)
 
