@@ -43,7 +43,7 @@ class TerminalColor(IntEnum):
 
 def format_colored(text: str, color: TerminalColor) -> None:
     """
-    Formats a line of text so that it is printed to the terminal with a specified color
+    Formats a line of text so that it is printed to the terminal with a specified color.
 
     Args:
         text: The text to format.
@@ -965,8 +965,9 @@ class ARMarker:
 
         Args:
             id: The integer identification number of the marker pattern.
-            corners: The (row, col) coordinates of the four corners of the tag, ordered
-                clockwise with the top-left corner of the pattern appearing first.
+            corners: The (row, col) coordinates of the four corners of the marker,
+                ordered clockwise with the top-left corner of the pattern appearing
+                first.
 
         Example::
 
