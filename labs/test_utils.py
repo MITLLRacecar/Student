@@ -23,7 +23,10 @@ import racecar_utils as rc_utils
 
 rc = racecar_core.create_racecar()
 
-RED = ((170, 50, 50), (10, 255, 255))
+BLUE = ((90, 100, 100), (120, 255, 255), "blue")
+GREEN = ((40, 100, 100), (80, 255, 255), "green")
+RED = ((170, 100, 100), (10, 255, 255), "red")
+COLORS = [BLUE, GREEN, RED]
 
 max_speed = 0
 show_triggers = False
@@ -166,7 +169,7 @@ def update():
     # Identify AR markers
     if rc.controller.was_pressed(rc.controller.Button.RB):
         image = rc.camera.get_color_image()
-        markers = rc_utils.get_ar_markers(image)
+        markers = rc_utils.get_ar_markers(image, COLORS)
         for i in range(len(markers)):
             print(f"AR Marker {i}:")
             print(markers[i])
@@ -174,9 +177,9 @@ def update():
         rc_utils.draw_ar_markers(image, markers)
         rc.display.show_color_image(image)
 
-    # Print lidar distance in the direction the right joystick is pointed
-    rjoy_x, rjoy_y = rc.controller.get_joystick(rc.controller.Joystick.RIGHT)
-    if abs(rjoy_x) > 0 or abs(rjoy_y) > 0:
+    # Print lidar distance in the direction the right joystick is pointed, if clicked
+    if rc.controller.is_down(rc.controller.Button.RJOY):
+        rjoy_x, rjoy_y = rc.controller.get_joystick(rc.controller.Joystick.RIGHT)
         lidar = rc.lidar.get_samples()
         angle = (math.atan2(rjoy_x, rjoy_y) * 180 / math.pi) % 360
         distance = rc_utils.get_lidar_average_distance(lidar, angle)

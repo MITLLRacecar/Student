@@ -10,7 +10,7 @@ import cv2 as cv
 import numpy as np
 from typing import *
 from nptyping import NDArray
-from enum import Enum, IntEnum, auto
+from enum import Enum, IntEnum
 
 
 ########################################################################################
@@ -41,6 +41,22 @@ class TerminalColor(IntEnum):
     cyan = 96
 
 
+def format_colored(text: str, color: TerminalColor) -> None:
+    """
+    Formats a line of text so that it is printed to the terminal with a specified color
+
+    Args:
+        text: The text to format.
+        color: The color to print the text.
+
+    Example::
+
+        # Prints "Hello World!", where "World" is blue
+        print("Hello " + format_colored("World", rc_utils.TerminalColor.blue) + "!")
+    """
+    return f"\033[{color.value}m{text}\033[00m"
+
+
 def print_colored(text: str, color: TerminalColor) -> None:
     """
     Prints a line of text to the terminal with a specified color.
@@ -55,7 +71,7 @@ def print_colored(text: str, color: TerminalColor) -> None:
         rc_utils.print_colored("This will be red", rc_utils.TerminalColor.red)
         rc_utils.print_colored("This will be green", rc_utils.TerminalColor.green)
     """
-    print(f"\033[{color.value}m{text}\033[00m")
+    print(format_colored(text, color))
 
 
 def print_error(text: str) -> None:
@@ -926,29 +942,48 @@ def get_lidar_average_distance(
 
 
 ########################################################################################
-# AR Tags
+# AR Markers
 ########################################################################################
 
 
 class Direction(Enum):
     """
-    The directions which an AR Tag can face.
+    The directions which an AR marker can face, with the value indicating the index in
+    __corners of the corner which is currently oriented in the top-left
     """
 
-    UP = auto()
-    RIGHT = auto()
-    DOWN = auto()
-    LEFT = auto()
+    UP = 0
+    RIGHT = 1
+    DOWN = 2
+    LEFT = 3
 
 
-class ARTag:
+class ARMarker:
     def __init__(self, id: int, corners: NDArray[(4, 2), np.int32]) -> None:
+        """
+        Creates an object representing an AR marker.
+
+        Args:
+            id: The integer identification number of the marker pattern.
+            corners: The (row, col) coordinates of the four corners of the tag, ordered
+                clockwise with the top-left corner of the pattern appearing first.
+
+        Example::
+
+            id = 12
+            corners = ((0, 0), (0, 10), (10, 10), (10, 0))
+            marker = ARMarker(id, corners)
+        """
+        assert (
+            corners.shape[0] == 4
+        ), f"corners must contain 4 points, but had [{corners.shape[0]}] points."
+
         self.__id: int = id
         self.__corners: NDArray[(4, 2), np.int32] = corners
         self.__color: str = "not detected"
         self.__color_area: int = 0
 
-        # Calculate tag direction based on coners
+        # Calculate direction based on coners
         if corners[0][1] > corners[2][1]:
             if corners[0][0] > corners[2][0]:
                 self.__direction = Direction.DOWN
@@ -960,103 +995,198 @@ class ARTag:
             else:
                 self.__direction = Direction.UP
 
-    def detect_color(
+    def detect_colors(
         self,
         color_image: NDArray[(Any, Any), np.float32],
-        color_name: str,
-        hsv_lower: Tuple[int, int, int],
-        hsv_upper: Tuple[int, int, int],
+        potential_colors: List[Tuple[Tuple[int, int, int], Tuple[int, int, int], str]],
     ) -> None:
-        contours = find_contours(color_image, hsv_lower, hsv_upper)
-        largest_contour = get_largest_contour(contours)
-        contour_area = get_contour_area(largest_contour)
-        if contour_area > self.__color_area:
-            self.__color_area = contour_area
-            self.color = color_name
+        """
+        Attempts to detect the provided colors in the border around the AR marker.
+
+        Args:
+            color_image: The image in which the marker was detected.
+            potential_colors: A list of colors which the marker border may be. Each
+                candidate color is formated as (hsv_lower, hsv_upper, color_name).
+
+        Example::
+
+            # Define color candidates in the (hsv_lower, hsv_upper, color_name) format
+            BLUE = ((90, 100, 100), (120, 255, 255), "blue")
+            RED = ((170, 100, 100), (10, 255, 255), "red")
+
+            # Detect the AR markers in the current color image
+            image = rc.camera.get_color_image()
+            markers = rc_utils.get_ar_markers(image)
+
+            # Search for the colors RED and BLUE in all of the detected markers
+            for marker in markers:
+                marker.detect_colors(image, [BLUE, RED])
+        """
+        assert potential_colors is not None, f"potential_colors cannot be null"
+
+        # Calculate the position and dimensions of the marker in the image
+        marker_top, marker_left = self.__corners[self.__direction.value]
+        marker_bottom, marker_right = self.__corners[(self.__direction.value + 2) % 4]
+        half_marker_height: int = (marker_bottom - marker_top) // 2
+        half_marker_width: int = (marker_right - marker_left) // 2
+
+        # Crop to an area twice as large as the marker, centered about the marker
+        crop_top_left = (
+            max(0, marker_top - half_marker_height),
+            max(0, marker_left - half_marker_width),
+        )
+        crop_bottom_right = (
+            min(color_image.shape[0], marker_bottom + half_marker_height) + 1,
+            min(color_image.shape[1], marker_right + half_marker_width) + 1,
+        )
+        cropped_image = crop(color_image, crop_top_left, crop_bottom_right)
+
+        # Attempt to find each color in the cropped area, and choose the color of which
+        # we see the most
+        for (hsv_lower, hsv_upper, color_name) in potential_colors:
+            contours = find_contours(cropped_image, hsv_lower, hsv_upper)
+            largest_contour = get_largest_contour(contours)
+            if largest_contour is not None:
+                contour_area = get_contour_area(largest_contour)
+                if contour_area > self.__color_area:
+                    self.__color_area = contour_area
+                    self.__color = color_name
 
     def get_id(self) -> int:
+        """
+        Returns the integer identification number of the marker pattern.
+        """
         return self.__id
 
     def get_corners(self) -> NDArray[(4, 2), np.int32]:
+        """
+        Returns the (row, col) coordinates of the four corners of the marker.
+
+        Note:
+            The corners are ordered clockwise with the top-left corner of the pattern
+            appearing first.
+        """
         return self.__corners
 
     def get_corners_aruco_format(self) -> NDArray[(1, 4, 2), np.float32]:
-        return self.__corners.astype(np.float32).reshape(1, 4, 2)
+        """
+        Returns the corners of the AR marker formatted as needed by the ArUco library.
+        """
+        output = self.__corners.astype(np.float32).reshape(1, 4, 2)
+        for i in range(4):
+            row = output[0][i][0]
+            output[0][i][0] = output[0][i][1]
+            output[0][i][1] = row
+        return output
 
     def get_direction(self) -> Direction:
+        """
+        Returns the direction which the marker currently faces.
+        """
         return self.__direction
 
     def get_color(self) -> str:
+        """
+        Returns the color of the marker if it was successfully detected.
+        """
         return self.__color
 
     def __str__(self) -> str:
-        return f"ID: {self.__id}\nCorners: {self.__corners}\nDirection: {self.__direction}\nColor: {self.__color}"
+        """
+        Returns a printable message summarizing the key information of the marker.
+        """
+        output: str = f"ID: {self.__id}\nCorners: {self.__corners}\nDirection: {self.__direction}\nColor: "
+        color_lower: str = str.lower(self.__color)
+        if color_lower in TerminalColor.__members__:
+            return output + format_colored(self.__color, TerminalColor[color_lower])
+        return output + self.__color
 
 
-def get_ar_markers(color_image: NDArray[(Any, Any, 3), np.uint8]) -> List[ARTag]:
+def get_ar_markers(
+    color_image: NDArray[(Any, Any, 3), np.uint8],
+    potential_colors: List[
+        Tuple[Tuple[int, int, int], Tuple[int, int, int], str]
+    ] = None,
+) -> List[ARMarker]:
     """
     Finds AR markers in a image.
 
     Args:
-        color_image: A color image.
+        color_image: The color image in which to search for AR markers.
+        potential_colors: The potential colors of the AR marker, each represented as
+            (hsv_min, hsv_max, color_name)
 
     Returns:
         A list of each AR marker's four corners clockwise and an array of the AR marker ids.
 
     Example::
 
-        color_image = copy.deepcopy(rc.camera.get_color_image())
+        # Detect the AR markers in the current color image
+        image = rc.camera.get_color_image()
+        markers = racecar_utils.get_ar_markers(image)
 
-        # detect and draw ar tags
-        corners, ids = racecar_utils.get_ar_markers(color_image)
-        color_image = racecar_utils.draw_ar_markers(color_image, corners, ids)
-
-        rc.display.show_color_image(color_image)
+        # Print information detected for the zeroth marker
+        if len(markers) >= 1:
+            print(markers[0])
     """
+    # Use ArUco to find the raw corner and id information
     corners, ids, _ = cv.aruco.detectMarkers(
         color_image,
         cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250),
         parameters=cv.aruco.DetectorParameters_create(),
     )
-    tags: List[ARTag] = []
+
+    # Create an ARMarker object for each detected marker
+    markers: List[ARMarker] = []
     for i in range(len(corners)):
-        tags.append(ARTag(ids[i][0], corners[i][0].astype(np.int32)))
-    return tags
+        # Rearrange each corner point into the (row, col) format
+        corners_formatted = corners[i][0].astype(np.int32)
+        for j in range(corners_formatted.shape[0]):
+            col = corners_formatted[j][0]
+            corners_formatted[j][0] = corners_formatted[j][1]
+            corners_formatted[j][1] = col
+
+        marker = ARMarker(ids[i][0], corners_formatted)
+
+        # Detect potential colors, if provided
+        if potential_colors is not None and len(potential_colors) > 0:
+            marker.detect_colors(color_image, potential_colors)
+
+        markers.append(marker)
+    return markers
 
 
 def draw_ar_markers(
     color_image: NDArray[(Any, Any, 3), np.uint8],
-    tags: List[ARTag],
+    markers: List[ARMarker],
     color: Tuple[int, int, int] = ColorBGR.green.value,
 ) -> NDArray[(Any, Any, 3), np.uint8]:
     """
-    Draw AR markers in a image.
+    Draws annotations on the AR markers in a image.
 
     Args:
-        color_image: A color image.
-        corners: A list of ndarrays with AR marker corners.
-        ids: A list of AR marker ids.
+        color_image: The color image in which the AR markers were detected.
+        markers: The AR markers detected in the image.
+        color: The color used to outline each AR marker, represented in the BGR format.
 
-    Note:
-        The length of corners must be the same as the first dimension of ids.
-        The original image is modified.
-
-    Returns:
-        A list of each AR marker's four corners clockwise and an array of the ar marker ids.
+    Warning:
+        This modifies the provided image. If you accessed the image with
+        rc.camera.get_color_image_no_copy(), then you must manually create a copy of the
+        image first with copy.deepcopy().
 
     Example::
 
-        color_image = copy.deepcopy(rc.camera.get_color_image())
+        # Detect the AR markers in the current color image
+        image = rc.camera.get_color_image()
+        markers = rc_utils.get_ar_markers(image)
 
-        # detect and draw ar tags
-        corners, ids = racecar_utils.get_ar_markers(color_image)
-        color_image = racecar_utils.draw_ar_markers(color_image, corners, ids)
-
+        # Draw the detected markers an the image and display it
+        rc_utils.draw_ar_markers(image, markers)
         rc.display.show_color_image(color_image)
     """
-    ids = np.zeros((len(tags), 1), np.int32)
+    ids = np.zeros((len(markers), 1), np.int32)
     corners = []
-    for i in range(len(tags)):
-        ids[i][0] = tags[i].get_id()
-        corners.append(tags[i].get_corners_aruco_format())
-    return cv.aruco.drawDetectedMarkers(color_image, corners, ids, color)
+    for i in range(len(markers)):
+        ids[i][0] = markers[i].get_id()
+        corners.append(markers[i].get_corners_aruco_format())
+    cv.aruco.drawDetectedMarkers(color_image, corners, ids, color)
