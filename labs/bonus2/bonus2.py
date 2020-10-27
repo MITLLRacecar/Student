@@ -3,7 +3,7 @@ Copyright MIT and Harvey Mudd College
 MIT License
 Summer 2020
 
-Lab 5A - LIDAR Safety Stop
+Bonus Lab 2 - Sensor Fusion
 """
 
 ########################################################################################
@@ -24,11 +24,6 @@ import racecar_utils as rc_utils
 
 rc = racecar_core.create_racecar()
 
-# >> Constants
-# The (min, max) degrees to consider when measuring forward and rear distances
-FRONT_WINDOW = (-10, 10)
-REAR_WINDOW = (170, 190)
-
 ########################################################################################
 # Functions
 ########################################################################################
@@ -42,18 +37,7 @@ def start():
     rc.drive.stop()
 
     # Print start message
-    print(
-        ">> Lab 5A - LIDAR Safety Stop\n"
-        "\n"
-        "Controls:\n"
-        "   Right trigger = accelerate forward\n"
-        "   Right bumper = override forward safety stop\n"
-        "   Left trigger = accelerate backward\n"
-        "   Left bumper = override rear safety stop\n"
-        "   Left joystick = turn front wheels\n"
-        "   A button = print current speed and angle\n"
-        "   B button = print forward and back distances"
-    )
+    print(">> Bonus Lab 2 - Sensor Fusion: Speed Limit")
 
 
 def update():
@@ -66,29 +50,16 @@ def update():
     lt = rc.controller.get_trigger(rc.controller.Trigger.LEFT)
     speed = rt - lt
 
-    # Calculate the distance in front of and behind the car
-    scan = rc.lidar.get_samples()
-    _, forward_dist = rc_utils.get_lidar_closest_point(scan, FRONT_WINDOW)
-    _, back_dist = rc_utils.get_lidar_closest_point(scan, REAR_WINDOW)
-
-    # TODO (warmup): Prevent the car from hitting things in front or behind it.
-    # Allow the user to override safety stop by holding the left or right bumper.
-
     # Use the left joystick to control the angle of the front wheels
     angle = rc.controller.get_joystick(rc.controller.Joystick.LEFT)[0]
 
+    # TODO: Estimate the car's speed with at least 3 unique methods
+
+    # TODO: Fuse these sources into a single velocity measurement
+
+    # TODO: Prevent the car from traveling over 0.5 m/s
+
     rc.drive.set_speed_angle(speed, angle)
-
-    # Print the current speed and angle when the A button is held down
-    if rc.controller.is_down(rc.controller.Button.A):
-        print("Speed:", speed, "Angle:", angle)
-
-    # Print the distance of the closest object in front of and behind the car
-    if rc.controller.is_down(rc.controller.Button.B):
-        print("Forward distance:", forward_dist, "Back distance:", back_dist)
-
-    # Display the current LIDAR scan
-    rc.display.show_lidar(scan)
 
 
 ########################################################################################
