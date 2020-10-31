@@ -24,7 +24,7 @@ racecar() {
       ssh racecar@"$RACECAR_IP" mkdir -p "$RACECAR_DESTINATION_PATH"
       racecar sync all
     elif [ $# -ge 2 ] && [ "$1" = "sim" ]; then
-      python3 "$2" -s "$3"
+      python3 "$2" -s "$3" "$4" "$5" "$6"
     elif [ $# -eq 2 ] && [ "$1" = "sync" ]; then
       local valid_command=false
       if [ "$2" = "library" ] || [ "$2" = "all" ]; then

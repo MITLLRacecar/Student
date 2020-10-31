@@ -17,6 +17,8 @@ import drive
 import lidar
 import physics
 
+import racecar_utils as rc_utils
+
 
 class Racecar(abc.ABC):
     """
@@ -139,6 +141,7 @@ def create_racecar(isSimulation: Optional[bool] = None) -> Racecar:
     """
     library_path: str = __file__.replace("racecar_core.py", "")
     isHeadless: bool = "-h" in sys.argv
+    initializeDisplay: bool = "-d" in sys.argv
 
     # If isSimulation was not specified, set it to True if the user ran the program with
     # the -s flag and false otherwise
@@ -157,8 +160,15 @@ def create_racecar(isSimulation: Optional[bool] = None) -> Racecar:
 
         racecar = RacecarReal(isHeadless)
 
-    # If the user supplied the -d flag, create a display window
-    if "-d" in sys.argv:
+    if initializeDisplay:
         racecar.display.create_window()
+
+    rc_utils.print_colored(
+        ">> Racecar created with the following options:"
+        + f"\n    Simulation (-s): [{isSimulation}]"
+        + f"\n    Headless (-h): [{isHeadless}]"
+        + f"\n    Initialize with display (-d): [{initializeDisplay}]",
+        rc_utils.TerminalColor.pink,
+    )
 
     return racecar
