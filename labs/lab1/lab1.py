@@ -42,12 +42,12 @@ def start():
         ">> Lab 1 - Driving in Shapes\n"
         "\n"
         "Controls:\n"
-        "   Right trigger = accelerate forward\n"
-        "   Left trigger = accelerate backward\n"
-        "   Left joystick = turn front wheels\n"
-        "   A button = drive in a circle\n"
-        "   B button = drive in a square\n"
-        "   X button = drive in a figure eight\n"
+        "    Right trigger = accelerate forward\n"
+        "    Left trigger = accelerate backward\n"
+        "    Left joystick = turn front wheels\n"
+        "    A button = drive in a circle\n"
+        "    B button = drive in a square\n"
+        "    X button = drive in a figure eight\n"
     )
 
 

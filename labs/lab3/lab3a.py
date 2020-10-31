@@ -43,12 +43,12 @@ def start():
         ">> Lab 3A - Depth Camera Safety Stop\n"
         "\n"
         "Controls:\n"
-        "   Right trigger = accelerate forward\n"
-        "   Right bumper = override safety stop\n"
-        "   Left trigger = accelerate backward\n"
-        "   Left joystick = turn front wheels\n"
-        "   A button = print current speed and angle\n"
-        "   B button = print the distance at the center of the depth image"
+        "    Right trigger = accelerate forward\n"
+        "    Right bumper = override safety stop\n"
+        "    Left trigger = accelerate backward\n"
+        "    Left joystick = turn front wheels\n"
+        "    A button = print current speed and angle\n"
+        "    B button = print the distance at the center of the depth image"
     )
 
 

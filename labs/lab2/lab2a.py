@@ -111,10 +111,10 @@ def start():
         ">> Lab 2A - Color Image Line Following\n"
         "\n"
         "Controls:\n"
-        "   Right trigger = accelerate forward\n"
-        "   Left trigger = accelerate backward\n"
-        "   A button = print current speed and angle\n"
-        "   B button = print contour center and area"
+        "    Right trigger = accelerate forward\n"
+        "    Left trigger = accelerate backward\n"
+        "    A button = print current speed and angle\n"
+        "    B button = print contour center and area"
     )
 
 

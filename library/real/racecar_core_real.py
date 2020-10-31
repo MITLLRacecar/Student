@@ -89,10 +89,10 @@ class RacecarReal(Racecar):
         print(">> Racecar initialization successful")
         print(
             ">> Controls:\n"
-            "     START button = run your program\n"
-            "     BACK button = enter default drive mode\n"
-            "     BACK + START buttons simultaneously = exit the program\n"
-            "     CTRL + Z on keyboard = force quit the program"
+            "    START button = run your program\n"
+            "    BACK button = enter default drive mode\n"
+            "    BACK + START buttons simultaneously = exit the program\n"
+            "    CTRL + Z on keyboard = force quit the program"
         )
 
     def go(self) -> None:

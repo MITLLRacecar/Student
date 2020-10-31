@@ -46,13 +46,13 @@ def start():
         ">> Lab 4A - LIDAR Safety Stop\n"
         "\n"
         "Controls:\n"
-        "   Right trigger = accelerate forward\n"
-        "   Right bumper = override forward safety stop\n"
-        "   Left trigger = accelerate backward\n"
-        "   Left bumper = override rear safety stop\n"
-        "   Left joystick = turn front wheels\n"
-        "   A button = print current speed and angle\n"
-        "   B button = print forward and back distances"
+        "    Right trigger = accelerate forward\n"
+        "    Right bumper = override forward safety stop\n"
+        "    Left trigger = accelerate backward\n"
+        "    Left bumper = override rear safety stop\n"
+        "    Left joystick = turn front wheels\n"
+        "    A button = print current speed and angle\n"
+        "    B button = print forward and back distances"
     )
 
 
