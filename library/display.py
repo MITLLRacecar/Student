@@ -25,6 +25,9 @@ class Display(abc.ABC):
     __SMALL_DOT_RADIUS = 4
     __LIDAR_CAR_RADIUS = 2
 
+    def __init__(self, isHeadless: bool) -> None:
+        self.__isHeadless = isHeadless
+
     @abc.abstractmethod
     def create_window(self) -> None:
         """
@@ -90,6 +93,9 @@ class Display(abc.ABC):
             # row 3, column 5
             rc.display.show_depth_image(depth_image, 500, [(3, 5)])
         """
+        if self.__isHeadless:
+            return
+
         assert max_depth > 0, "max_depth must be positive."
         for point in points:
             assert (
@@ -157,6 +163,9 @@ class Display(abc.ABC):
         """
         assert radius > 0, "radius must be positive."
         assert max_range > 0, "max_range must be positive."
+
+        if self.__isHeadless:
+            return
 
         # Create a square black image with the requested radius
         image = np.zeros((2 * radius, 2 * radius, 3), np.uint8, "C")

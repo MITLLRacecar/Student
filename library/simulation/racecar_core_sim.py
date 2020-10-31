@@ -105,10 +105,10 @@ class RacecarSim(Racecar):
             self.__send_header(self.Header.python_send_next, is_async)
         return raw_bytes
 
-    def __init__(self) -> None:
+    def __init__(self, isHeadless: bool = False) -> None:
         self.camera = camera_sim.CameraSim(self)
         self.controller = controller_sim.ControllerSim(self)
-        self.display = display_sim.DisplaySim()
+        self.display = display_sim.DisplaySim(isHeadless)
         self.drive = drive_sim.DriveSim(self)
         self.physics = physics_sim.PhysicsSim(self)
         self.lidar = lidar_sim.LidarSim(self)

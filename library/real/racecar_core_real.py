@@ -32,7 +32,7 @@ class RacecarReal(Racecar):
     # Number of frames per second
     __FRAME_RATE = 60
 
-    def __init__(self):
+    def __init__(self, isHeadless: bool = False):
         # initialize ROS 2
         ros2.init()
         self.__executor = ros2.get_global_executor()
@@ -41,7 +41,7 @@ class RacecarReal(Racecar):
         # Modules
         self.camera = camera_real.CameraReal()
         self.controller = controller_real.ControllerReal(self)
-        self.display = display_real.DisplayReal()
+        self.display = display_real.DisplayReal(isHeadless)
         self.drive = drive_real.DriveReal()
         self.lidar = lidar_real.LidarReal()
         self.physics = physics_real.PhysicsReal()
