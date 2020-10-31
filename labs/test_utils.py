@@ -71,10 +71,13 @@ def start():
         "   Right trigger = accelerate forward\n"
         "   Left trigger = accelerate backward\n"
         "   Left joystick = turn front wheels\n"
+        "   Right joystick = measure LIDAR distance in a specific direction when clicked\n"
         "   A button = Take a color image and crop it to the top left\n"
         "   B button = Take a color image and identify the largest red contour\n"
         "   X button = Take a depth image and print several statistics\n"
         "   Y button = Take a lidar scan and print several statistics\n"
+        "   Right bumper = Take a color image and identify the AR markers\n"
+        "   Left bumper = Throw an exception\n"
     )
 
 
@@ -176,6 +179,9 @@ def update():
             print("")
         rc_utils.draw_ar_markers(image, markers)
         rc.display.show_color_image(image)
+
+    if rc.controller.was_pressed(rc.controller.Button.LB):
+        raise Exception("The left bumper was pressed")
 
     # Print lidar distance in the direction the right joystick is pointed, if clicked
     if rc.controller.is_down(rc.controller.Button.RJOY):
