@@ -257,6 +257,7 @@ def stack_images_horizontal(
         The images must have the same height.
 
     Example::
+
         color_image = rc.camera.get_color_image()
 
         depth_image = rc.camera.get_depth_image()
@@ -289,6 +290,7 @@ def stack_images_vertical(
         The images must have the same width.
 
     Example::
+
         color_image = rc.camera.get_color_image()
 
         depth_image = rc.camera.get_depth_image()
@@ -780,6 +782,7 @@ def colormap_depth_image(
         The color of each pixel is determined by its distance.
 
     Example::
+
         # retrieve a depth image
         depth_image = rc.camera.get_depth_image()
 
@@ -948,8 +951,8 @@ def get_lidar_average_distance(
 
 class Direction(Enum):
     """
-    The directions which an AR marker can face, with the value indicating the index in
-    __corners of the corner which is currently oriented in the top-left
+    The directions which an AR marker can face, with the value indicating the index of
+    the corner which is currently oriented in the top-left.
     """
 
     UP = 0
@@ -959,6 +962,10 @@ class Direction(Enum):
 
 
 class ARMarker:
+    """
+    Encapsulates information about an AR marker detected in a color image.
+    """
+
     def __init__(self, id: int, corners: NDArray[(4, 2), np.int32]) -> None:
         """
         Creates an object representing an AR marker.
@@ -1172,7 +1179,7 @@ def draw_ar_markers(
 
     Warning:
         This modifies the provided image. If you accessed the image with
-        rc.camera.get_color_image_no_copy(), then you must manually create a copy of the
+        rc.camera.get_color_image_no_copy(), you must manually create a copy of the
         image first with copy.deepcopy().
 
     Example::
