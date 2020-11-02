@@ -48,6 +48,7 @@ def update():
     is pressed
     """
     # TODO: Follow the wall to the right of the car without hitting anything.
+    pass
 
 
 ########################################################################################

@@ -49,6 +49,7 @@ def update():
     """
     # TODO: Park the car 20 cm away from the closest wall with the car directly facing
     # the wall
+    pass
 
 
 ########################################################################################
