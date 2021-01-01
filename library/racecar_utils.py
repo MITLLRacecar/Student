@@ -949,16 +949,16 @@ def get_lidar_average_distance(
 ########################################################################################
 
 
-class Direction(Enum):
+class Orientation(Enum):
     """
-    The directions which an AR marker can face, with the value indicating the index of
-    the corner which is currently oriented in the top-left.
+    The orientations which an AR marker can face, with the value indicating the index of
+    the corner which is currently oriented in the top-left in the image.
     """
 
     UP = 0
-    RIGHT = 1
+    LEFT = 1
     DOWN = 2
-    LEFT = 3
+    RIGHT = 3
 
 
 class ARMarker:
@@ -966,15 +966,17 @@ class ARMarker:
     Encapsulates information about an AR marker detected in a color image.
     """
 
-    def __init__(self, id: int, corners: NDArray[(4, 2), np.int32]) -> None:
+    def __init__(
+        self, marker_id: int, marker_corners: NDArray[(4, 2), np.int32]
+    ) -> None:
         """
         Creates an object representing an AR marker.
 
         Args:
-            id: The integer identification number of the marker pattern.
-            corners: The (row, col) coordinates of the four corners of the marker,
-                ordered clockwise with the top-left corner of the pattern appearing
-                first.
+            marker_id: The integer identification number of the marker pattern.
+            marker_corners: The (row, col) coordinates of the four corners of the
+                marker, ordered clockwise with the top-left corner of the pattern
+                appearing first.
 
         Example::
 
@@ -983,25 +985,25 @@ class ARMarker:
             marker = ARMarker(id, corners)
         """
         assert (
-            corners.shape[0] == 4
-        ), f"corners must contain 4 points, but had [{corners.shape[0]}] points."
+            marker_corners.shape[0] == 4
+        ), f"corners must contain 4 points, but had [{marker_corners.shape[0]}] points."
 
-        self.__id: int = id
-        self.__corners: NDArray[(4, 2), np.int32] = corners
+        self.__id: int = marker_id
+        self.__corners: NDArray[(4, 2), np.int32] = marker_corners
         self.__color: str = "not detected"
         self.__color_area: int = 0
 
-        # Calculate direction based on coners
-        if corners[0][1] > corners[2][1]:
-            if corners[0][0] > corners[2][0]:
-                self.__direction = Direction.DOWN
+        # Calculate orientation based on coners
+        if self.__corners[0][1] > self.__corners[2][1]:
+            if self.__corners[0][0] > self.__corners[2][0]:
+                self.__orientation = Orientation.DOWN
             else:
-                self.__direction = Direction.LEFT
+                self.__orientation = Orientation.RIGHT
         else:
-            if corners[0][0] > corners[2][0]:
-                self.__direction = Direction.RIGHT
+            if self.__corners[0][0] > self.__corners[2][0]:
+                self.__orientation = Orientation.LEFT
             else:
-                self.__direction = Direction.UP
+                self.__orientation = Orientation.UP
 
     def detect_colors(
         self,
@@ -1033,8 +1035,8 @@ class ARMarker:
         assert potential_colors is not None, f"potential_colors cannot be null"
 
         # Calculate the position and dimensions of the marker in the image
-        marker_top, marker_left = self.__corners[self.__direction.value]
-        marker_bottom, marker_right = self.__corners[(self.__direction.value + 2) % 4]
+        marker_top, marker_left = self.__corners[self.__orientation.value]
+        marker_bottom, marker_right = self.__corners[(self.__orientation.value + 2) % 4]
         half_marker_height: int = (marker_bottom - marker_top) // 2
         half_marker_width: int = (marker_right - marker_left) // 2
 
@@ -1087,11 +1089,11 @@ class ARMarker:
             output[0][i][1] = row
         return output
 
-    def get_direction(self) -> Direction:
+    def get_orientation(self) -> Orientation:
         """
-        Returns the direction which the marker currently faces.
+        Returns the orientation of the marker.
         """
-        return self.__direction
+        return self.__orientation
 
     def get_color(self) -> str:
         """
@@ -1103,7 +1105,7 @@ class ARMarker:
         """
         Returns a printable message summarizing the key information of the marker.
         """
-        output: str = f"ID: {self.__id}\nCorners: {self.__corners}\nDirection: {self.__direction}\nColor: "
+        output: str = f"ID: {self.__id}\nCorners: {self.__corners}\nOrientation: {self.__orientation}\nColor: "
         color_lower: str = str.lower(self.__color)
         if color_lower in TerminalColor.__members__:
             return output + format_colored(self.__color, TerminalColor[color_lower])
