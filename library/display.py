@@ -152,14 +152,14 @@ class Display(abc.ABC):
 
         Example::
 
-            depth_image = rc.camera.get_depth_image()
+            lidar_scan = rc.lidar.get_samples()
 
-            # Show the depth_image captured by the camera.
-            rc.display.show_depth_image(depth_image)
+            # Show the lidar scan
+            rc.display.show_lidar(lidar_scan)
 
-            # Show anything that is at most 500 cm away, and show a black cross at
-            # row 3, column 5
-            rc.display.show_depth_image(depth_image, 500, [(3, 5)])
+            # Show the lidar scan out to 500 cm with the closest point highlighted
+            closest_point = rc_utils.get_lidar_closest_point(lidar_scan)
+            rc.display.show_lidar(lidar_scan, 500, [closest_point])
         """
         assert radius > 0, "radius must be positive."
         assert max_range > 0, "max_range must be positive."
