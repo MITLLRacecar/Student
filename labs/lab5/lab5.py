@@ -50,13 +50,14 @@ def update():
     color_image = rc.camera.get_color_image()
     markers = rc_utils.get_ar_markers(color_image)
 
-    # TODO: At the first AR marker, turn left if the ID is 0 and right if the ID is 1
+    # TODO: Turn left if we see a marker with ID 0 and right for ID 1
 
-    # TODO: At the second AR marker, turn left if the marker faces left and right if
-    # the marker faces right
+    # TODO: If we see a marker with ID 199, turn left if the marker faces left and right
+    # if the marker faces right
 
-    # TODO: At the third AR marker, follow the color line which matches the color border
-    # surrounding the marker
+    # TODO: If we see a marker with ID 2, follow the color line which matches the color
+    # border surrounding the marker (either blue or red). If neither color is found but
+    # we see a green line, follow that instead.
 
 
 ########################################################################################
