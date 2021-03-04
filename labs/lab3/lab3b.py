@@ -15,7 +15,7 @@ import cv2 as cv
 import numpy as np
 
 sys.path.insert(0, "../../library")
-from racecar_core import rc
+import racecar_core
 import racecar_utils as rc_utils
 
 ########################################################################################
