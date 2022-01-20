@@ -2,7 +2,6 @@
 Copyright MIT and Harvey Mudd College
 MIT License
 Summer 2020
-
 Manages communication with RacecarSim.
 """
 
@@ -65,6 +64,7 @@ class RacecarSim(Racecar):
         lidar_get_samples = 26
         physics_get_linear_acceleration = 27
         physics_get_angular_velocity = 28
+        physics_get_position = 29 #Added number 29 for the new get_position feature
 
     class Error(IntEnum):
         """
