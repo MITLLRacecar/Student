@@ -68,3 +68,29 @@ class Physics(abc.ABC):
             yaw = ang_vel[1]
         """
         pass
+
+    @abc.abstractmethod
+    def get_position(self) -> NDArray[3, np.float32]:
+        """
+        Returns a 3D vector containing the car's position as x, y, and z coordinates.
+
+        Returns:
+            The position of the car along the (x, y, z) axes during
+            the last frame in m.
+
+        Note:
+            The x axis points out of the right of the car.
+            The y axis points directly up (perpendicular to the ground).
+            The z axis points out of the front of the car.
+
+        Example::
+
+            # position_vector stores the position over the previous frame
+            position_vector = rc.physics.get_position()
+
+            x_position = position_vector[0]
+            y_position = position_vector[1]
+            z_position = position_vector[2]
+        """
+        pass
+
