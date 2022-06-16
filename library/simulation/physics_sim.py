@@ -23,7 +23,6 @@ class PhysicsSim(Physics):
         values = struct.unpack("fff", self.__racecar._RacecarSim__receive_data(12))
         return np.array(values)
 
-    #Added this get_position() function - should return an array of size 3 with the x,y,z coordinates
     def get_position(self) -> NDArray[3, np.float32]:
         self.__racecar._RacecarSim__send_header(
             self.__racecar.Header.physics_get_position
