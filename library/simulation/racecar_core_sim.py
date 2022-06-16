@@ -20,7 +20,6 @@ import display_sim
 import drive_sim
 import lidar_sim
 import physics_sim
-import drone_sim
 
 from racecar_core import Racecar
 import racecar_utils as rc_utils
@@ -67,10 +66,6 @@ class RacecarSim(Racecar):
         physics_get_linear_acceleration = 27
         physics_get_angular_velocity = 28
         physics_get_position = 29
-        drone_get_drone_image = 30
-        drone_get_drone_height = 31
-        drone_set_height = 32
-        drone_return_home = 33
 
     class Error(IntEnum):
         """
@@ -118,7 +113,6 @@ class RacecarSim(Racecar):
         self.drive = drive_sim.DriveSim(self)
         self.physics = physics_sim.PhysicsSim(self)
         self.lidar = lidar_sim.LidarSim(self)
-        self.drone = drone_sim.DroneSim(self)
 
         self.__start: Callable[[], None]
         self.__update: Callable[[], None]
@@ -237,7 +231,6 @@ class RacecarSim(Racecar):
         self.camera._CameraSim__update()
         self.controller._ControllerSim__update()
         self.lidar._LidarSim__update()
-        self.drone._DroneSim__update()
 
     def __handle_sigint(self, signal_received: int, frame) -> None:
         # Send exit command to sync port if we are in the middle of servicing a start
