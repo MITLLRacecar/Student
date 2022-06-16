@@ -22,3 +22,10 @@ class PhysicsSim(Physics):
         )
         values = struct.unpack("fff", self.__racecar._RacecarSim__receive_data(12))
         return np.array(values)
+
+    def get_position(self) -> NDArray[3, np.float32]:
+        self.__racecar._RacecarSim__send_header(
+            self.__racecar.Header.physics_get_position
+        )
+        values = struct.unpack("fff", self.__racecar._RacecarSim__receive_data(12))
+        return np.array(values)
