@@ -30,7 +30,7 @@ class RacecarSim(Racecar):
     __IP = "127.0.0.1"
     __UNITY_PORT = (__IP, 5065)
     __UNITY_ASYNC_PORT = (__IP, 5064)
-    __VERSION = 1
+    __VERSION = 2
 
     class Header(IntEnum):
         """
@@ -67,10 +67,10 @@ class RacecarSim(Racecar):
         physics_get_linear_acceleration = 27
         physics_get_angular_velocity = 28
         physics_get_position = 29
-        drone_get_drone_image = 30
-        drone_get_drone_height = 31
+        drone_get_image = 30
+        drone_get_height = 31
         drone_set_height = 32
-        drone_return_home = 33
+        drone_return_to_car = 33
 
     class Error(IntEnum):
         """
@@ -271,4 +271,3 @@ class RacecarSim(Racecar):
         rc_utils.print_error(text)
         print(">> Closing script...")
         exit(0)
-
