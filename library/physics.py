@@ -72,20 +72,21 @@ class Physics(abc.ABC):
     @abc.abstractmethod
     def get_position(self) -> NDArray[3, np.float32]:
         """
-        Returns a 3D vector containing the car's position as x, y, and z coordinates.
+        Returns a 3D vector containing the car's position relative to the Unity scene's global origin
+        as x, y, and z coordinates.
 
         Returns:
             The position of the car along the (x, y, z) axes during
-            the last frame in m.
+            the last frame in meters.
 
         Note:
-            The x axis points out of the right of the car.
-            The y axis points directly up (perpendicular to the ground).
-            The z axis points out of the front of the car.
+            The x axis points East.
+            The y axis points directly up, perpendicular to the ground (corresponds to altitude).
+            The z axis points North.
 
         Example::
 
-            # position_vector stores the position over the previous frame
+            # position_vector stores the position during the previous frame
             position_vector = rc.physics.get_position()
 
             x_position = position_vector[0]
@@ -93,4 +94,3 @@ class Physics(abc.ABC):
             z_position = position_vector[2]
         """
         pass
-
