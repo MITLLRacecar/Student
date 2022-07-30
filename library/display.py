@@ -11,6 +11,7 @@ import numpy as np
 import math
 from typing import List, Tuple, Any
 from nptyping import NDArray
+from nptyping import Shape
 
 import racecar_utils as rc_utils
 
@@ -68,7 +69,7 @@ class Display(abc.ABC):
 
     def show_depth_image(
         self,
-        image: NDArray[(Any, Any), np.float32],
+        image: NDArray[Shape["*,*"], np.float32],
         max_depth: int = 1000,
         points: List[Tuple[int, int]] = [],
     ) -> None:
