@@ -16,6 +16,7 @@ import display
 import drive
 import lidar
 import physics
+import drone
 
 import racecar_utils as rc_utils
 
@@ -33,6 +34,7 @@ class Racecar(abc.ABC):
         self.drive: drive.Drive
         self.lidar: lidar.Lidar
         self.physics: physics.Physics
+        self.drone: drone.Drone
 
     @abc.abstractmethod
     def go(self) -> None:
